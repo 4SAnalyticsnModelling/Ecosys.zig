@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub const Blk18 = struct {
+pub const Blk18a = struct {
     arlfc: comptime [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),
     arstc: comptime [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),
     tevapp: comptime [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),
@@ -62,7 +62,7 @@ pub const Blk18 = struct {
     tuph1p: comptime [jx][jy][jz]f32 = std.mem.zeroes([jx][jy][jz]f32),
     tuph1b: comptime [jx][jy][jz]f32 = std.mem.zeroes([jx][jy][jz]f32),
 
-    pub fn init() Blk18 {
+    pub fn init() Blk18a {
         return .{};
     }
 };
