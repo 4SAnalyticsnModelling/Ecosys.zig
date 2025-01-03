@@ -135,11 +135,11 @@ pub const Blk2a = struct {
     atka: comptime [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),
     atks: comptime [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),
     engyp: comptime [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),
-    idtbl: comptime [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),
-    itill: comptime [jx][jy][366]f32 = std.mem.zeroes([jx][jy][366]f32),
-    iirra: comptime [jx][jy][4]f32 = std.mem.zeroes([jx][jy][4]f32),
-    irchg: comptime [jx][jy][2][2]f32 = std.mem.zeroes([jx][jy][2][2]f32),
-    iflbh: comptime [jx][jy][2][2]f32 = std.mem.zeroes([jx][jy][2][2]f32),
+    idtbl: comptime [jx][jy]i32 = std.mem.zeroes([jx][jy]i32),
+    itill: comptime [jx][jy][366]i32 = std.mem.zeroes([jx][jy][366]i32),
+    iirra: comptime [jx][jy][4]i32 = std.mem.zeroes([jx][jy][4]i32),
+    irchg: comptime [jx][jy][2][2]i32 = std.mem.zeroes([jx][jy][2][2]i32),
+    iflbh: comptime [jx][jy][2][2]i32 = std.mem.zeroes([jx][jy][2][2]i32),
 
     pub fn init() Blk2a {
         return .{};
