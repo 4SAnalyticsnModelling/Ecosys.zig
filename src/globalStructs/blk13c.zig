@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub const Blk13C = struct {
+pub const Blk13c = struct {
     cfosc: comptime [jx][jy][jz + 1][6][4]f32 = std.mem.zeroes([jx][jy][jz + 1][6][4]f32),
     cnos: comptime [jx][jy][jz + 1][6][4]f32 = std.mem.zeroes([jx][jy][jz + 1][6][4]f32),
     cposc: comptime [jx][jy][jz + 1][6][4]f32 = std.mem.zeroes([jx][jy][jz + 1][6][4]f32),
@@ -51,7 +51,7 @@ pub const Blk13C = struct {
     ch2gg: comptime [jx][jy][jz + 1]f32 = std.mem.zeroes([jx][jy][jz + 1]f32),
     xzhys: comptime [jx][jy][jz + 1]f32 = std.mem.zeroes([jx][jy][jz + 1]f32),
 
-    pub fn init() Blk13C {
+    pub fn init() Blk13c {
         return .{};
     }
 };
