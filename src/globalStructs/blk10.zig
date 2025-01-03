@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub const blk10 = struct {
+pub const Blk10 = struct {
     parr: comptime [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),
     parg: comptime [jx][jy][60]f32 = std.mem.zeroes([jx][jy][60]f32),
     flwm: comptime [jh][jv][jd][3][60]f32 = std.mem.zeroes([jh][jv][jd][3][60]f32),
