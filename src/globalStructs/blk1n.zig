@@ -1,0 +1,48 @@
+const std = @import("std");
+
+pub const Blk1n = struct {
+    wtshn: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    zpoolp: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wtlfn: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wtshen: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wtstkn: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wtrsvn: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wthskn: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wtearn: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wtgrnn: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wtshtn: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    wtlfbn: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    wtshbn: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    wtstbn: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    wtrsbn: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    wthsbn: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    wteabn: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    wtgrbn: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    zpool: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    wglfn: comptime [jx][jy][jp][jc][26]f32 = std.mem.zeroes([jx][jy][jp][jc][26]f32),
+    wgshn: comptime [jx][jy][jp][jc][26]f32 = std.mem.zeroes([jx][jy][jp][jc][26]f32),
+    wgnodn: comptime [jx][jy][jp][jc][26]f32 = std.mem.zeroes([jx][jy][jp][jc][26]f32),
+    wglfln: comptime [jx][jy][jp][jc][26][jz]f32 = std.mem.zeroes([jx][jy][jp][jc][26][jz]f32),
+    zpoolr: comptime [jx][jy][jp][jz][2]f32 = std.mem.zeroes([jx][jy][jp][jz][2]f32),
+    czpolr: comptime [jx][jy][jp][jz][2]f32 = std.mem.zeroes([jx][jy][jp][jz][2]f32),
+    zpooln: comptime [jx][jy][jp][jz]f32 = std.mem.zeroes([jx][jy][jp][jz]f32),
+    zsnc: comptime [jx][jy][jp][jz][2][4]f32 = std.mem.zeroes([jx][jy][jp][jz][2][4]f32),
+    cfopn: comptime [jx][jy][jp][4][6]f32 = std.mem.zeroes([jx][jy][jp][4][6]f32),
+    wtrtn: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wtrt1n: comptime [jx][jy][jp][jc][jz][2]f32 = std.mem.zeroes([jx][jy][jp][jc][jz][2]f32),
+    wtrt2n: comptime [jx][jy][jp][jc][jz][2]f32 = std.mem.zeroes([jx][jy][jp][jc][jz][2]f32),
+    wtndn: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wtndln: comptime [jx][jy][jp][jz]f32 = std.mem.zeroes([jx][jy][jp][jz]f32),
+    czpolp: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    czpolb: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    rtwt1n: comptime [jx][jy][jp][jc][2]f32 = std.mem.zeroes([jx][jy][jp][jc][2]f32),
+    wtstdn: comptime [jx][jy][jp][4]f32 = std.mem.zeroes([jx][jy][jp][4]f32),
+    wtstgn: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    zpolnb: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+    zpolnp: comptime [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),
+    wtndbn: comptime [jx][jy][jp][jc]f32 = std.mem.zeroes([jx][jy][jp][jc]f32),
+
+    pub fn init() Blk1n {
+        return .{};
+    }
+};
