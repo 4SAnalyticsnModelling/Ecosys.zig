@@ -32,7 +32,7 @@ pub const Blk10 = struct {
     qrv: comptime [jx][jy][60]f32 = std.mem.zeroes([jx][jy][60]f32),
     iflbm: comptime [jx][jy][2][2][60]i32 = std.mem.zeroes([jx][jy][2][2][60]i32),
 
-    pub fn init() blk10 {
+    pub fn init() Blk10 {
         return .{};
     }
 };
