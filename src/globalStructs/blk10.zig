@@ -30,7 +30,7 @@ pub const blk10 = struct {
     dfgs: comptime [jx][jy][jz + 1][60]f32 = std.mem.zeroes([jx][jy][jz + 1][60]f32),
     qrm: comptime [jh][jv][60]f32 = std.mem.zeroes([jh][jv][60]f32),
     qrv: comptime [jx][jy][60]f32 = std.mem.zeroes([jx][jy][60]f32),
-    iflbm: comptime [jx][jy][2][2][60]i32 = std.mem.zeroes([jx][jy][2][2][60]i32), // changed to i32
+    iflbm: comptime [jx][jy][2][2][60]i32 = std.mem.zeroes([jx][jy][2][2][60]i32),
 
     pub fn init() blk10 {
         return .{};
