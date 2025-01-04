@@ -57,11 +57,11 @@ pub const Blk2c = struct {
     cc2pu: comptime [jx][jy][jz]f32 = std.mem.zeroes([jx][jy][jz]f32),
     cm1pu: comptime [jx][jy][jz]f32 = std.mem.zeroes([jx][jy][jz]f32),
     copu: comptime [jx][jy][jz][5]f32 = std.mem.zeroes([jx][jy][jz][5]f32),
-    ccou: comptime f32 = 0,
-    cchu: comptime f32 = 0,
-    coxu: comptime f32 = 0,
-    cnnu: comptime f32 = 0,
-    cn2u: comptime f32 = 0,
+    ccou: comptime f32 = 0.0,
+    cchu: comptime f32 = 0.0,
+    coxu: comptime f32 = 0.0,
+    cnnu: comptime f32 = 0.0,
+    cn2u: comptime f32 = 0.0,
     bkrs: comptime [3]f32 = std.mem.zeroes([3]f32),
 
     pub fn init() Blk2c {
