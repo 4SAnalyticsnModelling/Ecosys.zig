@@ -7,21 +7,21 @@ pub fn build(b: *std.Build) void {
         .target = b.host
     });
 
-    const ewgridsmax = b.option(u8, "ewgridsmax", "Maximum number of E-W grid cells") orelse 10;
-    const nsgridsmax = b.option(u8, "nsgridsmax", "Maximum number of N-S grid cells") orelse 10;
-    const soillayersmax = b.option(u8, "soillayersmax", "Maximum number of vertical soil layers") orelse 20;
-    const pftmax = b.option(u8, "pftmax", "Maximum number of plant functional types") orelse 5;
-    const canopymax = b.option(u8, "canopymax", "Maximum number of canopy layers") orelse 10;
-    const subhrwtrcymax = b.option(u8, "subhrwtrcymax", "Maximum number of sub-hourly water cycle") orelse 60;
+    const ewgridsmax = b.option(usize, "ewgridsmax", "Maximum number of E-W grid cells") orelse 10;
+    const nsgridsmax = b.option(usize, "nsgridsmax", "Maximum number of N-S grid cells") orelse 10;
+    const soillayersmax = b.option(usize, "soillayersmax", "Maximum number of vertical soil layers") orelse 20;
+    const pftmax = b.option(usize, "pftmax", "Maximum number of plant functional types") orelse 5;
+    const canopymax = b.option(usize, "canopymax", "Maximum number of canopy layers") orelse 10;
+    const subhrwtrcymax = b.option(usize, "subhrwtrcymax", "Maximum number of sub-hourly water cycle") orelse 60;
 
     const options = b.addOptions();
 
-    options.addOption(u8, "ewgridsmax", ewgridsmax);
-    options.addOption(u8, "nsgridsmax", nsgridsmax);
-    options.addOption(u8, "soillayersmax", soillayersmax);
-    options.addOption(u8, "pftmax", pftmax);
-    options.addOption(u8, "canopymax", canopymax);
-    options.addOption(u8, "subhrwtrcymax", subhrwtrcymax);
+    options.addOption(usize, "ewgridsmax", ewgridsmax);
+    options.addOption(usize, "nsgridsmax", nsgridsmax);
+    options.addOption(usize, "soillayersmax", soillayersmax);
+    options.addOption(usize, "pftmax", pftmax);
+    options.addOption(usize, "canopymax", canopymax);
+    options.addOption(usize, "subhrwtrcymax", subhrwtrcymax);
 
     exe.root_module.addOptions("config", options);
 
