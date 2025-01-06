@@ -1,15 +1,24 @@
 const std = @import("std");
-const config = @import("../build.zig");
+const config = @import("config");
+const Blk1u = @import("globalStructs/blk1u.zig").Blk1u;
+
+pub fn modifyBlk1u(blk1u: *Blk1u) void {
+        blk1u.tkcz[0][0][0] = 3.0;
+	reModifyBlk1u(blk1u);
+    }
+
+pub fn reModifyBlk1u(blk1u: *Blk1u) void {
+        blk1u.tkcz[0][0][0] += 6.0;
+    }
 
 pub fn main() anyerror!void {
     const stdout = std.io.getStdOut().writer();
-    try stdout.print("ewgridsmax (jx): {}\n", .{config.jx});
-    try stdout.print("nsgridsmax (jy): {}\n", .{config.jy});
-    try stdout.print("soillayermax (jz): {}\n", .{config.jz});
-    try stdout.print("pftmax (jp): {}\n", .{config.jp});
-    try stdout.print("jh: {}\n", .{config.jh});
-    try stdout.print("jv: {}\n", .{config.jv});
-    try stdout.print("jd: {}\n", .{config.jd});
-    try stdout.print("jc: {}\n", .{config.jc});
-    try stdout.print("js: {}\n", .{config.js});
+    var blk1u = Blk1u.init();
+
+    try stdout.print("Initial blk1u.tkcz[0][0][0]: {}\n", .{blk1u.tkcz[0][0][0]});
+
+    modifyBlk1u(&blk1u);
+
+    try stdout.print("Modified blk1u.tkcz[0][0][0]: {}\n", .{blk1u.tkcz[0][0][0]});
+    try stdout.print("ewgridsmax (jx): {}\n", .{config.ewgridsmax});
 }
