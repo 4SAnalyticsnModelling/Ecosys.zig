@@ -1,28 +1,34 @@
 const std = @import("std");
 
-pub const jx: comptime usize = std.math.cast(usize, @import("@build_option").getoption("ewgridsmax", 10));
-pub const jy: comptime usize = std.math.cast(usize, @import("@build_option").getoption("nsgridsmax", 10));
-pub const jz: comptime usize = std.math.cast(usize, @import("@build_option").getoption("soillayersmax", 20));
-pub const jp: comptime usize = std.math.cast(usize, @import("@build_option").getoption("pftmax", 5));
-pub const jc: comptime usize = std.math.cast(usize, @import("@build_option").getoption("canopymax", 10));
+pub fn build(b: *std.Build) void {
+    const exe = b.addExecutable(.{
+        .name = "ecosys",
+        .root_source_file = b.path("src/main.zig"),
+        .target = b.host
+    });
 
-pub const jh: comptime usize = jx + 1;
-pub const jv: comptime usize = jy + 1;
-pub const jd: comptime usize = jz + 1;
-pub const js: comptime usize = 5;
+    const ewgridsmax = b.option(u8, "ewgridsmax", "Maximum number of E-W grid cells") orelse 10;
+    const nsgridsmax = b.option(u8, "nsgridsmax", "Maximum number of N-S grid cells") orelse 10;
+    const soillayersmax = b.option(u8, "soillayersmax", "Maximum number of vertical soil layers") orelse 20;
+    const pftmax = b.option(u8, "pftmax", "Maximum number of plant functional types") orelse 5;
+    const canopymax = b.option(u8, "canopymax", "Maximum number of canopy layers") orelse 10;
+    const subhrwtrcymax = b.option(u8, "subhrwtrcymax", "Maximum number of sub-hourly water cycle") orelse 60;
 
-pub fn build(b: *std.build.builder) void {
-    const exe = b.addexecutable("ecosys", "src/main.zig");
-    exe.setbuildmode(b.standardreleaseoptions());
+    const options = b.addOptions();
 
-    exe.adddefine("ewgridsmax", jx);
-    exe.adddefine("nsgridsmax", jy);
-    exe.adddefine("soillayersmax", jz);   
-    exe.adddefine("pftmax", jp);
-    exe.adddefine("canopymax", jc);
+    options.addOption(u8, "ewgridsmax", ewgridsmax);
+    options.addOption(u8, "nsgridsmax", nsgridsmax);
+    options.addOption(u8, "soillayersmax", soillayersmax);
+    options.addOption(u8, "pftmax", pftmax);
+    options.addOption(u8, "canopymax", canopymax);
+    options.addOption(u8, "subhrwtrcymax", subhrwtrcymax);
 
-    exe.install();
+    exe.root_module.addOptions("config", options);
 
-    const run_step = b.step("run", "run the executable");
-    run_step.dependon(&exe.run().step);
+    b.installArtifact(exe);
+
+    const run_exe = b.addRunArtifact(exe);
+
+    const run_step = b.step("run", "Run the application");
+    run_step.dependOn(&run_exe.step);
 }
