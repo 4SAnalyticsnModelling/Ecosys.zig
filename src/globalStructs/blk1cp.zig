@@ -1,6 +1,8 @@
 const std = @import("std");
+const config = @import("config");
 const jx = config.ewgridsmax;
 const jy = config.nsgridsmax;
+const jz = config.soillayersmax;
 const jp = config.pftmax;
 const jc = config.canopymax;
 

@@ -1,4 +1,9 @@
 const std = @import("std");
+const config = @import("config");
+const jx = config.ewgridsmax;
+const jy = config.nsgridsmax;
+const jz = config.soillayersmax;
+const js = config.snowlayersmax;
 
 pub const Blk11a = struct {
     bare: [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),

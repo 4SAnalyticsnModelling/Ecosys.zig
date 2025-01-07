@@ -1,4 +1,11 @@
 const std = @import("std");
+const config = @import("config");
+const jx = config.ewgridsmax;
+const jy = config.nsgridsmax;
+const jz = config.soillayersmax;
+const jh = jx + 1;
+const jv = jy + 1;
+const jd = jz + 1;
 
 pub const Blk15a = struct {
     qr: [jh][jv][2][2]f32 = std.mem.zeroes([jh][jv][2][2]f32),

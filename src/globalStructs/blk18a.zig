@@ -1,4 +1,9 @@
 const std = @import("std");
+const config = @import("config");
+const jx = config.ewgridsmax;
+const jy = config.nsgridsmax;
+const jz = config.soillayersmax;
+const jc = config.canopymax;
 
 pub const Blk18a = struct {
     arlfc: [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),

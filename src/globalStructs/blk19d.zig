@@ -1,4 +1,9 @@
 const std = @import("std");
+const config = @import("config");
+const jx = config.ewgridsmax;
+const jy = config.nsgridsmax;
+const jz = config.soillayersmax;
+const js = config.snowlayersmax;
 
 pub const Blk19d = struct {
     co2w: [jx][jy][js]f32 = std.mem.zeroes([jx][jy][js]f32),
@@ -17,7 +22,6 @@ pub const Blk19d = struct {
     zcaw: [jx][jy][js]f32 = std.mem.zeroes([jx][jy][js]f32),
     zmgw: [jx][jy][js]f32 = std.mem.zeroes([jx][jy][js]f32),
     znaw: [jx][jy][js]f32 = std.mem.zeroes([jx][jy][js]f32),
-    zkaw: [jx][jy][js]f32 = std.mem.zeroes([jx][jy][js]f32),
     zohw: [jx][jy][js]f32 = std.mem.zeroes([jx][jy][js]f32),
     zso4w: [jx][jy][js]f32 = std.mem.zeroes([jx][jy][js]f32),
     zclw: [jx][jy][js]f32 = std.mem.zeroes([jx][jy][js]f32),

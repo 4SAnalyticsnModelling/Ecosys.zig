@@ -3,11 +3,11 @@ const config = @import("config");
 const jx = config.ewgridsmax;
 const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
+const js = config.snowlayersmax;
 const nphx = config.subhrwtrcymax;
 const jh = jx + 1;
 const jv = jy + 1;
 const jd = jz + 1;
-
 
 pub const Blk10 = struct {
     parr: [jx][jy]f32 = std.mem.zeroes([jx][jy]f32),

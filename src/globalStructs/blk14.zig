@@ -1,4 +1,8 @@
 const std = @import("std");
+const config = @import("config");
+const jx = config.ewgridsmax;
+const jy = config.nsgridsmax;
+const jp = config.pftmax;
 
 pub const Blk14 = struct {
     carbn: [jx][jy][jp]f32 = std.mem.zeroes([jx][jy][jp]f32),

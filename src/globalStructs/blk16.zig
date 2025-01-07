@@ -1,4 +1,7 @@
 const std = @import("std");
+const config = @import("config");
+const jx = config.ewgridsmax;
+const jy = config.nsgridsmax;
 
 pub const Blk16 = struct {
     volwso: f32 = 0.0,

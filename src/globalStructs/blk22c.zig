@@ -1,4 +1,8 @@
 const std = @import("std");
+const config = @import("config");
+const jx = config.ewgridsmax;
+const jy = config.nsgridsmax;
+const js = config.snowlayersmax;
 
 pub const Blk22c = struct {
     xmghbs: [jx][jy][js]f32 = std.mem.zeroes([jx][jy][js]f32),

@@ -1,4 +1,10 @@
 const std = @import("std");
+const config = @import("config");
+const jx = config.ewgridsmax;
+const jy = config.nsgridsmax;
+const jz = config.soillayersmax;
+const jp = config.pftmax;
+const jc = config.canopymax;
 
 pub const Blk12b = struct {
     rupnh4: [jx][jy][jp][jz][2]f32 = std.mem.zeroes([jx][jy][jp][jz][2]f32),
