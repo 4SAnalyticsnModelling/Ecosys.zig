@@ -1,5 +1,5 @@
 # Ecosys.zig
-Zig version of the ECOSYS model. The orginal developer of the ECOSYS model (written in Fortran77) is Professor Dr. Robert Grant (University of Alberta). Symon Mezbahuddin (symon.mezbahuddin@4sanalyticsnmodelling.com) translated the Fortran77 ECOSYS to Ecosys.zig.
+Zig version of the [ECOSYS](https://github.com/jinyun1tang/ECOSYS) model. The orginal developer of the ECOSYS model (written in Fortran77) is Professor Dr. Robert Grant (University of Alberta). [Symon Mezbahuddin](symon.mezbahuddin@4sanalyticsnmodelling.com) translated the Fortran77 ECOSYS to Ecosys.zig.
 
 # Compile Ecosys.zig (default)
 `zig build`
