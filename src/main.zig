@@ -52,12 +52,13 @@ const Blk9c = @import("globalStructs/blk9c.zig").Blk9c;
 const Blkc = @import("globalStructs/blkc.zig").Blkc;
 
 pub fn modifyBlk11b(blk11b: *Blk11b) void {
-    blk11b.zlsgl[0][0][0] = 3.0;
+    blk11b.zlsgl[0][0][0] += 3.0;
     reModifyBlk11b(blk11b);
 }
 
 pub fn reModifyBlk11b(blk11b: *Blk11b) void {
-    blk11b.zlsgl[0][0][0] += 6.0;
+    const x = blk11b.zlsgl[0][0][0];
+    blk11b.zlsgl[0][0][0] = std.math.pow(f32, @max(@min(x + 6.0 - 3.0 * 2.0 / 4.0, @abs(x - 5.0)), @log(x + 1.0)), 2.0);
 }
 
 pub fn main() anyerror!void {
@@ -166,9 +167,11 @@ pub fn main() anyerror!void {
     blk9c.ppi[0][0][0] = 23.0;
     blkc.npr = 10;
 
-    modifyBlk11b(&blk11b);
+    for (0..10_000_000_000) |_| {
+        modifyBlk11b(&blk11b);
+    }
 
     try stdout.print("Modified blk11b.zlsgl[0][0][0]: {}\n", .{blk11b.zlsgl[0][0][0]});
-    const waitTime: usize = 20 * std.time.ns_per_s;
-    std.time.sleep(waitTime);
+    // const waitTime: usize = 20 * std.time.ns_per_s;
+    // std.time.sleep(waitTime);
 }
