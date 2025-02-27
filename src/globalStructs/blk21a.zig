@@ -5,75 +5,78 @@ const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
 
 pub const Blk21a = struct {
-    trn4s: [jx][jy][jz + 1]f32,
-    trn3s: [jx][jy][jz + 1]f32,
-    trno3: [jx][jy][jz + 1]f32,
-    trh2o: [jx][jy][jz + 1]f32,
-    trh1p: [jx][jy][jz + 1]f32,
-    trh2p: [jx][jy][jz + 1]f32,
-    trxn4: [jx][jy][jz + 1]f32,
-    trn4b: [jx][jy][jz]f32,
-    trn3b: [jx][jy][jz]f32,
-    trnob: [jx][jy][jz]f32,
-    tral: [jx][jy][jz]f32,
-    trfe: [jx][jy][jz]f32,
-    trhy: [jx][jy][jz]f32,
-    trca: [jx][jy][jz]f32,
-    trmg: [jx][jy][jz]f32,
-    trna: [jx][jy][jz]f32,
-    trka: [jx][jy][jz]f32,
-    troh: [jx][jy][jz]f32,
-    trso4: [jx][jy][jz]f32,
-    trco3: [jx][jy][jz]f32,
-    trhco: [jx][jy][jz]f32,
-    trco2: [jx][jy][jz]f32,
-    tral1: [jx][jy][jz]f32,
-    tral2: [jx][jy][jz]f32,
-    tral3: [jx][jy][jz]f32,
-    tral4: [jx][jy][jz]f32,
-    trals: [jx][jy][jz]f32,
-    trfe1: [jx][jy][jz]f32,
-    trfe2: [jx][jy][jz]f32,
-    trfe3: [jx][jy][jz]f32,
-    trfe4: [jx][jy][jz]f32,
-    trfes: [jx][jy][jz]f32,
-    trcao: [jx][jy][jz]f32,
-    trcac: [jx][jy][jz]f32,
-    trcah: [jx][jy][jz]f32,
-    trcas: [jx][jy][jz]f32,
-    trmgo: [jx][jy][jz]f32,
-    trmgc: [jx][jy][jz]f32,
-    trmgh: [jx][jy][jz]f32,
-    trmgs: [jx][jy][jz]f32,
-    trnac: [jx][jy][jz]f32,
-    trnas: [jx][jy][jz]f32,
-    trh0p: [jx][jy][jz]f32,
-    trh3p: [jx][jy][jz]f32,
-    trf1p: [jx][jy][jz]f32,
-    trf2p: [jx][jy][jz]f32,
-    trc0p: [jx][jy][jz]f32,
-    trc1p: [jx][jy][jz]f32,
-    trc2p: [jx][jy][jz]f32,
-    trm1p: [jx][jy][jz]f32,
-    trh0b: [jx][jy][jz]f32,
-    trh1b: [jx][jy][jz]f32,
-    trh2b: [jx][jy][jz]f32,
-    trh3b: [jx][jy][jz]f32,
-    trf1b: [jx][jy][jz]f32,
-    trf2b: [jx][jy][jz]f32,
-    trc0b: [jx][jy][jz]f32,
-    trc1b: [jx][jy][jz]f32,
-    trc2b: [jx][jy][jz]f32,
-    trm1b: [jx][jy][jz]f32,
-    trxnb: [jx][jy][jz]f32,
-    trxhy: [jx][jy][jz]f32,
-    trxal: [jx][jy][jz]f32,
-    trxca: [jx][jy][jz]f32,
-    trxmg: [jx][jy][jz]f32,
-    trxna: [jx][jy][jz]f32,
-    trxka: [jx][jy][jz]f32,
-    trxfe: [jx][jy][jz]f32,
-    trxfe2: [jx][jy][jz]f32,
+    trn4s: [jx][jy][jz + 1]f32, // Fortran: TRN4S(0:JZ,JY,JX)
+    trn3s: [jx][jy][jz + 1]f32, // Fortran: TRN3S(0:JZ,JY,JX)
+    trno3: [jx][jy][jz + 1]f32, // Fortran: TRNO3(0:JZ,JY,JX)
+    trh2o: [jx][jy][jz + 1]f32, // Fortran: TRH2O(0:JZ,JY,JX)
+    trh1p: [jx][jy][jz + 1]f32, // Fortran: TRH1P(0:JZ,JY,JX)
+    trh2p: [jx][jy][jz + 1]f32, // Fortran: TRH2P(0:JZ,JY,JX)
+    trxn4: [jx][jy][jz + 1]f32, // Fortran: TRXN4(0:JZ,JY,JX)
+    trn4b: [jx][jy][jz]f32, // Fortran: TRN4B(JZ,JY,JX)
+    trn3b: [jx][jy][jz]f32, // Fortran: TRN3B(JZ,JY,JX)
+    trnob: [jx][jy][jz]f32, // Fortran: TRNOB(JZ,JY,JX)
+    tral: [jx][jy][jz]f32, // Fortran: TRAL(JZ,JY,JX)
+    trfe: [jx][jy][jz]f32, // Fortran: TRFE(JZ,JY,JX)
+    trhy: [jx][jy][jz]f32, // Fortran: TRHY(JZ,JY,JX)
+    trca: [jx][jy][jz]f32, // Fortran: TRCA(JZ,JY,JX)
+    trmg: [jx][jy][jz]f32, // Fortran: TRMG(JZ,JY,JX)
+    trna: [jx][jy][jz]f32, // Fortran: TRNA(JZ,JY,JX)
+    trka: [jx][jy][jz]f32, // Fortran: TRKA(JZ,JY,JX)
+    troh: [jx][jy][jz]f32, // Fortran: TROH(JZ,JY,JX)
+    trso4: [jx][jy][jz]f32, // Fortran: TRSO4(JZ,JY,JX)
+    trco3: [jx][jy][jz]f32, // Fortran: TRCO3(JZ,JY,JX)
+    trhco: [jx][jy][jz]f32, // Fortran: TRHCO(JZ,JY,JX)
+    trco2: [jx][jy][jz]f32, // Fortran: TRCO2(JZ,JY,JX)
+    tral1: [jx][jy][jz]f32, // Fortran: TRAL1(JZ,JY,JX)
+    tral2: [jx][jy][jz]f32, // Fortran: TRAL2(JZ,JY,JX)
+    tral3: [jx][jy][jz]f32, // Fortran: TRAL3(JZ,JY,JX)
+    tral4: [jx][jy][jz]f32, // Fortran: TRAL4(JZ,JY,JX)
+    trals: [jx][jy][jz]f32, // Fortran: TRALS(JZ,JY,JX)
+    trfe1: [jx][jy][jz]f32, // Fortran: TRFE1(JZ,JY,JX)
+    trfe2: [jx][jy][jz]f32, // Fortran: TRFE2(JZ,JY,JX)
+    trfe3: [jx][jy][jz]f32, // Fortran: TRFE3(JZ,JY,JX)
+    trfe4: [jx][jy][jz]f32, // Fortran: TRFE4(JZ,JY,JX)
+    trfes: [jx][jy][jz]f32, // Fortran: TRFES(JZ,JY,JX)
+    trcao: [jx][jy][jz]f32, // Fortran: TRCAO(JZ,JY,JX)
+    trcac: [jx][jy][jz]f32, // Fortran: TRCAC(JZ,JY,JX)
+    trcah: [jx][jy][jz]f32, // Fortran: TRCAH(JZ,JY,JX)
+    trcas: [jx][jy][jz]f32, // Fortran: TRCAS(JZ,JY,JX)
+    trmgo: [jx][jy][jz]f32, // Fortran: TRMGO(JZ,JY,JX)
+    trmgc: [jx][jy][jz]f32, // Fortran: TRMGC(JZ,JY,JX)
+    trmgh: [jx][jy][jz]f32, // Fortran: TRMGH(JZ,JY,JX)
+    trmgs: [jx][jy][jz]f32, // Fortran: TRMGS(JZ,JY,JX)
+    trnac: [jx][jy][jz]f32, // Fortran: TRNAC(JZ,JY,JX)
+    trnas: [jx][jy][jz]f32, // Fortran: TRNAS(JZ,JY,JX)
+    trh0p: [jx][jy][jz]f32, // Fortran: TRH0P(JZ,JY,JX)
+    trh3p: [jx][jy][jz]f32, // Fortran: TRH3P(JZ,JY,JX)
+    trf1p: [jx][jy][jz]f32, // Fortran: TRF1P(JZ,JY,JX)
+    trf2p: [jx][jy][jz]f32, // Fortran: TRF2P(JZ,JY,JX)
+    trc0p: [jx][jy][jz]f32, // Fortran: TRC0P(JZ,JY,JX)
+    trc1p: [jx][jy][jz]f32, // Fortran: TRC1P(JZ,JY,JX)
+    trc2p: [jx][jy][jz]f32, // Fortran: TRC2P(JZ,JY,JX)
+    trm1p: [jx][jy][jz]f32, // Fortran: TRM1P(JZ,JY,JX)
+    trh0b: [jx][jy][jz]f32, // Fortran: TRH0B(JZ,JY,JX)
+    trh1b: [jx][jy][jz]f32, // Fortran: TRH1B(JZ,JY,JX)
+    trh2b: [jx][jy][jz]f32, // Fortran: TRH2B(JZ,JY,JX)
+    trh3b: [jx][jy][jz]f32, // Fortran: TRH3B(JZ,JY,JX)
+    trf1b: [jx][jy][jz]f32, // Fortran: TRF1B(JZ,JY,JX)
+    trf2b: [jx][jy][jz]f32, // Fortran: TRF2B(JZ,JY,JX)
+    trc0b: [jx][jy][jz]f32, // Fortran: TRC0B(JZ,JY,JX)
+    trc1b: [jx][jy][jz]f32, // Fortran: TRC1B(JZ,JY,JX)
+    trc2b: [jx][jy][jz]f32, // Fortran: TRC2B(JZ,JY,JX)
+    trm1b: [jx][jy][jz]f32, // Fortran: TRM1B(JZ,JY,JX)
+    trxnb: [jx][jy][jz]f32, // Fortran: TRXNB(JZ,JY,JX)
+    trxhy: [jx][jy][jz]f32, // Fortran: TRXHY(JZ,JY,JX)
+    trxal: [jx][jy][jz]f32, // Fortran: TRXAL(JZ,JY,JX)
+    trxca: [jx][jy][jz]f32, // Fortran: TRXCA(JZ,JY,JX)
+    trxmg: [jx][jy][jz]f32, // Fortran: TRXMG(JZ,JY,JX)
+    trxna: [jx][jy][jz]f32, // Fortran: TRXNA(JZ,JY,JX)
+    trxka: [jx][jy][jz]f32, // Fortran: TRXKA(JZ,JY,JX)
+    trxhc: [jx][jy][jz]f32, // Fortran: TRXHC(JZ,JY,JX)
+    trxal2: [jx][jy][jz]f32, // Fortran: TRXAL2(JZ,JY,JX)
+    trkas: [jx][jy][jz]f32, // Fortran: TRKAS(JZ,JY,JX)
+    trxfe: [jx][jy][jz]f32, // Fortran: TRXFE(JZ,JY,JX)
+    trxfe2: [jx][jy][jz]f32, // Fortran: TRXFE2(JZ,JY,JX)
 
     pub fn init() Blk21a {
         return std.mem.zeroInit(Blk21a, .{});

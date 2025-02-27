@@ -2,124 +2,120 @@ const std = @import("std");
 const config = @import("config");
 const jx = config.ewgridsmax;
 const jy = config.nsgridsmax;
+const jp = config.pftmax;
 
 pub const Blk16 = struct {
-    hco2g: [jx][jy]f32,
-    hch4g: [jx][jy]f32,
-    hoxyg: [jx][jy]f32,
-    hn2og: [jx][jy]f32,
-    hnh3g: [jx][jy]f32,
-    uraiq: [jx][jy]f32,
-    tomt: [jx][jy]f32,
-    tont: [jx][jy]f32,
-    topt: [jx][jy]f32,
-    ursdc: [jx][jy]f32,
-    uorgc: [jx][jy]f32,
-    uorgf: [jx][jy]f32,
-    uxcsn: [jx][jy]f32,
-    uco2s: [jx][jy]f32,
-    udocq: [jx][jy]f32,
-    udocd: [jx][jy]f32,
-    tnbp: [jx][jy]f32,
-    uevap: [jx][jy]f32,
-    urain: [jx][jy]f32,
-    urun: [jx][jy]f32,
-    uvolw: [jx][jy]f32,
-    uvolo: [jx][jy]f32,
-    ursdn: [jx][jy]f32,
-    uorgn: [jx][jy]f32,
-    ufertn: [jx][jy]f32,
-    uxzsn: [jx][jy]f32,
-    unh4: [jx][jy]f32,
-    uno3: [jx][jy]f32,
-    upo4: [jx][jy]f32,
-    udonq: [jx][jy]f32,
-    udond: [jx][jy]f32,
-    udopq: [jx][jy]f32,
-    udopd: [jx][jy]f32,
-    upp4: [jx][jy]f32,
-    un2gs: [jx][jy]f32,
-    ursdp: [jx][jy]f32,
-    uorgp: [jx][jy]f32,
-    ufertp: [jx][jy]f32,
-    uh2gg: [jx][jy]f32,
-    uxpsn: [jx][jy]f32,
-    hn2gg: [jx][jy]f32,
-    un2gg: [jx][jy]f32,
-    uion: [jx][jy]f32,
-    uionou: [jx][jy]f32,
-    uco2g: [jx][jy]f32,
-    uch4g: [jx][jy]f32,
-    uoxyg: [jx][jy]f32,
-    unh3g: [jx][jy]f32,
-    un2og: [jx][jy]f32,
-    uco2f: [jx][jy]f32,
-    uch4f: [jx][jy]f32,
-    uoxyf: [jx][jy]f32,
-    unh3f: [jx][jy]f32,
-    un2of: [jx][jy]f32,
-    upo4f: [jx][jy]f32,
-    udrain: [jx][jy]f32,
-    zdrain: [jx][jy]f32,
-    pdrain: [jx][jy]f32,
-    ucop: [jx][jy]f32,
-    usedou: [jx][jy]f32,
-    ppt: [jx][jy]f32,
-    udicq: [jx][jy]f32,
-    udicd: [jx][jy]f32,
-    udinq: [jx][jy]f32,
-    udind: [jx][jy]f32,
-    udipq: [jx][jy]f32,
-    udipd: [jx][jy]f32,
-    hvolo: [jx][jy]f32,
-    wtstgt: [jx][jy]f32,
-    wqrh: [jx][jy]f32,
-    volwso: f32,
-    heatso: f32,
-    oxygso: f32,
-    tlrsdc: f32,
-    tlrsdn: f32,
-    tlrsdp: f32,
-    tlorc: f32,
-    tlorgn: f32,
-    tlorp: f32,
-    tlnh4: f32,
-    tlno3: f32,
-    tlpo4: f32,
-    tbalc: f32,
-    tbaln: f32,
-    tbalp: f32,
-    crain: f32,
-    heatin: f32,
-    oxygin: f32,
-    torgf: f32,
-    torgn: f32,
-    torgp: f32,
-    co2gin: f32,
-    zn2gin: f32,
-    volwou: f32,
-    cevap: f32,
-    crun: f32,
-    heatou: f32,
-    oxygou: f32,
-    tcou: f32,
-    tzou: f32,
-    tpou: f32,
-    tzin: f32,
-    tpin: f32,
-    xcsn: f32,
-    xzsn: f32,
-    xpsn: f32,
-    tlco2g: f32,
-    tln2g: f32,
-    tlh2g: f32,
-    h2gin: f32,
-    h2gou: f32,
-    tsedso: f32,
-    tsedou: f32,
-    tion: f32,
-    tionin: f32,
-    tionou: f32,
+    hco2g: [jx][jy]f32, // Fortran: HCO2G(JY,JX)
+    hch4g: [jx][jy]f32, // Fortran: HCH4G(JY,JX)
+    hoxyg: [jx][jy]f32, // Fortran: HOXYG(JY,JX)
+    hn2og: [jx][jy]f32, // Fortran: HN2OG(JY,JX)
+    hnh3g: [jx][jy]f32, // Fortran: HNH3G(JY,JX)
+    uraiq: [jx][jy]f32, // Fortran: URAIQ(JY,JX)
+    tomt: [jx][jy]f32, // Fortran: TOMT(JY,JX)
+    tont: [jx][jy]f32, // Fortran: TONT(JY,JX)
+    topt: [jx][jy]f32, // Fortran: TOPT(JY,JX)
+    ursdc: [jx][jy]f32, // Fortran: URSDC(JY,JX)
+    uorgc: [jx][jy]f32, // Fortran: UORGC(JY,JX)
+    uorgf: [jx][jy]f32, // Fortran: UORGF(JY,JX)
+    uxcsn: [jx][jy]f32, // Fortran: UXCSN(JY,JX)
+    uco2s: [jx][jy]f32, // Fortran: UCO2S(JY,JX)
+    udocq: [jx][jy]f32, // Fortran: UDOCQ(JY,JX)
+    udocd: [jx][jy]f32, // Fortran: UDOCD(JY,JX)
+    tnbp: [jx][jy]f32, // Fortran: TNBP(JY,JX)
+    uevap: [jx][jy]f32, // Fortran: UEVAP(JY,JX)
+    urain: [jx][jy]f32, // Fortran: URAIN(JY,JX)
+    urun: [jx][jy]f32, // Fortran: URUN(JY,JX)
+    uvolw: [jx][jy]f32, // Fortran: UVOLW(JY,JX)
+    uvolo: [jx][jy]f32, // Fortran: UVOLO(JY,JX)
+    ursdn: [jx][jy]f32, // Fortran: URSDN(JY,JX)
+    uorgn: [jx][jy]f32, // Fortran: UORGN(JY,JX)
+    ufertn: [jx][jy]f32, // Fortran: UFERTN(JY,JX)
+    uxzsn: [jx][jy]f32, // Fortran: UXZSN(JY,JX)
+    unh4: [jx][jy]f32, // Fortran: UNH4(JY,JX)
+    uno3: [jx][jy]f32, // Fortran: UNO3(JY,JX)
+    upo4: [jx][jy]f32, // Fortran: UPO4(JY,JX)
+    udonq: [jx][jy]f32, // Fortran: UDONQ(JY,JX)
+    udond: [jx][jy]f32, // Fortran: UDOND(JY,JX)
+    udopq: [jx][jy]f32, // Fortran: UDOPQ(JY,JX)
+    udopd: [jx][jy]f32, // Fortran: UDOPD(JY,JX)
+    upp4: [jx][jy]f32, // Fortran: UPP4(JY,JX)
+    un2gs: [jx][jy]f32, // Fortran: UN2GS(JY,JX)
+    ursdp: [jx][jy]f32, // Fortran: URSDP(JY,JX)
+    uorgp: [jx][jy]f32, // Fortran: UORGP(JY,JX)
+    ufertp: [jx][jy]f32, // Fortran: UFERTP(JY,JX)
+    uh2gg: [jx][jy]f32, // Fortran: UH2GG(JY,JX)
+    uxpsn: [jx][jy]f32, // Fortran: UXPSN(JY,JX)
+    hn2gg: [jx][jy]f32, // Fortran: HN2GG(JY,JX)
+    un2gg: [jx][jy]f32, // Fortran: UN2GG(JY,JX)
+    uion: [jx][jy]f32, // Fortran: UION(JY,JX)
+    uionou: [jx][jy]f32, // Fortran: UIONOU(JY,JX)
+    uco2g: [jx][jy]f32, // Fortran: UCO2G(JY,JX)
+    uch4g: [jx][jy]f32, // Fortran: UCH4G(JY,JX)
+    uoxyg: [jx][jy]f32, // Fortran: UOXYG(JY,JX)
+    unh3g: [jx][jy]f32, // Fortran: UNH3G(JY,JX)
+    un2og: [jx][jy]f32, // Fortran: UN2OG(JY,JX)
+    uco2f: [jx][jy]f32, // Fortran: UCO2F(JY,JX)
+    uch4f: [jx][jy]f32, // Fortran: UCH4F(JY,JX)
+    uoxyf: [jx][jy]f32, // Fortran: UOXYF(JY,JX)
+    unh3f: [jx][jy]f32, // Fortran: UNH3F(JY,JX)
+    un2of: [jx][jy]f32, // Fortran: UN2OF(JY,JX)
+    upo4f: [jx][jy]f32, // Fortran: UPO4F(JY,JX)
+    udrain: [jx][jy]f32, // Fortran: UDRAIN(JY,JX)
+    zdrain: [jx][jy]f32, // Fortran: ZDRAIN(JY,JX)
+    pdrain: [jx][jy]f32, // Fortran: PDRAIN(JY,JX)
+    ucop: [jx][jy]f32, // Fortran: UCOP(JY,JX)
+    usedou: [jx][jy]f32, // Fortran: USEDOU(JY,JX)
+    ppt: [jx][jy]f32, // Fortran: PPT(JY,JX)
+    udicq: [jx][jy]f32, // Fortran: UDICQ(JY,JX)
+    udicd: [jx][jy]f32, // Fortran: UDICD(JY,JX)
+    udinq: [jx][jy]f32, // Fortran: UDINQ(JY,JX)
+    udind: [jx][jy]f32, // Fortran: UDIND(JY,JX)
+    udipq: [jx][jy]f32, // Fortran: UDIPQ(JY,JX)
+    udipd: [jx][jy]f32, // Fortran: UDIPD(JY,JX)
+    hvolo: [jx][jy]f32, // Fortran: HVOLO(JY,JX)
+    wtstgt: [jx][jy]f32, // Fortran: WTSTGT(JY,JX)
+    wqrh: [jx][jy]f32, // Fortran: WQRH(JY,JX)
+    volwso: f32, // Fortran: VOLWSO
+    heatso: f32, // Fortran: HEATSO
+    oxygso: f32, // Fortran: OXYGSO
+    tlrsdc: f32, // Fortran: TLRSDC
+    tlrsdn: f32, // Fortran: TLRSDN
+    tlrsdp: f32, // Fortran: TLRSDP
+    tlorc: f32, // Fortran: TLORGC
+    tlorgn: f32, // Fortran: TLORGN
+    tlorp: f32, // Fortran: TLORGP
+    tlnh4: f32, // Fortran: TLNH4
+    tlno3: f32, // Fortran: TLNO3
+    tlpo4: f32, // Fortran: TLPO4
+    tbalc: f32, // Fortran: TBALC
+    tbaln: f32, // Fortran: TBALN
+    tbalp: f32, // Fortran: TBALP
+    crain: f32, // Fortran: CRAIN
+    heatin: f32, // Fortran: HEATIN
+    oxygin: f32, // Fortran: OXYGIN
+    torgf: f32, // Fortran: TORGF
+    torgn: f32, // Fortran: TORGN
+    torgp: f32, // Fortran: TORGP
+    co2gin: f32, // Fortran: CO2GIN
+    zn2gin: f32, // Fortran: ZN2GIN
+    volwou: f32, // Fortran: VOLWOU
+    cevap: f32, // Fortran: CEVAP
+    crun: f32, // Fortran: CRUN
+    heatou: f32, // Fortran: HEATOU
+    oxygou: f32, // Fortran: OXYGOU
+    tcou: f32, // Fortran: TCOU
+    tzou: f32, // Fortran: TZOU
+    tpou: f32, // Fortran: TPOU
+    tzin: f32, // Fortran: TZIN
+    tpin: f32, // Fortran: TPIN
+    xcsn: f32, // Fortran: XCSN
+    xzsn: f32, // Fortran: XZSN
+    xpsn: f32, // Fortran: XPSN
+    tlco2g: f32, // Fortran: TLCO2G
+    tln2g: f32, // Fortran: TLN2G
+    tlh2g: f32, // Fortran: TLH2G
+    h2gin: f32, // Fortran: H2GIN
+    h2gou: f32, // Fortran: H2GOU
 
     pub fn init() Blk16 {
         return std.mem.zeroInit(Blk16, .{});

@@ -5,45 +5,76 @@ const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
 
 pub const Blk13a = struct {
-    omc: [jx][jy][jz + 1][6][7][3]f32,
-    omn: [jx][jy][jz + 1][6][7][3]f32,
-    omp: [jx][jy][jz + 1][6][7][3]f32,
-    orc: [jx][jy][jz + 1][5][2]f32,
-    orn: [jx][jy][jz + 1][5][2]f32,
-    orp: [jx][jy][jz + 1][5][2]f32,
-    osc: [jx][jy][jz + 1][5][4]f32,
-    osn: [jx][jy][jz + 1][5][4]f32,
-    osp: [jx][jy][jz + 1][5][4]f32,
-    oqa: [jx][jy][jz + 1][5]f32,
-    oqc: [jx][jy][jz + 1][5]f32,
-    oqn: [jx][jy][jz + 1][5]f32,
-    oqp: [jx][jy][jz + 1][5]f32,
-    oqch: [jx][jy][jz + 1][5]f32,
-    oqnh: [jx][jy][jz + 1][5]f32,
-    oqph: [jx][jy][jz + 1][5]f32,
-    oqah: [jx][jy][jz + 1][5]f32,
-    oha: [jx][jy][jz + 1][5]f32,
-    ohc: [jx][jy][jz + 1][5]f32,
-    ohn: [jx][jy][jz + 1][5]f32,
-    ohp: [jx][jy][jz + 1][5]f32,
-    orgc: [jx][jy][jz + 1]f32,
-    znh4fa: [jx][jy][jz + 1]f32,
-    znh3fa: [jx][jy][jz + 1]f32,
-    znhufa: [jx][jy][jz + 1]f32,
-    zno3fa: [jx][jy][jz + 1]f32,
-    orgcx: [jx][jy][jz + 1]f32,
-    toqck: [jx][jy][jz + 1]f32,
-    orgn: [jx][jy][jz + 1]f32,
-    orgr: [jx][jy][jz + 1]f32,
-    znfni: [jx][jy][jz + 1]f32,
-    znfn0: [jx][jy][jz + 1]f32,
-    znhui: [jx][jy][jz + 1]f32,
-    znhu0: [jx][jy][jz + 1]f32,
-    h1po4: [jx][jy][jz + 1]f32,
-    h1pob: [jx][jy][jz + 1]f32,
-    h1po4h: [jx][jy][jz]f32,
-    h1pobh: [jx][jy][jz]f32,
-    rc0: [jx][jy][6]f32,
+    omc: [jx][jy][jz + 1][6][7][3]f32, // Fortran: OMC(3,7,0:5,0:JZ,JY,JX)
+    omn: [jx][jy][jz + 1][6][7][3]f32, // Fortran: OMN(3,7,0:5,0:JZ,JY,JX)
+    omp: [jx][jy][jz + 1][6][7][3]f32, // Fortran: OMP(3,7,0:5,0:JZ,JY,JX)
+    orc: [jx][jy][jz + 1][5][2]f32, // Fortran: ORC(2,0:4,0:JZ,JY,JX)
+    orn: [jx][jy][jz + 1][5][2]f32, // Fortran: ORN(2,0:4,0:JZ,JY,JX)
+    orp: [jx][jy][jz + 1][5][2]f32, // Fortran: ORP(2,0:4,0:JZ,JY,JX)
+    oqc: [jx][jy][jz + 1][5]f32, // Fortran: OQC(0:4,0:JZ,JY,JX)
+    oqn: [jx][jy][jz + 1][5]f32, // Fortran: OQN(0:4,0:JZ,JY,JX)
+    oqp: [jx][jy][jz + 1][5]f32, // Fortran: OQP(0:4,0:JZ,JY,JX)
+    oqa: [jx][jy][jz + 1][5]f32, // Fortran: OQA(0:4,0:JZ,JY,JX)
+    oqch: [jx][jy][jz + 1][5]f32, // Fortran: OQCH(0:4,0:JZ,JY,JX)
+    oqnh: [jx][jy][jz + 1][5]f32, // Fortran: OQNH(0:4,0:JZ,JY,JX)
+    oqph: [jx][jy][jz + 1][5]f32, // Fortran: OQPH(0:4,0:JZ,JY,JX)
+    oqah: [jx][jy][jz + 1][5]f32, // Fortran: OQAH(0:4,0:JZ,JY,JX)
+    ohc: [jx][jy][jz + 1][5]f32, // Fortran: OHC(0:4,0:JZ,JY,JX)
+    ohn: [jx][jy][jz + 1][5]f32, // Fortran: OHN(0:4,0:JZ,JY,JX)
+    ohp: [jx][jy][jz + 1][5]f32, // Fortran: OHP(0:4,0:JZ,JY,JX)
+    oha: [jx][jy][jz + 1][5]f32, // Fortran: OHA(0:4,0:JZ,JY,JX)
+    osc: [jx][jy][jz + 1][5][4]f32, // Fortran: OSC(4,0:4,0:JZ,JY,JX)
+    osn: [jx][jy][jz + 1][5][4]f32, // Fortran: OSN(4,0:4,0:JZ,JY,JX)
+    osp: [jx][jy][jz + 1][5][4]f32, // Fortran: OSP(4,0:4,0:JZ,JY,JX)
+    orgc: [jx][jy][jz + 1]f32, // Fortran: ORGC(0:JZ,JY,JX)
+    orgcx: [jx][jy][jz + 1]f32, // Fortran: ORGCX(0:JZ,JY,JX)
+    orgn: [jx][jy][jz + 1]f32, // Fortran: ORGN(0:JZ,JY,JX)
+    orgr: [jx][jy][jz + 1]f32, // Fortran: ORGR(0:JZ,JY,JX)
+    znh4fa: [jx][jy][jz + 1]f32, // Fortran: ZNH4FA(0:JZ,JY,JX)
+    znh3fa: [jx][jy][jz + 1]f32, // Fortran: ZNH3FA(0:JZ,JY,JX)
+    znhufa: [jx][jy][jz + 1]f32, // Fortran: ZNHUFA(0:JZ,JY,JX)
+    zno3fa: [jx][jy][jz + 1]f32, // Fortran: ZNO3FA(0:JZ,JY,JX)
+    znh4fb: [jx][jy][jz + 1]f32, // Fortran: ZNH4FB(0:JZ,JY,JX)
+    znh3fb: [jx][jy][jz + 1]f32, // Fortran: ZNH3FB(0:JZ,JY,JX)
+    znhufb: [jx][jy][jz + 1]f32, // Fortran: ZNHUFB(0:JZ,JY,JX)
+    zno3fb: [jx][jy][jz + 1]f32, // Fortran: ZNO3FB(0:JZ,JY,JX)
+    zno2b: [jx][jy][jz + 1]f32, // Fortran: ZNO2B(0:JZ,JY,JX)
+    znh4s: [jx][jy][jz + 1]f32, // Fortran: ZNH4S(0:JZ,JY,JX)
+    znh3s: [jx][jy][jz + 1]f32, // Fortran: ZNH3S(0:JZ,JY,JX)
+    zno3s: [jx][jy][jz + 1]f32, // Fortran: ZNO3S(0:JZ,JY,JX)
+    h2po4: [jx][jy][jz + 1]f32, // Fortran: H2PO4(0:JZ,JY,JX)
+    znh4b: [jx][jy][jz + 1]f32, // Fortran: ZNH4B(0:JZ,JY,JX)
+    znh3b: [jx][jy][jz + 1]f32, // Fortran: ZNH3B(0:JZ,JY,JX)
+    zno3b: [jx][jy][jz + 1]f32, // Fortran: ZNO3B(0:JZ,JY,JX)
+    h2pob: [jx][jy][jz + 1]f32, // Fortran: H2POB(0:JZ,JY,JX)
+    zno2s: [jx][jy][jz + 1]f32, // Fortran: ZNO2S(0:JZ,JY,JX)
+    znh3g: [jx][jy][jz]f32, // Fortran: ZNH3G(JZ,JY,JX)
+    z2gg: [jx][jy][jz]f32, // Fortran: Z2GG(JZ,JY,JX)
+    z2gs: [jx][jy][jz + 1]f32, // Fortran: Z2GS(0:JZ,JY,JX)
+    z2og: [jx][jy][jz]f32, // Fortran: Z2OG(JZ,JY,JX)
+    z2os: [jx][jy][jz + 1]f32, // Fortran: Z2OS(0:JZ,JY,JX)
+    znh4sh: [jx][jy][jz]f32, // Fortran: ZNH4SH(JZ,JY,JX)
+    znh3sh: [jx][jy][jz]f32, // Fortran: ZNH3SH(JZ,JY,JX)
+    zno3sh: [jx][jy][jz]f32, // Fortran: ZNO3SH(JZ,JY,JX)
+    h2po4h: [jx][jy][jz]f32, // Fortran: H2PO4H(JZ,JY,JX)
+    znh4bh: [jx][jy][jz]f32, // Fortran: ZNH4BH(JZ,JY,JX)
+    znh3bh: [jx][jy][jz]f32, // Fortran: ZNH3BH(JZ,JY,JX)
+    zno3bh: [jx][jy][jz]f32, // Fortran: ZNO3BH(JZ,JY,JX)
+    h2pobh: [jx][jy][jz]f32, // Fortran: H2POBH(JZ,JY,JX)
+    zno2sh: [jx][jy][jz]f32, // Fortran: ZNO2SH(JZ,JY,JX)
+    z2gsh: [jx][jy][jz]f32, // Fortran: Z2GSH(JZ,JY,JX)
+    z2osh: [jx][jy][jz]f32, // Fortran: Z2OSH(JZ,JY,JX)
+    zno2bh: [jx][jy][jz]f32, // Fortran: ZNO2BH(JZ,JY,JX)
+    rc0: [jx][jy][6]f32, // Fortran: RC0(0:5,JY,JX)
+    toqck: [jx][jy][jz + 1]f32, // Fortran: TOQCK(0:JZ,JY,JX)
+    znfni: [jx][jy][jz + 1]f32, // Fortran: ZNFNI(0:JZ,JY,JX)
+    znfn0: [jx][jy][jz + 1]f32, // Fortran: ZNFN0(0:JZ,JY,JX)
+    znhui: [jx][jy][jz + 1]f32, // Fortran: ZNHUI(0:JZ,JY,JX)
+    znhu0: [jx][jy][jz + 1]f32, // Fortran: ZNHU0(0:JZ,JY,JX)
+    h1po4: [jx][jy][jz + 1]f32, // Fortran: H1PO4(0:JZ,JY,JX)
+    h1pob: [jx][jy][jz + 1]f32, // Fortran: H1POB(0:JZ,JY,JX)
+    h1po4h: [jx][jy][jz]f32, // Fortran: H1PO4H(JZ,JY,JX)
+    h1pobh: [jx][jy][jz]f32, // Fortran: H1POBH(JZ,JY,JX)
 
     pub fn init() Blk13a {
         return std.mem.zeroInit(Blk13a, .{});

@@ -6,48 +6,49 @@ const jz = config.soillayersmax;
 const js = config.snowlayersmax;
 
 pub const Blk11b = struct {
-    thetx: f32,
-    thetpi: f32,
-    densi: f32,
-    densj: f32,
-    zlsgl: [jx][jy][jz + 1]f32,
-    znsgl: [jx][jy][jz + 1]f32,
-    zosgl: [jx][jy][jz + 1]f32,
-    posgl: [jx][jy][jz + 1]f32,
-    ocsgl: [jx][jy][jz + 1]f32,
-    onsgl: [jx][jy][jz + 1]f32,
-    opsgl: [jx][jy][jz + 1]f32,
-    oasgl: [jx][jy][jz + 1]f32,
-    zvsgl: [jx][jy][jz + 1]f32,
-    sco2l: [jx][jy][jz + 1]f32,
-    soxyl: [jx][jy][jz + 1]f32,
-    sch4l: [jx][jy][jz + 1]f32,
-    sn2ol: [jx][jy][jz + 1]f32,
-    sn2gl: [jx][jy][jz + 1]f32,
-    snh3l: [jx][jy][jz + 1]f32,
-    sh2gl: [jx][jy][jz + 1]f32,
-    psise: [jx][jy][jz + 1]f32,
-    psisa: [jx][jy][jz + 1]f32,
-    psiso: [jx][jy][jz + 1]f32,
-    psish: [jx][jy][jz + 1]f32,
-    thety: [jx][jy][jz + 1]f32,
-    thets: [jx][jy][jz + 1]f32,
-    volq: [jx][jy][jz + 1]f32,
-    tfnq: [jx][jy][jz + 1]f32,
-    zhsgl: [jx][jy][jz]f32,
-    z2sgl: [jx][jy][jz]f32,
-    hgsgl: [jx][jy][jz]f32,
-    wgsgl: [jx][jy][jz]f32,
-    wgsgw: [jx][jy][js]f32,
-    hlsql: [jx][jy][js]f32,
-    flsw: [jx][jy][js]f32,
-    flswh: [jx][jy][js]f32,
-    hflsw: [jx][jy][js]f32,
-    flswr: [jx][jy][js]f32,
-    hflswr: [jx][jy][js]f32,
-    wgsgar: [jx][jy]f32,
-    thawr: [jx][jy]f32,
-    hthawr: [jx][jy]f32,
+    zlsgl: [jx][jy][jz + 1]f32, // Fortran: ZLSGL(0:JZ,JY,JX)
+    znsgl: [jx][jy][jz + 1]f32, // Fortran: ZNSGL(0:JZ,JY,JX)
+    zosgl: [jx][jy][jz + 1]f32, // Fortran: ZOSGL(0:JZ,JY,JX)
+    posgl: [jx][jy][jz + 1]f32, // Fortran: POSGL(0:JZ,JY,JX)
+    ocsgl: [jx][jy][jz + 1]f32, // Fortran: OCSGL(0:JZ,JY,JX)
+    onsgl: [jx][jy][jz + 1]f32, // Fortran: ONSGL(0:JZ,JY,JX)
+    opsgl: [jx][jy][jz + 1]f32, // Fortran: OPSGL(0:JZ,JY,JX)
+    oasgl: [jx][jy][jz + 1]f32, // Fortran: OASGL(0:JZ,JY,JX)
+    zvsgl: [jx][jy][jz + 1]f32, // Fortran: ZVSGL(0:JZ,JY,JX)
+    sco2l: [jx][jy][jz + 1]f32, // Fortran: SCO2L(0:JZ,JY,JX)
+    soxyl: [jx][jy][jz + 1]f32, // Fortran: SOXYL(0:JZ,JY,JX)
+    sch4l: [jx][jy][jz + 1]f32, // Fortran: SCH4L(0:JZ,JY,JX)
+    sn2ol: [jx][jy][jz + 1]f32, // Fortran: SN2OL(0:JZ,JY,JX)
+    sn2gl: [jx][jy][jz + 1]f32, // Fortran: SN2GL(0:JZ,JY,JX)
+    snh3l: [jx][jy][jz + 1]f32, // Fortran: SNH3L(0:JZ,JY,JX)
+    sh2gl: [jx][jy][jz + 1]f32, // Fortran: SH2GL(0:JZ,JY,JX)
+    psise: [jx][jy][jz + 1]f32, // Fortran: PSISE(0:JZ,JY,JX)
+    psisa: [jx][jy][jz + 1]f32, // Fortran: PSISA(0:JZ,JY,JX)
+    psiso: [jx][jy][jz + 1]f32, // Fortran: PSISO(0:JZ,JY,JX)
+    psish: [jx][jy][jz + 1]f32, // Fortran: PSISH(0:JZ,JY,JX)
+    thety: [jx][jy][jz + 1]f32, // Fortran: THETY(0:JZ,JY,JX)
+    thets: [jx][jy][jz + 1]f32, // Fortran: THETS(0:JZ,JY,JX)
+    volq: [jx][jy][jz + 1]f32, // Fortran: VOLQ(0:JZ,JY,JX)
+    tfnq: [jx][jy][jz + 1]f32, // Fortran: TFNQ(0:JZ,JY,JX)
+    hlsgl: [jx][jy][jz + 1]f32, // Fortran: HLSGL(0:JZ,JY,JX)
+    zhsgl: [jx][jy][jz]f32, // Fortran: ZHSGL(JZ,JY,JX)
+    z2sgl: [jx][jy][jz]f32, // Fortran: Z2SGL(JZ,JY,JX)
+    wgsgl: [jx][jy][jz]f32, // Fortran: WGSGL(JZ,JY,JX)
+    hgsgl: [jx][jy][jz]f32, // Fortran: HGSGL(JZ,JY,JX)
+    wgsgw: [jx][jy][js]f32, // Fortran: WGSGW(JS,JY,JX)
+    flsw: [jx][jy][js]f32, // Fortran: FLSW(JS,JY,JX)
+    flswh: [jx][jy][js]f32, // Fortran: FLSWH(JS,JY,JX)
+    hflsw: [jx][jy][js]f32, // Fortran: HFLSW(JS,JY,JX)
+    flswr: [jx][jy][js]f32, // Fortran: FLSWR(JS,JY,JX)
+    hflswr: [jx][jy][js]f32, // Fortran: HFLSWR(JS,JY,JX)
+    wgsgr: [jx][jy]f32, // Fortran: WGSGR(JY,JX)
+    wgsga: [jx][jy]f32, // Fortran: WGSGA(JY,JX)
+    thawr: [jx][jy]f32, // Fortran: THAWR(JY,JX)
+    hthawr: [jx][jy]f32, // Fortran: HTHAWR(JY,JX)
+    thetx: f32, // Fortran: THETX
+    thetpi: f32, // Fortran: THETPI
+    densi: f32, // Fortran: DENSI
+    densj: f32, // Fortran: DENSJ
 
     pub fn init() Blk11b {
         return std.mem.zeroInit(Blk11b, .{});

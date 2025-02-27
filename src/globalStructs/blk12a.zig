@@ -6,39 +6,69 @@ const jz = config.soillayersmax;
 const jp = config.pftmax;
 
 pub const Blk12a = struct {
-    upwtr: [jx][jy][jp][jz][2]f32,
-    psirt: [jx][jy][jp][jz][2]f32,
-    pssrg: [jx][jy][jp][jz][2]f32,
-    co2a: [jx][jy][jp][jz][2]f32,
-    co2p: [jx][jy][jp][jz][2]f32,
-    oxyp: [jx][jy][jp][jz][2]f32,
-    ch4p: [jx][jy][jp][jz][2]f32,
-    wstr: [jx][jy][jp]f32,
-    ostr: [jx][jy][jp]f32,
-    rad1: [jx][jy][jp]f32,
-    thrm1: [jx][jy][jp]f32,
-    eflxc: [jx][jy][jp]f32,
-    sflxc: [jx][jy][jp]f32,
-    hflxc: [jx][jy][jp]f32,
-    engyx: [jx][jy][jp]f32,
-    vhcpc: [jx][jy][jp]f32,
-    psilt: [jx][jy][jp]f32,
-    psilg: [jx][jy][jp]f32,
-    psilo: [jx][jy][jp]f32,
-    rc: [jx][jy][jp]f32,
-    ra: [jx][jy][jp]f32,
-    ep: [jx][jy][jp]f32,
-    evapc: [jx][jy][jp]f32,
-    upomp: [jx][jy][jp]f32,
-    upomc: [jx][jy][jp]f32,
-    upomn: [jx][jy][jp]f32,
-    uph2p: [jx][jy][jp]f32,
-    uph1p: [jx][jy][jp]f32,
-    upnf: [jx][jy][jp]f32,
-    rco2z: [jx][jy][jp]f32,
-    roxyz: [jx][jy][jp]f32,
-    rch4z: [jx][jy][jp]f32,
-    rn2oz: [jx][jy][jp]f32,
+    upwtr: [jx][jy][jp][jz][2]f32, // Fortran: UPWTR(2,JZ,JP,JY,JX)
+    psirt: [jx][jy][jp][jz][2]f32, // Fortran: PSIRT(2,JZ,JP,JY,JX)
+    psiro: [jx][jy][jp][jz][2]f32, // Fortran: PSIRO(2,JZ,JP,JY,JX)
+    psirg: [jx][jy][jp][jz][2]f32, // Fortran: PSIRG(2,JZ,JP,JY,JX)
+    co2a: [jx][jy][jp][jz][2]f32, // Fortran: CO2A(2,JZ,JP,JY,JX)
+    oxya: [jx][jy][jp][jz][2]f32, // Fortran: OXYA(2,JZ,JP,JY,JX)
+    ch4a: [jx][jy][jp][jz][2]f32, // Fortran: CH4A(2,JZ,JP,JY,JX)
+    z2oa: [jx][jy][jp][jz][2]f32, // Fortran: Z2OA(2,JZ,JP,JY,JX)
+    zh3a: [jx][jy][jp][jz][2]f32, // Fortran: ZH3A(2,JZ,JP,JY,JX)
+    co2p: [jx][jy][jp][jz][2]f32, // Fortran: CO2P(2,JZ,JP,JY,JX)
+    oxyp: [jx][jy][jp][jz][2]f32, // Fortran: OXYP(2,JZ,JP,JY,JX)
+    ch4p: [jx][jy][jp][jz][2]f32, // Fortran: CH4P(2,JZ,JP,JY,JX)
+    z2op: [jx][jy][jp][jz][2]f32, // Fortran: Z2OP(2,JZ,JP,JY,JX)
+    zh3p: [jx][jy][jp][jz][2]f32, // Fortran: ZH3P(2,JZ,JP,JY,JX)
+    roxyp: [jx][jy][jp][jz][2]f32, // Fortran: ROXYP(2,JZ,JP,JY,JX)
+    rcofla: [jx][jy][jp][jz][2]f32, // Fortran: RCOFLA(2,JZ,JP,JY,JX)
+    roxfla: [jx][jy][jp][jz][2]f32, // Fortran: ROXFLA(2,JZ,JP,JY,JX)
+    rchfla: [jx][jy][jp][jz][2]f32, // Fortran: RCHFLA(2,JZ,JP,JY,JX)
+    rn2fla: [jx][jy][jp][jz][2]f32, // Fortran: RN2FLA(2,JZ,JP,JY,JX)
+    rnhfla: [jx][jy][jp][jz][2]f32, // Fortran: RNHFLA(2,JZ,JP,JY,JX)
+    rcodfa: [jx][jy][jp][jz][2]f32, // Fortran: RCODFA(2,JZ,JP,JY,JX)
+    roxdfa: [jx][jy][jp][jz][2]f32, // Fortran: ROXDFA(2,JZ,JP,JY,JX)
+    rchdfa: [jx][jy][jp][jz][2]f32, // Fortran: RCHDFA(2,JZ,JP,JY,JX)
+    rn2dfa: [jx][jy][jp][jz][2]f32, // Fortran: RN2DFA(2,JZ,JP,JY,JX)
+    rnhdfa: [jx][jy][jp][jz][2]f32, // Fortran: RNHDFA(2,JZ,JP,JY,JX)
+    rco2s: [jx][jy][jp][jz][2]f32, // Fortran: RCO2S(2,JZ,JP,JY,JX)
+    rupoxs: [jx][jy][jp][jz][2]f32, // Fortran: RUPOXS(2,JZ,JP,JY,JX)
+    rupchs: [jx][jy][jp][jz][2]f32, // Fortran: RUPCHS(2,JZ,JP,JY,JX)
+    rupn2s: [jx][jy][jp][jz][2]f32, // Fortran: RUPN2S(2,JZ,JP,JY,JX)
+    rupn3s: [jx][jy][jp][jz][2]f32, // Fortran: RUPN3S(2,JZ,JP,JY,JX)
+    rupn3b: [jx][jy][jp][jz][2]f32, // Fortran: RUPN3B(2,JZ,JP,JY,JX)
+    rco2p: [jx][jy][jp][jz][2]f32, // Fortran: RCO2P(2,JZ,JP,JY,JX)
+    rupoxp: [jx][jy][jp][jz][2]f32, // Fortran: RUPOXP(2,JZ,JP,JY,JX)
+    rco2m: [jx][jy][jp][jz][2]f32, // Fortran: RCO2M(2,JZ,JP,JY,JX)
+    rco2a: [jx][jy][jp][jz][2]f32, // Fortran: RCO2A(2,JZ,JP,JY,JX)
+    wstr: [jx][jy][jp]f32, // Fortran: WSTR(JP,JY,JX)
+    ostr: [jx][jy][jp]f32, // Fortran: OSTR(JP,JY,JX)
+    rad1: [jx][jy][jp]f32, // Fortran: RAD1(JP,JY,JX)
+    thrm1: [jx][jy][jp]f32, // Fortran: THRM1(JP,JY,JX)
+    eflxc: [jx][jy][jp]f32, // Fortran: EFLXC(JP,JY,JX)
+    sflxc: [jx][jy][jp]f32, // Fortran: SFLXC(JP,JY,JX)
+    hflxc: [jx][jy][jp]f32, // Fortran: HFLXC(JP,JY,JX)
+    engyx: [jx][jy][jp]f32, // Fortran: ENGYX(JP,JY,JX)
+    vhcpc: [jx][jy][jp]f32, // Fortran: VHCPC(JP,JY,JX)
+    psilt: [jx][jy][jp]f32, // Fortran: PSILT(JP,JY,JX)
+    psilg: [jx][jy][jp]f32, // Fortran: PSILG(JP,JY,JX)
+    psilo: [jx][jy][jp]f32, // Fortran: PSILO(JP,JY,JX)
+    rc: [jx][jy][jp]f32, // Fortran: RC(JP,JY,JX)
+    ra: [jx][jy][jp]f32, // Fortran: RA(JP,JY,JX)
+    ep: [jx][jy][jp]f32, // Fortran: EP(JP,JY,JX)
+    evapc: [jx][jy][jp]f32, // Fortran: EVAPC(JP,JY,JX)
+    upomc: [jx][jy][jp]f32, // Fortran: UPOMC(JP,JY,JX)
+    upomn: [jx][jy][jp]f32, // Fortran: UPOMN(JP,JY,JX)
+    upomp: [jx][jy][jp]f32, // Fortran: UPOMP(JP,JY,JX)
+    upnh4: [jx][jy][jp]f32, // Fortran: UPNH4(JP,JY,JX)
+    upno3: [jx][jy][jp]f32, // Fortran: UPNO3(JP,JY,JX)
+    uph2p: [jx][jy][jp]f32, // Fortran: UPH2P(JP,JY,JX)
+    uph1p: [jx][jy][jp]f32, // Fortran: UPH1P(JP,JY,JX)
+    upnf: [jx][jy][jp]f32, // Fortran: UPNF(JP,JY,JX)
+    rco2z: [jx][jy][jp]f32, // Fortran: RCO2Z(JP,JY,JX)
+    roxyz: [jx][jy][jp]f32, // Fortran: ROXYZ(JP,JY,JX)
+    rch4z: [jx][jy][jp]f32, // Fortran: RCH4Z(JP,JY,JX)
+    rn2oz: [jx][jy][jp]f32, // Fortran: RN2OZ(JP,JY,JX)
 
     pub fn init() Blk12a {
         return std.mem.zeroInit(Blk12a, .{});

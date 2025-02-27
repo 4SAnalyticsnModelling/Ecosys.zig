@@ -4,90 +4,109 @@ const jx = config.ewgridsmax;
 const jy = config.nsgridsmax;
 
 pub const Blk2b = struct {
-    phq: [jx][jy][366]f32,
-    cn4q: [jx][jy][366]f32,
-    cn3q: [jx][jy][366]f32,
-    cnoq: [jx][jy][366]f32,
-    cpoq: [jx][jy][366]f32,
-    calq: [jx][jy][366]f32,
-    cfeq: [jx][jy][366]f32,
-    chyq: [jx][jy][366]f32,
-    ccaq: [jx][jy][366]f32,
-    cmgq: [jx][jy][366]f32,
-    cnaq: [jx][jy][366]f32,
-    ckaq: [jx][jy][366]f32,
-    cohq: [jx][jy][366]f32,
-    csoq: [jx][jy][366]f32,
-    cclq: [jx][jy][366]f32,
-    cc3q: [jx][jy][366]f32,
-    chcq: [jx][jy][366]f32,
-    cal1q: [jx][jy][366]f32,
-    cal2q: [jx][jy][366]f32,
-    cal3q: [jx][jy][366]f32,
-    cal4q: [jx][jy][366]f32,
-    calsq: [jx][jy][366]f32,
-    cfe1q: [jx][jy][366]f32,
-    cfe2q: [jx][jy][366]f32,
-    cfe3q: [jx][jy][366]f32,
-    cfe4q: [jx][jy][366]f32,
-    ccesq: [jx][jy][366]f32,
-    cstrq: [jx][jy][366]f32,
-    phr: [jx][jy]f32,
-    cn4ri: [jx][jy]f32,
-    cnori: [jx][jy]f32,
-    cn4r: [jx][jy]f32,
-    cn3r: [jx][jy]f32,
-    cnor: [jx][jy]f32,
-    cpor: [jx][jy]f32,
-    calr: [jx][jy]f32,
-    cfer: [jx][jy]f32,
-    chyr: [jx][jy]f32,
-    ccar: [jx][jy]f32,
-    cmgr: [jx][jy]f32,
-    cnar: [jx][jy]f32,
-    ckar: [jx][jy]f32,
-    cohr: [jx][jy]f32,
-    csor: [jx][jy]f32,
-    cclr: [jx][jy]f32,
-    cc3r: [jx][jy]f32,
-    chcr: [jx][jy]f32,
-    cchr: [jx][jy]f32,
-    cal1r: [jx][jy]f32,
-    cal2r: [jx][jy]f32,
-    cal3r: [jx][jy]f32,
-    cal4r: [jx][jy]f32,
-    calsr: [jx][jy]f32,
-    cfe1r: [jx][jy]f32,
-    cfe2r: [jx][jy]f32,
-    cfe3r: [jx][jy]f32,
-    cfe4r: [jx][jy]f32,
-    ccesr: [jx][jy]f32,
-    ccaor: [jx][jy]f32,
-    ccacr: [jx][jy]f32,
-    ccahr: [jx][jy]f32,
-    ccasr: [jx][jy]f32,
-    cmgor: [jx][jy]f32,
-    cmgcr: [jx][jy]f32,
-    cmghr: [jx][jy]f32,
-    cmgsr: [jx][jy]f32,
-    cnacr: [jx][jy]f32,
-    cnasr: [jx][jy]f32,
-    ckasr: [jx][jy]f32,
-    ch0pr: [jx][jy]f32,
-    ch1pr: [jx][jy]f32,
-    ch3pr: [jx][jy]f32,
-    cf1pr: [jx][jy]f32,
-    cf2pr: [jx][jy]f32,
-    cc0pr: [jx][jy]f32,
-    cc1pr: [jx][jy]f32,
-    cc2pr: [jx][jy]f32,
-    cm1pr: [jx][jy]f32,
-    ccor: [jx][jy]f32,
-    coxr: [jx][jy]f32,
-    cnnr: [jx][jy]f32,
-    cn2r: [jx][jy]f32,
-    dens0: [jx][jy]f32,
-    cstrr: [jx][jy]f32,
+    phq: [jx][jy][366]f32, // Fortran: PHQ(366,JY,JX)
+    cn4q: [jx][jy][366]f32, // Fortran: CN4Q(366,JY,JX)
+    cn3q: [jx][jy][366]f32, // Fortran: CN3Q(366,JY,JX)
+    cnoq: [jx][jy][366]f32, // Fortran: CNOQ(366,JY,JX)
+    cpoq: [jx][jy][366]f32, // Fortran: CPOQ(366,JY,JX)
+    calq: [jx][jy][366]f32, // Fortran: CALQ(366,JY,JX)
+    cfeq: [jx][jy][366]f32, // Fortran: CFEQ(366,JY,JX)
+    chyq: [jx][jy][366]f32, // Fortran: CHYQ(366,JY,JX)
+    ccaq: [jx][jy][366]f32, // Fortran: CCAQ(366,JY,JX)
+    cmgq: [jx][jy][366]f32, // Fortran: CMGQ(366,JY,JX)
+    cnaq: [jx][jy][366]f32, // Fortran: CNAQ(366,JY,JX)
+    ckaq: [jx][jy][366]f32, // Fortran: CKAQ(366,JY,JX)
+    cohq: [jx][jy][366]f32, // Fortran: COHQ(366,JY,JX)
+    csoq: [jx][jy][366]f32, // Fortran: CSOQ(366,JY,JX)
+    cclq: [jx][jy][366]f32, // Fortran: CCLQ(366,JY,JX)
+    cc3q: [jx][jy][366]f32, // Fortran: CC3Q(366,JY,JX)
+    chcq: [jx][jy][366]f32, // Fortran: CHCQ(366,JY,JX)
+    cal1q: [jx][jy][366]f32, // Fortran: CAL1Q(366,JY,JX)
+    cal2q: [jx][jy][366]f32, // Fortran: CAL2Q(366,JY,JX)
+    cal3q: [jx][jy][366]f32, // Fortran: CAL3Q(366,JY,JX)
+    cal4q: [jx][jy][366]f32, // Fortran: CAL4Q(366,JY,JX)
+    calsq: [jx][jy][366]f32, // Fortran: CALSQ(366,JY,JX)
+    cfe1q: [jx][jy][366]f32, // Fortran: CFE1Q(366,JY,JX)
+    cfe2q: [jx][jy][366]f32, // Fortran: CFE2Q(366,JY,JX)
+    cfe3q: [jx][jy][366]f32, // Fortran: CFE3Q(366,JY,JX)
+    cfe4q: [jx][jy][366]f32, // Fortran: CFE4Q(366,JY,JX)
+    cfesq: [jx][jy][366]f32, // Fortran: CFESQ(366,JY,JX)
+    ccaoq: [jx][jy][366]f32, // Fortran: CCAOQ(366,JY,JX)
+    ccacq: [jx][jy][366]f32, // Fortran: CCACQ(366,JY,JX)
+    ccahq: [jx][jy][366]f32, // Fortran: CCAHQ(366,JY,JX)
+    ccasq: [jx][jy][366]f32, // Fortran: CCASQ(366,JY,JX)
+    cmgoq: [jx][jy][366]f32, // Fortran: CMGOQ(366,JY,JX)
+    cmgcq: [jx][jy][366]f32, // Fortran: CMGCQ(366,JY,JX)
+    cmghq: [jx][jy][366]f32, // Fortran: CMGHQ(366,JY,JX)
+    cmgsq: [jx][jy][366]f32, // Fortran: CMGSQ(366,JY,JX)
+    cnacq: [jx][jy][366]f32, // Fortran: CNACQ(366,JY,JX)
+    cnasq: [jx][jy][366]f32, // Fortran: CNASQ(366,JY,JX)
+    ckasq: [jx][jy][366]f32, // Fortran: CKASQ(366,JY,JX)
+    ch0pq: [jx][jy][366]f32, // Fortran: CH0PQ(366,JY,JX)
+    ch1pq: [jx][jy][366]f32, // Fortran: CH1PQ(366,JY,JX)
+    ch3pq: [jx][jy][366]f32, // Fortran: CH3PQ(366,JY,JX)
+    cf1pq: [jx][jy][366]f32, // Fortran: CF1PQ(366,JY,JX)
+    cf2pq: [jx][jy][366]f32, // Fortran: CF2PQ(366,JY,JX)
+    cc0pq: [jx][jy][366]f32, // Fortran: CC0PQ(366,JY,JX)
+    cc1pq: [jx][jy][366]f32, // Fortran: CC1PQ(366,JY,JX)
+    cc2pq: [jx][jy][366]f32, // Fortran: CC2PQ(366,JY,JX)
+    cm1pq: [jx][jy][366]f32, // Fortran: CM1PQ(366,JY,JX)
+    phr: [jx][jy]f32, // Fortran: PHR(JY,JX)
+    cn4ri: [jx][jy]f32, // Fortran: CN4RI(JY,JX)
+    cnori: [jx][jy]f32, // Fortran: CNORI(JY,JX)
+    cn4r: [jx][jy]f32, // Fortran: CN4R(JY,JX)
+    cn3r: [jx][jy]f32, // Fortran: CN3R(JY,JX)
+    cnor: [jx][jy]f32, // Fortran: CNOR(JY,JX)
+    cpor: [jx][jy]f32, // Fortran: CPOR(JY,JX)
+    calr: [jx][jy]f32, // Fortran: CALR(JY,JX)
+    cfer: [jx][jy]f32, // Fortran: CFER(JY,JX)
+    chyr: [jx][jy]f32, // Fortran: CHYR(JY,JX)
+    ccar: [jx][jy]f32, // Fortran: CCAR(JY,JX)
+    cmgr: [jx][jy]f32, // Fortran: CMGR(JY,JX)
+    cnar: [jx][jy]f32, // Fortran: CNAR(JY,JX)
+    ckar: [jx][jy]f32, // Fortran: CKAR(JY,JX)
+    cohr: [jx][jy]f32, // Fortran: COHR(JY,JX)
+    csor: [jx][jy]f32, // Fortran: CSOR(JY,JX)
+    cclr: [jx][jy]f32, // Fortran: CCLR(JY,JX)
+    cc3r: [jx][jy]f32, // Fortran: CC3R(JY,JX)
+    chcr: [jx][jy]f32, // Fortran: CHCR(JY,JX)
+    cchr: [jx][jy]f32, // Fortran: CCHR(JY,JX)
+    cal1r: [jx][jy]f32, // Fortran: CAL1R(JY,JX)
+    cal2r: [jx][jy]f32, // Fortran: CAL2R(JY,JX)
+    cal3r: [jx][jy]f32, // Fortran: CAL3R(JY,JX)
+    cal4r: [jx][jy]f32, // Fortran: CAL4R(JY,JX)
+    calsr: [jx][jy]f32, // Fortran: CALSR(JY,JX)
+    cfe1r: [jx][jy]f32, // Fortran: CFE1R(JY,JX)
+    cfe2r: [jx][jy]f32, // Fortran: CFE2R(JY,JX)
+    cfe3r: [jx][jy]f32, // Fortran: CFE3R(JY,JX)
+    cfe4r: [jx][jy]f32, // Fortran: CFE4R(JY,JX)
+    cfesr: [jx][jy]f32, // Fortran: CFESR(JY,JX)
+    ccaor: [jx][jy]f32, // Fortran: CCAOR(JY,JX)
+    ccacr: [jx][jy]f32, // Fortran: CCACR(JY,JX)
+    ccahr: [jx][jy]f32, // Fortran: CCAHR(JY,JX)
+    ccasr: [jx][jy]f32, // Fortran: CCASR(JY,JX)
+    cmgor: [jx][jy]f32, // Fortran: CMGOR(JY,JX)
+    cmgcr: [jx][jy]f32, // Fortran: CMGCR(JY,JX)
+    cmghr: [jx][jy]f32, // Fortran: CMGHR(JY,JX)
+    cmgsr: [jx][jy]f32, // Fortran: CMGSR(JY,JX)
+    cnacr: [jx][jy]f32, // Fortran: CNACR(JY,JX)
+    cnasr: [jx][jy]f32, // Fortran: CNASR(JY,JX)
+    ckasr: [jx][jy]f32, // Fortran: CKASR(JY,JX)
+    ch0pr: [jx][jy]f32, // Fortran: CH0PR(JY,JX)
+    ch1pr: [jx][jy]f32, // Fortran: CH1PR(JY,JX)
+    ch3pr: [jx][jy]f32, // Fortran: CH3PR(JY,JX)
+    cf1pr: [jx][jy]f32, // Fortran: CF1PR(JY,JX)
+    cf2pr: [jx][jy]f32, // Fortran: CF2PR(JY,JX)
+    cc0pr: [jx][jy]f32, // Fortran: CC0PR(JY,JX)
+    cc1pr: [jx][jy]f32, // Fortran: CC1PR(JY,JX)
+    cc2pr: [jx][jy]f32, // Fortran: CC2PR(JY,JX)
+    cm1pr: [jx][jy]f32, // Fortran: CM1PR(JY,JX)
+    ccor: [jx][jy]f32, // Fortran: CCOR(JY,JX)
+    coxr: [jx][jy]f32, // Fortran: COXR(JY,JX)
+    cnnr: [jx][jy]f32, // Fortran: CNNR(JY,JX)
+    cn2r: [jx][jy]f32, // Fortran: CN2R(JY,JX)
+    dens0: [jx][jy]f32, // Fortran: DENS0(JY,JX)
+    cstrr: [jx][jy]f32, // Fortran: CSTRR(JY,JX)
 
     pub fn init() Blk2b {
         return std.mem.zeroInit(Blk2b, .{});

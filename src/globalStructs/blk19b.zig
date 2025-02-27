@@ -5,67 +5,67 @@ const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
 
 pub const Blk19b = struct {
-    xoh1b: [jx][jy][jz + 1]f32,
-    xoh2b: [jx][jy][jz + 1]f32,
-    xh1pb: [jx][jy][jz + 1]f32,
-    xh2pb: [jx][jy][jz + 1]f32,
-    palpo: [jx][jy][jz + 1]f32,
-    pfepo: [jx][jy][jz + 1]f32,
-    pcapd: [jx][jy][jz + 1]f32,
-    pcaph: [jx][jy][jz + 1]f32,
-    pcapm: [jx][jy][jz + 1]f32,
-    palpb: [jx][jy][jz + 1]f32,
-    pfepb: [jx][jy][jz + 1]f32,
-    pcpdb: [jx][jy][jz + 1]f32,
-    pcpmb: [jx][jy][jz + 1]f32,
-    pcphb: [jx][jy][jz + 1]f32,
-    paloh: [jx][jy][jz]f32,
-    pfeoh: [jx][jy][jz]f32,
-    pcaco: [jx][jy][jz]f32,
-    pcasc: [jx][jy][jz]f32,
-    ecnd: [jx][jy][jz]f32,
-    cstr: [jx][jy][jz]f32,
-    cion: [jx][jy][jz]f32,
-    xcec: [jx][jy][jz]f32,
-    xaec: [jx][jy][jz]f32,
-    alsgl: [jx][jy][jz]f32,
-    fesgl: [jx][jy][jz]f32,
-    hysgl: [jx][jy][jz]f32,
-    casgl: [jx][jy][jz]f32,
-    gmsgl: [jx][jy][jz]f32,
-    ansgl: [jx][jy][jz]f32,
-    aksgl: [jx][jy][jz]f32,
-    ohsgl: [jx][jy][jz]f32,
-    c3sgl: [jx][jy][jz]f32,
-    hcsgl: [jx][jy][jz]f32,
-    sosgl: [jx][jy][jz]f32,
-    clsxl: [jx][jy][jz]f32,
-    zalh: [jx][jy][jz]f32,
-    zfeh: [jx][jy][jz]f32,
-    zhyh: [jx][jy][jz]f32,
-    zcch: [jx][jy][jz]f32,
-    zmah: [jx][jy][jz]f32,
-    znah: [jx][jy][jz]f32,
-    zkah: [jx][jy][jz]f32,
-    zohh: [jx][jy][jz]f32,
-    zso4h: [jx][jy][jz]f32,
-    zclh: [jx][jy][jz]f32,
-    zco3h: [jx][jy][jz]f32,
-    zhco3h: [jx][jy][jz]f32,
-    zalo1h: [jx][jy][jz]f32,
-    zalo2h: [jx][jy][jz]f32,
-    zalo3h: [jx][jy][jz]f32,
-    zalo4h: [jx][jy][jz]f32,
-    zalsh: [jx][jy][jz]f32,
-    zfeo1h: [jx][jy][jz]f32,
-    zfeo2h: [jx][jy][jz]f32,
-    zfeo3h: [jx][jy][jz]f32,
-    zfeo4h: [jx][jy][jz]f32,
-    zfesh: [jx][jy][jz]f32,
-    zcaoh: [jx][jy][jz]f32,
-    zcach: [jx][jy][jz]f32,
-    zcahh: [jx][jy][jz]f32,
-    zcash: [jx][jy][jz]f32,
+    xoh1b: [jx][jy][jz + 1]f32, // Fortran: XOH1B(0:JZ,JY,JX)
+    xoh2b: [jx][jy][jz + 1]f32, // Fortran: XOH2B(0:JZ,JY,JX)
+    xh1pb: [jx][jy][jz + 1]f32, // Fortran: XH1PB(0:JZ,JY,JX)
+    xh2pb: [jx][jy][jz + 1]f32, // Fortran: XH2PB(0:JZ,JY,JX)
+    palpo: [jx][jy][jz + 1]f32, // Fortran: PALPO(0:JZ,JY,JX)
+    pfepo: [jx][jy][jz + 1]f32, // Fortran: PFEPO(0:JZ,JY,JX)
+    pcapd: [jx][jy][jz + 1]f32, // Fortran: PCAPD(0:JZ,JY,JX)
+    pcaph: [jx][jy][jz + 1]f32, // Fortran: PCAPH(0:JZ,JY,JX)
+    pcapm: [jx][jy][jz + 1]f32, // Fortran: PCAPM(0:JZ,JY,JX)
+    palpb: [jx][jy][jz + 1]f32, // Fortran: PALPB(0:JZ,JY,JX)
+    pfepb: [jx][jy][jz + 1]f32, // Fortran: PFEPB(0:JZ,JY,JX)
+    pcpdb: [jx][jy][jz + 1]f32, // Fortran: PCPDB(0:JZ,JY,JX)
+    pcpmb: [jx][jy][jz + 1]f32, // Fortran: PCPMB(0:JZ,JY,JX)
+    pcphb: [jx][jy][jz + 1]f32, // Fortran: PCPHB(0:JZ,JY,JX)
+    paloh: [jx][jy][jz]f32, // Fortran: PALOH(JZ,JY,JX)
+    pfeoh: [jx][jy][jz]f32, // Fortran: PFEOH(JZ,JY,JX)
+    pcaco: [jx][jy][jz]f32, // Fortran: PCACO(JZ,JY,JX)
+    pcaso: [jx][jy][jz]f32, // Fortran: PCASO(JZ,JY,JX)
+    ecnd: [jx][jy][jz]f32, // Fortran: ECND(JZ,JY,JX)
+    cstr: [jx][jy][jz]f32, // Fortran: CSTR(JZ,JY,JX)
+    cion: [jx][jy][jz]f32, // Fortran: CION(JZ,JY,JX)
+    xcec: [jx][jy][jz]f32, // Fortran: XCEC(JZ,JY,JX)
+    xaec: [jx][jy][jz]f32, // Fortran: XAEC(JZ,JY,JX)
+    alsgl: [jx][jy][jz]f32, // Fortran: ALSGL(JZ,JY,JX)
+    fesgl: [jx][jy][jz]f32, // Fortran: FESGL(JZ,JY,JX)
+    hysgl: [jx][jy][jz]f32, // Fortran: HYSGL(JZ,JY,JX)
+    casgl: [jx][jy][jz]f32, // Fortran: CASGL(JZ,JY,JX)
+    gmsgl: [jx][jy][jz]f32, // Fortran: GMSGL(JZ,JY,JX)
+    ansgl: [jx][jy][jz]f32, // Fortran: ANSGL(JZ,JY,JX)
+    aksgl: [jx][jy][jz]f32, // Fortran: AKSGL(JZ,JY,JX)
+    ohsgl: [jx][jy][jz]f32, // Fortran: OHSGL(JZ,JY,JX)
+    c3sgl: [jx][jy][jz]f32, // Fortran: C3SGL(JZ,JY,JX)
+    hcsgl: [jx][jy][jz]f32, // Fortran: HCSGL(JZ,JY,JX)
+    sosgl: [jx][jy][jz]f32, // Fortran: SOSGL(JZ,JY,JX)
+    clsxl: [jx][jy][jz]f32, // Fortran: CLSXL(JZ,JY,JX)
+    zalh: [jx][jy][jz]f32, // Fortran: ZALH(JZ,JY,JX)
+    zfeh: [jx][jy][jz]f32, // Fortran: ZFEH(JZ,JY,JX)
+    zhyh: [jx][jy][jz]f32, // Fortran: ZHYH(JZ,JY,JX)
+    zcch: [jx][jy][jz]f32, // Fortran: ZCCH(JZ,JY,JX)
+    zmah: [jx][jy][jz]f32, // Fortran: ZMAH(JZ,JY,JX)
+    znah: [jx][jy][jz]f32, // Fortran: ZNAH(JZ,JY,JX)
+    zkah: [jx][jy][jz]f32, // Fortran: ZKAH(JZ,JY,JX)
+    zohh: [jx][jy][jz]f32, // Fortran: ZOHH(JZ,JY,JX)
+    zso4h: [jx][jy][jz]f32, // Fortran: ZSO4H(JZ,JY,JX)
+    zclh: [jx][jy][jz]f32, // Fortran: ZCLH(JZ,JY,JX)
+    zco3h: [jx][jy][jz]f32, // Fortran: ZCO3H(JZ,JY,JX)
+    zhco3h: [jx][jy][jz]f32, // Fortran: ZHCO3H(JZ,JY,JX)
+    zalo1h: [jx][jy][jz]f32, // Fortran: ZALO1H(JZ,JY,JX)
+    zalo2h: [jx][jy][jz]f32, // Fortran: ZALO2H(JZ,JY,JX)
+    zalo3h: [jx][jy][jz]f32, // Fortran: ZALO3H(JZ,JY,JX)
+    zalo4h: [jx][jy][jz]f32, // Fortran: ZALO4H(JZ,JY,JX)
+    zalsh: [jx][jy][jz]f32, // Fortran: ZALSH(JZ,JY,JX)
+    zfeo1h: [jx][jy][jz]f32, // Fortran: ZFEO1H(JZ,JY,JX)
+    zfeo2h: [jx][jy][jz]f32, // Fortran: ZFEO2H(JZ,JY,JX)
+    zfeo3h: [jx][jy][jz]f32, // Fortran: ZFEO3H(JZ,JY,JX)
+    zfeo4h: [jx][jy][jz]f32, // Fortran: ZFEO4H(JZ,JY,JX)
+    zfesh: [jx][jy][jz]f32, // Fortran: ZFESH(JZ,JY,JX)
+    zcaoh: [jx][jy][jz]f32, // Fortran: ZCAOH(JZ,JY,JX)
+    zcach: [jx][jy][jz]f32, // Fortran: ZCACH(JZ,JY,JX)
+    zcahh: [jx][jy][jz]f32, // Fortran: ZCAHH(JZ,JY,JX)
+    zcash: [jx][jy][jz]f32, // Fortran: ZCASH(JZ,JY,JX)
 
     pub fn init() Blk19b {
         return std.mem.zeroInit(Blk19b, .{});

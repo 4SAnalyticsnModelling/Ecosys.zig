@@ -5,45 +5,75 @@ const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
 
 pub const Blk13b = struct {
-    osa: [jx][jy][jz + 1][5][4]f32,
-    roqcs: [jx][jy][jz + 1][5][7]f32,
-    roqas: [jx][jy][jz + 1][5][7]f32,
-    xno2s: [jx][jy][jz + 1]f32,
-    cnh4s: [jx][jy][jz + 1]f32,
-    cnh3s: [jx][jy][jz + 1]f32,
-    cno3s: [jx][jy][jz + 1]f32,
-    cno2s: [jx][jy][jz + 1]f32,
-    cnh4b: [jx][jy][jz + 1]f32,
-    cnh3b: [jx][jy][jz + 1]f32,
-    cno3b: [jx][jy][jz + 1]f32,
-    cpo4b: [jx][jy][jz + 1]f32,
-    cnh3g: [jx][jy][jz + 1]f32,
-    cz2gg: [jx][jy][jz + 1]f32,
-    cz2gs: [jx][jy][jz + 1]f32,
-    cz2og: [jx][jy][jz + 1]f32,
-    cz2os: [jx][jy][jz + 1]f32,
-    oxys: [jx][jy][jz + 1]f32,
-    co2s: [jx][jy][jz + 1]f32,
-    ch4s: [jx][jy][jz + 1]f32,
-    coxyf: [jx][jy][jz + 1]f32,
-    cch4g: [jx][jy][jz + 1]f32,
-    coxys: [jx][jy][jz + 1]f32,
-    cco2g: [jx][jy][jz + 1]f32,
-    cco2s: [jx][jy][jz + 1]f32,
-    cch4s: [jx][jy][jz + 1]f32,
-    rupoxo: [jx][jy][jz + 1]f32,
-    rco2o: [jx][jy][jz + 1]f32,
-    rch4o: [jx][jy][jz + 1]f32,
-    rh2go: [jx][jy][jz + 1]f32,
-    rn2g: [jx][jy][jz + 1]f32,
-    rn2o: [jx][jy][jz + 1]f32,
-    oxyg: [jx][jy][jz]f32,
-    co2g: [jx][jy][jz]f32,
-    ch4g: [jx][jy][jz]f32,
-    oxysh: [jx][jy][jz]f32,
-    co2sh: [jx][jy][jz]f32,
-    ch4sh: [jx][jy][jz]f32,
-    cpo4s: [jx][jy][jz]f32,
+    osa: [jx][jy][jz + 1][5][4]f32, // Fortran: OSA(4,0:4,0:JZ,JY,JX)
+    roqcs: [jx][jy][jz + 1][6][7]f32, // Fortran: ROQCS(7,0:4,0:JZ,JY,JX) [adjusted to 6×7]
+    roqas: [jx][jy][jz + 1][6][7]f32, // Fortran: ROQAS(7,0:4,0:JZ,JY,JX)
+    roxys: [jx][jy][jz + 1][6][7]f32, // Fortran: ROXYS(7,0:5,0:JZ,JY,JX)
+    xno2s: [jx][jy][jz + 1]f32, // Fortran: XNO2S(0:JZ,JY,JX)
+    cnh4s: [jx][jy][jz + 1]f32, // Fortran: CNH4S(0:JZ,JY,JX)
+    cnh3s: [jx][jy][jz + 1]f32, // Fortran: CNH3S(0:JZ,JY,JX)
+    cno3s: [jx][jy][jz + 1]f32, // Fortran: CNO3S(0:JZ,JY,JX)
+    cno2s: [jx][jy][jz + 1]f32, // Fortran: CNO2S(0:JZ,JY,JX)
+    cnh4b: [jx][jy][jz + 1]f32, // Fortran: CNH4B(0:JZ,JY,JX)
+    cnh3b: [jx][jy][jz + 1]f32, // Fortran: CNH3B(0:JZ,JY,JX)
+    cno3b: [jx][jy][jz + 1]f32, // Fortran: CNO3B(0:JZ,JY,JX)
+    cpo4b: [jx][jy][jz + 1]f32, // Fortran: CPO4B(0:JZ,JY,JX)
+    cnh3g: [jx][jy][jz + 1]f32, // Fortran: CNH3G(0:JZ,JY,JX)
+    cz2gg: [jx][jy][jz + 1]f32, // Fortran: CZ2GG(0:JZ,JY,JX)
+    cz2gs: [jx][jy][jz + 1]f32, // Fortran: CZ2GS(0:JZ,JY,JX)
+    cz2og: [jx][jy][jz + 1]f32, // Fortran: CZ2OG(0:JZ,JY,JX)
+    cz2os: [jx][jy][jz + 1]f32, // Fortran: CZ2OS(0:JZ,JY,JX)
+    oxys: [jx][jy][jz + 1]f32, // Fortran: OXYS(0:JZ,JY,JX)
+    co2s: [jx][jy][jz + 1]f32, // Fortran: CO2S(0:JZ,JY,JX)
+    ch4s: [jx][jy][jz + 1]f32, // Fortran: CH4S(0:JZ,JY,JX)
+    coxyg: [jx][jy][jz + 1]f32, // Fortran: COXYG(0:JZ,JY,JX)
+    cch4g: [jx][jy][jz + 1]f32, // Fortran: CCH4G(0:JZ,JY,JX)
+    coxys: [jx][jy][jz + 1]f32, // Fortran: COXYS(0:JZ,JY,JX)
+    cco2g: [jx][jy][jz + 1]f32, // Fortran: CCO2G(0:JZ,JY,JX)
+    cco2s: [jx][jy][jz + 1]f32, // Fortran: CCO2S(0:JZ,JY,JX)
+    cch4s: [jx][jy][jz + 1]f32, // Fortran: CCH4S(0:JZ,JY,JX)
+    rupoxo: [jx][jy][jz + 1]f32, // Fortran: RUPOXO(0:JZ,JY,JX)
+    rco2o: [jx][jy][jz + 1]f32, // Fortran: RCO2O(0:JZ,JY,JX)
+    rch4o: [jx][jy][jz + 1]f32, // Fortran: RCH4O(0:JZ,JY,JX)
+    rh2go: [jx][jy][jz + 1]f32, // Fortran: RH2GO(0:JZ,JY,JX)
+    rn2g: [jx][jy][jz + 1]f32, // Fortran: RN2G(0:JZ,JY,JX)
+    rn2o: [jx][jy][jz + 1]f32, // Fortran: RN2O(0:JZ,JY,JX)
+    ch2p4: [jx][jy][jz + 1]f32, // Fortran: CH2P4(0:JZ,JY,JX)
+    ch2p4b: [jx][jy][jz + 1]f32, // Fortran: CH2P4B(0:JZ,JY,JX)
+    xcodfg: [jx][jy][jz + 1]f32, // Fortran: XCODFG(0:JZ,JY,JX)
+    xchdfg: [jx][jy][jz + 1]f32, // Fortran: XCHDFG(0:JZ,JY,JX)
+    xoxdfg: [jx][jy][jz + 1]f32, // Fortran: XOXDFG(0:JZ,JY,JX)
+    xngdfg: [jx][jy][jz + 1]f32, // Fortran: XNGDFG(0:JZ,JY,JX)
+    xn2dfg: [jx][jy][jz + 1]f32, // Fortran: XN2DFG(0:JZ,JY,JX)
+    xn3dfg: [jx][jy][jz + 1]f32, // Fortran: XN3DFG(0:JZ,JY,JX)
+    xnbdfg: [jx][jy][jz + 1]f32, // Fortran: XNBDFG(0:JZ,JY,JX)
+    xhgdfg: [jx][jy][jz + 1]f32, // Fortran: XHGDFG(0:JZ,JY,JX)
+    rco2f: [jx][jy][jz + 1]f32, // Fortran: RCO2F(0:JZ,JY,JX)
+    h2gs: [jx][jy][jz + 1]f32, // Fortran: H2GS(0:JZ,JY,JX)
+    ch2gs: [jx][jy][jz + 1]f32, // Fortran: CH2GS(0:JZ,JY,JX)
+    rch4l: [jx][jy][jz + 1]f32, // Fortran: RCH4L(0:JZ,JY,JX)
+    roxyf: [jx][jy][jz + 1]f32, // Fortran: ROXYF(0:JZ,JY,JX)
+    roxyl: [jx][jy][jz + 1]f32, // Fortran: ROXYL(0:JZ,JY,JX)
+    rch4f: [jx][jy][jz + 1]f32, // Fortran: RCH4F(0:JZ,JY,JX)
+    ch1p4: [jx][jy][jz + 1]f32, // Fortran: CH1P4(0:JZ,JY,JX)
+    ch1p4b: [jx][jy][jz + 1]f32, // Fortran: CH1P4B(0:JZ,JY,JX)
+    cno2b: [jx][jy][jz + 1]f32, // Fortran: CNO2B(0:JZ,JY,JX)
+    xno2b: [jx][jy][jz + 1]f32, // Fortran: XNO2B(0:JZ,JY,JX)
+    oxyg: [jx][jy][jz]f32, // Fortran: OXYG(JZ,JY,JX)
+    oxysh: [jx][jy][jz]f32, // Fortran: OXYSH(JZ,JY,JX)
+    co2g: [jx][jy][jz]f32, // Fortran: CO2G(JZ,JY,JX)
+    co2sh: [jx][jy][jz]f32, // Fortran: CO2SH(JZ,JY,JX)
+    ch4g: [jx][jy][jz]f32, // Fortran: CH4G(JZ,JY,JX)
+    ch4sh: [jx][jy][jz]f32, // Fortran: CH4SH(JZ,JY,JX)
+    cpo4s: [jx][jy][jz]f32, // Fortran: CPO4S(JZ,JY,JX)
+    xcodfs: [jx][jy]f32, // Fortran: XCODFS(JY,JX)
+    xchdfs: [jx][jy]f32, // Fortran: XCHDFS(JY,JX)
+    xoxdfs: [jx][jy]f32, // Fortran: XOXDFS(JY,JX)
+    xngdfs: [jx][jy]f32, // Fortran: XNGDFS(JY,JX)
+    xn2dfs: [jx][jy]f32, // Fortran: XN2DFS(JY,JX)
+    xn3dfs: [jx][jy]f32, // Fortran: XN3DFS(JY,JX)
+    xnbdfs: [jx][jy]f32, // Fortran: XNBDFS(JY,JX)
+    xhgdfs: [jx][jy]f32, // Fortran: XHGDFS(JY,JX)
 
     pub fn init() Blk13b {
         return std.mem.zeroInit(Blk13b, .{});

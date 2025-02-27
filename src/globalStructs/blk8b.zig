@@ -8,56 +8,57 @@ const jv = jy + 1;
 const jd = jz + 1;
 
 pub const Blk8b = struct {
-    dist: [jh][jv][jd][3]f32,
-    disp: [jh][jv][jd][3]f32,
-    iyty: [jx][jy][366][3]i32,
-    dlyr: [jx][jy][jz + 1][3]f32,
-    area: [jx][jy][jz + 1][3]f32,
-    dlyri: [jx][jy][jz + 1][3]f32,
-    xdepth: [jx][jy][jz][3]f32,
-    omci: [5][4][3]f32,
-    depth: [jx][jy][jz + 1]f32,
-    poros: [jx][jy][jz + 1]f32,
-    psl: [jx][jy][jz + 1]f32,
-    fcl: [jx][jy][jz + 1]f32,
-    wpl: [jx][jy][jz + 1]f32,
-    psd: [jx][jy][jz + 1]f32,
-    fcd: [jx][jy][jz + 1]f32,
-    volx: [jx][jy][jz + 1]f32,
-    voly: [jx][jy][jz + 1]f32,
-    bkvl: [jx][jy][jz + 1]f32,
-    srp: [jx][jy][jz + 1]f32,
-    tfnd: [jx][jy][jz + 1]f32,
-    volai: [jx][jy][jz + 1]f32,
-    cdepthz: [jx][jy][jz + 1]f32,
-    depthz: [jx][jy][jz]f32,
-    sand: [jx][jy][jz]f32,
-    silt: [jx][jy][jz]f32,
-    clay: [jx][jy][jz]f32,
-    albx: [jx][jy]f32,
-    poros0: [jx][jy]f32,
-    fslope: [jx][jy][2]f32,
-    psims: [jx][jy]f32,
-    psimx: [jx][jy]f32,
-    psimn: [jx][jy]f32,
-    psisd: [jx][jy]f32,
-    psimd: [jx][jy]f32,
-    bkvlnm: [jx][jy]f32,
-    bkvlnu: [jx][jy]f32,
-    forgc: f32,
-    fvlwb: f32,
-    fch4f: f32,
-    poroq: f32,
-    fci: f32,
-    wpi: f32,
-    oxkm: f32,
-    psihy: f32,
-    cnrh: [5]f32,
-    cprh: [5]f32,
-    omcf: [7]f32,
-    omca: [7]f32,
-    iutyp: [jx][jy]i32,
-    ixtyp: [jx][jy][2]i32,
+    dist: [jh][jv][jd][3]f32, // Fortran: DIST(3,JD,JV,JH)
+    disp: [jh][jv][jd][3]f32, // Fortran: DISP(3,JD,JV,JH)
+    dlyr: [jx][jy][jz + 1][3]f32, // Fortran: DLYR(3,0:JZ,JY,JX)
+    area: [jx][jy][jz + 1][3]f32, // Fortran: AREA(3,0:JZ,JY,JX)
+    dlyri: [jx][jy][jz + 1][3]f32, // Fortran: DLYRI(3,0:JZ,JY,JX)
+    iytyp: [jx][jy][366][3]i32, // Fortran: IYTYP(0:2,366,JY,JX)
+    xdpth: [jx][jy][jz][3]f32, // Fortran: XDPTH(3,JZ,JY,JX)
+    dpth: [jx][jy][jz + 1]f32, // Fortran: DPTH(JZ,JY,JX) with 0:JZ
+    poros: [jx][jy][jz + 1]f32, // Fortran: POROS(0:JZ,JY,JX)
+    psl: [jx][jy][jz + 1]f32, // Fortran: PSL(0:JZ,JY,JX)
+    fcl: [jx][jy][jz + 1]f32, // Fortran: FCL(0:JZ,JY,JX)
+    wpl: [jx][jy][jz + 1]f32, // Fortran: WPL(0:JZ,JY,JX)
+    psd: [jx][jy][jz + 1]f32, // Fortran: PSD(0:JZ,JY,JX)
+    fcd: [jx][jy][jz + 1]f32, // Fortran: FCD(0:JZ,JY,JX)
+    volx: [jx][jy][jz + 1]f32, // Fortran: VOLX(0:JZ,JY,JX)
+    voly: [jx][jy][jz + 1]f32, // Fortran: VOLY(0:JZ,JY,JX)
+    bkvl: [jx][jy][jz + 1]f32, // Fortran: BKVL(0:JZ,JY,JX)
+    srp: [jx][jy][jz + 1]f32, // Fortran: SRP(0:JZ,JY,JX)
+    tfnd: [jx][jy][jz + 1]f32, // Fortran: TFND(0:JZ,JY,JX)
+    volai: [jx][jy][jz + 1]f32, // Fortran: VOLAI(0:JZ,JY,JX)
+    cdpthz: [jx][jy][jz + 1]f32, // Fortran: CDPTHZ(0:JZ,JY,JX)
+    dpthz: [jx][jy][jz]f32, // Fortran: DPTHZ(JZ,JY,JX)
+    sand: [jx][jy][jz]f32, // Fortran: SAND(JZ,JY,JX)
+    silt: [jx][jy][jz]f32, // Fortran: SILT(JZ,JY,JX)
+    clay: [jx][jy][jz]f32, // Fortran: CLAY(JZ,JY,JX)
+    fslope: [jx][jy][2]f32, // Fortran: FSLOPE(2,JY,JX)
+    ixtyp: [jx][jy][2]i32, // Fortran: IXTYP(2,JY,JX)
+    albx: [jx][jy]f32, // Fortran: ALBX(JY,JX)
+    poros0: [jx][jy]f32, // Fortran: POROS0(JY,JX)
+    psims: [jx][jy]f32, // Fortran: PSIMS(JY,JX)
+    psimx: [jx][jy]f32, // Fortran: PSIMX(JY,JX)
+    psimn: [jx][jy]f32, // Fortran: PSIMN(JY,JX)
+    psisd: [jx][jy]f32, // Fortran: PSISD(JY,JX)
+    psimd: [jx][jy]f32, // Fortran: PSIMD(JY,JX)
+    bkvlnm: [jx][jy]f32, // Fortran: BKVLNM(JY,JX)
+    bkvlnu: [jx][jy]f32, // Fortran: BKVLNU(JY,JX)
+    cdpthi: [jx][jy]f32, // Fortran: CDPTHI(JY,JX)
+    iutyp: [jx][jy]i32, // Fortran: IUTYP(JY,JX)
+    omci: [5][3]f32, // Fortran: OMCI(3,0:4)
+    cnrh: [5]f32, // Fortran: CNRH(0:4)
+    cprh: [5]f32, // Fortran: CPRH(0:4)
+    omcf: [7]f32, // Fortran: OMCF(7)
+    omca: [7]f32, // Fortran: OMCA(7)
+    forgc: f32, // Fortran: FORGC
+    fvlwb: f32, // Fortran: FVLWB
+    fch4f: f32, // Fortran: FCH4F
+    poroq: f32, // Fortran: POROQ
+    fci: f32, // Fortran: FCI
+    wpi: f32, // Fortran: WPI
+    oxkm: f32, // Fortran: OXKM
+    psihy: f32, // Fortran: PSIHY
 
     pub fn init() Blk8b {
         return std.mem.zeroInit(Blk8b, .{});

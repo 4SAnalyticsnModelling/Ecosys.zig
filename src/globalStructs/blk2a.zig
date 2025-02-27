@@ -4,89 +4,145 @@ const jx = config.ewgridsmax;
 const jy = config.nsgridsmax;
 
 pub const Blk2a = struct {
-    fert: [jx][jy][366][20]f32,
-    rrig: [jx][jy][366][24]f32,
-    wdpth: [jx][jy][366]f32,
-    wdpthd: [jx][jy][366]f32,
-    fdepth: [jx][jy][366]f32,
-    dcorp: [jx][jy][366]f32,
-    rowi: [jx][jy][366]f32,
-    itill: [jx][jy][366]i32,
-    tmph: [366][24]f32,
-    sradh: [366][24]f32,
-    rainh: [366][24]f32,
-    windh: [366][24]f32,
-    dwpht: [366][24]f32,
-    xradh: [366][24]f32,
-    tmpx: [366]f32,
-    tmpn: [366]f32,
-    srad: [366]f32,
-    rain: [366]f32,
-    wind: [366]f32,
-    dwpt: [366][2]f32,
-    omegag: [jx][jy][4]f32,
-    dirra: [jx][jy][2]f32,
-    irchg: [jx][jy][2][2]i32,
-    iflbh: [jx][jy][2][2]i32,
-    tca: [jx][jy]f32,
-    tka: [jx][jy]f32,
-    ua: [jx][jy]f32,
-    vpa: [jx][jy]f32,
-    vpk: [jx][jy]f32,
-    dyln: [jx][jy]f32,
-    dylx: [jx][jy]f32,
-    altz: [jx][jy]f32,
-    precu: [jx][jy]f32,
-    precr: [jx][jy]f32,
-    precw: [jx][jy]f32,
-    preci: [jx][jy]f32,
-    precq: [jx][jy]f32,
-    preca: [jx][jy]f32,
-    gsin: [jx][jy]f32,
-    gcos: [jx][jy]f32,
-    gazi: [jx][jy]f32,
-    sl: [jx][jy]f32,
-    asp: [jx][jy]f32,
-    zs: [jx][jy]f32,
-    zd: [jx][jy]f32,
-    zr: [jx][jy]f32,
-    zm: [jx][jy]f32,
-    z0: [jx][jy]f32,
-    alt: [jx][jy]f32,
-    dtbly: [jx][jy]f32,
-    rab: [jx][jy]f32,
-    rib: [jx][jy]f32,
-    ths: [jx][jy]f32,
-    dtbli: [jx][jy]f32,
-    trad: [jx][jy]f32,
-    tamx: [jx][jy]f32,
-    tamn: [jx][jy]f32,
-    hudx: [jx][jy]f32,
-    hudn: [jx][jy]f32,
-    twind: [jx][jy]f32,
-    trai: [jx][jy]f32,
-    thsx: [jx][jy]f32,
-    offset: [jx][jy]f32,
-    dh: [jx][jy]f32,
-    dv: [jx][jy]f32,
-    dtbldi: [jx][jy]f32,
-    precd: [jx][jy]f32,
-    precb: [jx][jy]f32,
-    co2ei: [jx][jy]f32,
-    cco2ei: [jx][jy]f32,
-    oxye: [jx][jy]f32,
-    coxye: [jx][jy]f32,
-    z2oe: [jx][jy]f32,
-    cz2oe: [jx][jy]f32,
-    z2ge: [jx][jy]f32,
-    cz2ge: [jx][jy]f32,
-    altig: f32,
-    vap: f32,
-    vaps: f32,
-    scos: f32,
-    sazi: f32,
-    tysin: f32,
-    tcndg: f32,
+    fert: [jx][jy][366][20]f32, // Fortran: FERT(20,366,JY,JX)
+    rrig: [jx][jy][366][24]f32, // Fortran: RRIG(24,366,JY,JX)
+    irchg: [jx][jy][2][2]i32, // Fortran: IRCHG(2,2,JY,JX)
+    iflbh: [jx][jy][2][2]i32, // Fortran: IFLBH(2,2,JY,JX)
+    wdpth: [jx][jy][366]f32, // Fortran: WDPTH(366,JY,JX)
+    wdpthd: [jx][jy][366]f32, // Fortran: WDPTHD(366,JY,JX)
+    fdpth: [jx][jy][366]f32, // Fortran: FDPTH(366,JY,JX)
+    dcorp: [jx][jy][366]f32, // Fortran: DCORP(366,JY,JX)
+    rowi: [jx][jy][366]f32, // Fortran: ROWI(366,JY,JX)
+    itill: [jx][jy][366]i32, // Fortran: ITILL(366,JY,JX)
+    iirra: [jx][jy][4]i32, // Fortran: IIRRA(4,JY,JX)
+    omegag: [jx][jy][4]f32, // Fortran: OMEGAG(4,JY,JX)
+    dirra: [jx][jy][2]f32, // Fortran: DIRRA(2,JY,JX)
+    tmph: [366][24]f32, // Fortran: TMPH(24,366)
+    sradh: [366][24]f32, // Fortran: SRADH(24,366)
+    rainh: [366][24]f32, // Fortran: RAINH(24,366)
+    windh: [366][24]f32, // Fortran: WINDH(24,366)
+    dwpht: [366][24]f32, // Fortran: DWPTH(24,366)
+    xradh: [366][24]f32, // Fortran: XRADH(24,366)
+    dwpt: [366][2]f32, // Fortran: DWPT(2,366)
+    tca: [jx][jy]f32, // Fortran: TCA(JY,JX)
+    tka: [jx][jy]f32, // Fortran: TKA(JY,JX)
+    ua: [jx][jy]f32, // Fortran: UA(JY,JX)
+    vpa: [jx][jy]f32, // Fortran: VPA(JY,JX)
+    vpk: [jx][jy]f32, // Fortran: VPK(JY,JX)
+    dyln: [jx][jy]f32, // Fortran: DYLN(JY,JX)
+    dylx: [jx][jy]f32, // Fortran: DYLX(JY,JX)
+    altz: [jx][jy]f32, // Fortran: ALTZ(JY,JX)
+    precu: [jx][jy]f32, // Fortran: PRECU(JY,JX)
+    precr: [jx][jy]f32, // Fortran: PRECR(JY,JX)
+    precw: [jx][jy]f32, // Fortran: PRECW(JY,JX)
+    preci: [jx][jy]f32, // Fortran: PRECI(JY,JX)
+    precq: [jx][jy]f32, // Fortran: PRECQ(JY,JX)
+    preca: [jx][jy]f32, // Fortran: PRECA(JY,JX)
+    gsin: [jx][jy]f32, // Fortran: GSIN(JY,JX)
+    gcos: [jx][jy]f32, // Fortran: GCOS(JY,JX)
+    gazi: [jx][jy]f32, // Fortran: GAZI(JY,JX)
+    sl: [jx][jy]f32, // Fortran: SL(JY,JX)
+    asp: [jx][jy]f32, // Fortran: ASP(JY,JX)
+    zs: [jx][jy]f32, // Fortran: ZS(JY,JX)
+    zd: [jx][jy]f32, // Fortran: ZD(JY,JX)
+    zr: [jx][jy]f32, // Fortran: ZR(JY,JX)
+    zm: [jx][jy]f32, // Fortran: ZM(JY,JX)
+    z0: [jx][jy]f32, // Fortran: Z0(JY,JX)
+    alt: [jx][jy]f32, // Fortran: ALT(JY,JX)
+    dtbly: [jx][jy]f32, // Fortran: DTBLY(JY,JX)
+    rab: [jx][jy]f32, // Fortran: RAB(JY,JX)
+    rib: [jx][jy]f32, // Fortran: RIB(JY,JX)
+    ths: [jx][jy]f32, // Fortran: THS(JY,JX)
+    dtbli: [jx][jy]f32, // Fortran: DTBLI(JY,JX)
+    trad: [jx][jy]f32, // Fortran: TRAD(JY,JX)
+    tamx: [jx][jy]f32, // Fortran: TAMX(JY,JX)
+    tamn: [jx][jy]f32, // Fortran: TAMN(JY,JX)
+    hudx: [jx][jy]f32, // Fortran: HUDX(JY,JX)
+    hudn: [jx][jy]f32, // Fortran: HUDN(JY,JX)
+    twind: [jx][jy]f32, // Fortran: TWIND(JY,JX)
+    trai: [jx][jy]f32, // Fortran: TRAI(JY,JX)
+    thsx: [jx][jy]f32, // Fortran: THSX(JY,JX)
+    offset: [jx][jy]f32, // Fortran: OFFSET(JY,JX)
+    dh: [jx][jy]f32, // Fortran: DH(JY,JX)
+    dv: [jx][jy]f32, // Fortran: DV(JY,JX)
+    dtbldi: [jx][jy]f32, // Fortran: DTBLDI(JY,JX)
+    precd: [jx][jy]f32, // Fortran: PRECD(JY,JX)
+    precb: [jx][jy]f32, // Fortran: PRECB(JY,JX)
+    co2ei: [jx][jy]f32, // Fortran: CO2EI(JY,JX)
+    cco2ei: [jx][jy]f32, // Fortran: CCO2EI(JY,JX)
+    oxye: [jx][jy]f32, // Fortran: OXYE(JY,JX)
+    coxye: [jx][jy]f32, // Fortran: COXYE(JY,JX)
+    z2oe: [jx][jy]f32, // Fortran: Z2OE(JY,JX)
+    cz2oe: [jx][jy]f32, // Fortran: CZ2OE(JY,JX)
+    z2ge: [jx][jy]f32, // Fortran: Z2GE(JY,JX)
+    cz2ge: [jx][jy]f32, // Fortran: CZ2GE(JY,JX)
+    znh3e: [jx][jy]f32, // Fortran: ZNH3E(JY,JX)
+    cnh3e: [jx][jy]f32, // Fortran: CNH3E(JY,JX)
+    ch4e: [jx][jy]f32, // Fortran: CH4E(JY,JX)
+    cch4e: [jx][jy]f32, // Fortran: CCH4E(JY,JX)
+    h2ge: [jx][jy]f32, // Fortran: H2GE(JY,JX)
+    ch2ge: [jx][jy]f32, // Fortran: CH2GE(JY,JX)
+    dptht: [jx][jy]f32, // Fortran: DPTHT(JY,JX)
+    alti: [jx][jy]f32, // Fortran: ALTI(JY,JX)
+    znoon: [jx][jy]f32, // Fortran: ZNOON(JY,JX)
+    dtblx: [jx][jy]f32, // Fortran: DTBLX(JY,JX)
+    co2e: [jx][jy]f32, // Fortran: CO2E(JY,JX)
+    cco2e: [jx][jy]f32, // Fortran: CCO2E(JY,JX)
+    rads: [jx][jy]f32, // Fortran: RADS(JY,JX)
+    rady: [jx][jy]f32, // Fortran: RADY(JY,JX)
+    raps: [jx][jy]f32, // Fortran: RAPS(JY,JX)
+    rapy: [jx][jy]f32, // Fortran: RAPY(JY,JX)
+    ssin: [jx][jy]f32, // Fortran: SSIN(JY,JX)
+    ssinn: [jx][jy]f32, // Fortran: SSINN(JY,JX)
+    rchgnu: [jx][jy]f32, // Fortran: RCHGNU(JY,JX)
+    rchgeu: [jx][jy]f32, // Fortran: RCHGEU(JY,JX)
+    rchgsu: [jx][jy]f32, // Fortran: RCHGSU(JY,JX)
+    rchgwu: [jx][jy]f32, // Fortran: RCHGWU(JY,JX)
+    rchgnt: [jx][jy]f32, // Fortran: RCHGNT(JY,JX)
+    rchget: [jx][jy]f32, // Fortran: RCHGET(JY,JX)
+    rchgst: [jx][jy]f32, // Fortran: RCHGST(JY,JX)
+    rchgwt: [jx][jy]f32, // Fortran: RCHGWT(JY,JX)
+    rchqn: [jx][jy]f32, // Fortran: RCHQN(JY,JX)
+    rchqe: [jx][jy]f32, // Fortran: RCHQE(JY,JX)
+    rchqs: [jx][jy]f32, // Fortran: RCHQS(JY,JX)
+    rchqw: [jx][jy]f32, // Fortran: RCHQW(JY,JX)
+    rchgd: [jx][jy]f32, // Fortran: RCHGD(JY,JX)
+    dtblg: [jx][jy]f32, // Fortran: DTBLG(JY,JX)
+    dptha: [jx][jy]f32, // Fortran: DPTHA(JY,JX)
+    rown: [jx][jy]f32, // Fortran: ROWN(JY,JX)
+    rowo: [jx][jy]f32, // Fortran: ROWO(JY,JX)
+    rowp: [jx][jy]f32, // Fortran: ROWP(JY,JX)
+    firra: [jx][jy]f32, // Fortran: FIRRA(JY,JX)
+    cirra: [jx][jy]f32, // Fortran: CIRRA(JY,JX)
+    dtblz: [jx][jy]f32, // Fortran: DTBLZ(JY,JX)
+    tlex: [jx][jy]f32, // Fortran: TLEX(JY,JX)
+    tshx: [jx][jy]f32, // Fortran: TSHX(JY,JX)
+    tlec: [jx][jy]f32, // Fortran: TLEC(JY,JX)
+    tshc: [jx][jy]f32, // Fortran: TSHC(JY,JX)
+    dpthsk: [jx][jy]f32, // Fortran: DPTHSK(JY,JX)
+    tksd: [jx][jy]f32, // Fortran: TKSD(JY,JX)
+    dtbld: [jx][jy]f32, // Fortran: DTBLD(JY,JX)
+    atcai: [jx][jy]f32, // Fortran: ATCAI(JY,JX)
+    rad: [jx][jy]f32, // Fortran: RAD(JY,JX)
+    rap: [jx][jy]f32, // Fortran: RAP(JY,JX)
+    atca: [jx][jy]f32, // Fortran: ATCA(JY,JX)
+    atcs: [jx][jy]f32, // Fortran: ATCS(JY,JX)
+    atka: [jx][jy]f32, // Fortran: ATKA(JY,JX)
+    atks: [jx][jy]f32, // Fortran: ATKS(JY,JX)
+    engyp: [jx][jy]f32, // Fortran: ENGYP(JY,JX)
+    idtbl: [jx][jy]i32, // Fortran: IDTBL(JY,JX)
+    tmpx: [366]f32, // Fortran: TMPX(366)
+    tmpn: [366]f32, // Fortran: TMPN(366)
+    srad: [366]f32, // Fortran: SRAD(366)
+    rain: [366]f32, // Fortran: RAIN(366)
+    wind: [366]f32, // Fortran: WIND(366)
+    altig: f32, // Fortran: ALTIG
+    vap: f32, // Fortran: VAP
+    vaps: f32, // Fortran: VAPS
+    scos: f32, // Fortran: SCOS
+    sazi: f32, // Fortran: SAZI
+    tysin: f32, // Fortran: TYSIN
+    tcndg: f32, // Fortran: TCNDG
 
     pub fn init() Blk2a {
         return std.mem.zeroInit(Blk2a, .{});

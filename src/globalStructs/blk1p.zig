@@ -7,45 +7,45 @@ const jp = config.pftmax;
 const jc = config.canopymax;
 
 pub const Blk1p = struct {
-    wglflp: [jx][jy][jp][jc][26][jz]f32,
-    psnc: [jx][jy][jp][jz][2][4]f32,
-    cfopp: [jx][jy][jp][4][6]f32,
-    ppoolr: [jx][jy][jp][jz][2]f32,
-    cppolr: [jx][jy][jp][jz][2]f32,
-    wtrt1p: [jx][jy][jp][jc][jz][2]f32,
-    wtrt2p: [jx][jy][jp][jc][jz][2]f32,
-    rtwt1p: [jx][jy][jp][jc][2]f32,
-    wtstdp: [jx][jy][jp][4]f32,
-    wglfp: [jx][jy][jp][jc][26]f32,
-    wgshp: [jx][jy][jp][jc][26]f32,
-    wgnodp: [jx][jy][jp][jc][26]f32,
-    wtlfbp: [jx][jy][jp][jc]f32,
-    wtshbp: [jx][jy][jp][jc]f32,
-    wtstbp: [jx][jy][jp][jc]f32,
-    wtrsbp: [jx][jy][jp][jc]f32,
-    wthsbp: [jx][jy][jp][jc]f32,
-    wteabp: [jx][jy][jp][jc]f32,
-    wtgrbp: [jx][jy][jp][jc]f32,
-    ppool: [jx][jy][jp][jc]f32,
-    cppolb: [jx][jy][jp][jc]f32,
-    ppolnb: [jx][jy][jp][jc]f32,
-    wtndbp: [jx][jy][jp][jc]f32,
-    ppooln: [jx][jy][jp][jz]f32,
-    wtndlp: [jx][jy][jp][jz]f32,
-    wtshp: [jx][jy][jp]f32,
-    ppoolp: [jx][jy][jp]f32,
-    wtlfp: [jx][jy][jp]f32,
-    wtshep: [jx][jy][jp]f32,
-    wtstkp: [jx][jy][jp]f32,
-    wtrsvp: [jx][jy][jp]f32,
-    wthskp: [jx][jy][jp]f32,
-    wtearp: [jx][jy][jp]f32,
-    wtgrnp: [jx][jy][jp]f32,
-    wtrtp: [jx][jy][jp]f32,
-    wtndp: [jx][jy][jp]f32,
-    cppolp: [jx][jy][jp]f32,
-    wtstgp: [jx][jy][jp]f32,
-    ppolnp: [jx][jy][jp]f32,
+    wglflp: [jx][jy][jp][jc][26][jz]f32, // Fortran: WGLFLP(JZ,0:25,JC,JP,JY,JX)
+    psnc: [jx][jy][jp][jz + 1][2][4]f32, // Fortran: PSNC(4,0:1,0:JZ,JP,JY,JX)
+    cfopp: [jx][jy][jp][4][6]f32, // Fortran: CFOPP(0:5,4,JP,JY,JX)
+    ppoolr: [jx][jy][jp][jz][2]f32, // Fortran: PPOOLR(2,JZ,JP,JY,JX)
+    cppolr: [jx][jy][jp][jz][2]f32, // Fortran: CPPOLR(2,JZ,JP,JY,JX)
+    wtrt1p: [jx][jy][jp][jc][jz][2]f32, // Fortran: WTRT1P(2,JZ,JC,JP,JY,JX)
+    wtrt2p: [jx][jy][jp][jc][jz][2]f32, // Fortran: WTRT2P(2,JZ,JC,JP,JY,JX)
+    rtwt1p: [jx][jy][jp][jc][2]f32, // Fortran: RTWT1P(2,JC,JP,JY,JX)
+    wglfp: [jx][jy][jp][jc][26]f32, // Fortran: WGLFP(0:25,JC,JP,JY,JX)
+    wgshp: [jx][jy][jp][jc][26]f32, // Fortran: WGSHP(0:25,JC,JP,JY,JX)
+    wgnodp: [jx][jy][jp][jc][26]f32, // Fortran: WGNODP(0:25,JC,JP,JY,JX)
+    wtstdp: [jx][jy][jp][4]f32, // Fortran: WTSTDP(4,JP,JY,JX)
+    wtlfbp: [jx][jy][jp][jc]f32, // Fortran: WTLFBP(JC,JP,JY,JX)
+    wtshbp: [jx][jy][jp][jc]f32, // Fortran: WTSHBP(JC,JP,JY,JX)
+    wtstbp: [jx][jy][jp][jc]f32, // Fortran: WTSTBP(JC,JP,JY,JX)
+    wtrsbp: [jx][jy][jp][jc]f32, // Fortran: WTRSBP(JC,JP,JY,JX)
+    wthsbp: [jx][jy][jp][jc]f32, // Fortran: WTHSBP(JC,JP,JY,JX)
+    wteabp: [jx][jy][jp][jc]f32, // Fortran: WTEABP(JC,JP,JY,JX)
+    wtgrbp: [jx][jy][jp][jc]f32, // Fortran: WTGRBP(JC,JP,JY,JX)
+    ppool: [jx][jy][jp][jc]f32, // Fortran: PPOOL(JC,JP,JY,JX)
+    cppolb: [jx][jy][jp][jc]f32, // Fortran: CPPOLB(JC,JP,JY,JX)
+    ppolnb: [jx][jy][jp][jc]f32, // Fortran: PPOLNB(JC,JP,JY,JX)
+    wtndbp: [jx][jy][jp][jc]f32, // Fortran: WTNDBP(JC,JP,JY,JX)
+    wtshtp: [jx][jy][jp][jc]f32, // Fortran: WTSHTP(JC,JP,JY,JX)
+    wtndlp: [jx][jy][jp][jz]f32, // Fortran: WTNDLP(JZ,JP,JY,JX)
+    wtshp: [jx][jy][jp]f32, // Fortran: WTSHP(JP,JY,JX)
+    ppoolp: [jx][jy][jp]f32, // Fortran: PPOOLP(JP,JY,JX)
+    wtlfp: [jx][jy][jp]f32, // Fortran: WTLFP(JP,JY,JX)
+    wtshep: [jx][jy][jp]f32, // Fortran: WTSHEP(JP,JY,JX)
+    wtstkp: [jx][jy][jp]f32, // Fortran: WTSTKP(JP,JY,JX)
+    wtrsvp: [jx][jy][jp]f32, // Fortran: WTRSVP(JP,JY,JX)
+    wthskp: [jx][jy][jp]f32, // Fortran: WTHSKP(JP,JY,JX)
+    wtearp: [jx][jy][jp]f32, // Fortran: WTEARP(JP,JY,JX)
+    wtgrnp: [jx][jy][jp]f32, // Fortran: WTGRNP(JP,JY,JX)
+    wtrtp: [jx][jy][jp]f32, // Fortran: WTRTP(JP,JY,JX)
+    wtndp: [jx][jy][jp]f32, // Fortran: WTNDP(JP,JY,JX)
+    cppolp: [jx][jy][jp]f32, // Fortran: CPPOLP(JP,JY,JX)
+    wtstgp: [jx][jy][jp]f32, // Fortran: WTSTGP(JP,JY,JX)
+    ppolnp: [jx][jy][jp]f32, // Fortran: PPOLNP(JP,JY,JX)
 
     pub fn init() Blk1p {
         return std.mem.zeroInit(Blk1p, .{});

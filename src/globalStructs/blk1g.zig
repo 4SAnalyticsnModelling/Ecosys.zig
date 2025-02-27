@@ -7,62 +7,47 @@ const jp = config.pftmax;
 const jc = config.canopymax;
 
 pub const Blk1g = struct {
-    surf: [jx][jy][jp][jc][25][jz][4]f32,
-    surfx: [jx][jy][jp][jc][25][jz][4]f32,
-    pardif: [jx][jy][jp][jz][4][4]f32,
-    par: [jx][jy][jp][jz][4][4]f32,
-    surfb: [jx][jy][jp][jc][jz][4]f32,
-    arstk: [jx][jy][jp][jc][jz]f32,
-    cfopc: [jx][jy][jp][4][6]f32,
-    dmvl: [jx][jy][jp][2]f32,
-    rrad1x: [jx][jy][jp][2]f32,
-    rrad2x: [jx][jy][jp][2]f32,
-    rtar1x: [jx][jy][jp][2]f32,
-    rtar2x: [jx][jy][jp][2]f32,
-    vcgro: [jx][jy][jp][jc][25]f32,
-    vgro: [jx][jy][jp][jc][25]f32,
-    compl: [jx][jy][jp][jc][25]f32,
-    etgro: [jx][jy][jp][jc][25]f32,
-    cbxn: [jx][jy][jp][jc][25]f32,
-    cpool3: [jx][jy][jp][jc][25]f32,
-    co2b: [jx][jy][jp][jc][25]f32,
-    vcgr4: [jx][jy][jp][jc][25]f32,
-    vgro4: [jx][jy][jp][jc][25]f32,
-    etgr4: [jx][jy][jp][jc][25]f32,
-    cbxn4: [jx][jy][jp][jc][25]f32,
-    cpool4: [jx][jy][jp][jc][25]f32,
-    hcob: [jx][jy][jp][jc][25]f32,
-    fdbk4: [jx][jy][jp][jc][25]f32,
-    tfn4: [jx][jy][jp][jz]f32,
-    flwc: [jx][jy][jp]f32,
-    volwc: [jx][jy][jp]f32,
-    radc: [jx][jy][jp]f32,
-    radp: [jx][jy][jp]f32,
-    fradp: [jx][jy][jp]f32,
-    arlfp: [jx][jy][jp]f32,
-    arstp: [jx][jy][jp]f32,
-    arlfs: [jx][jy][jp]f32,
-    o2i: [jx][jy][jp]f32,
-    co2i: [jx][jy][jp]f32,
-    dco2: [jx][jy][jp]f32,
-    co2q: [jx][jy][jp]f32,
-    co2l: [jx][jy][jp]f32,
-    o2l: [jx][jy][jp]f32,
-    sco2: [jx][jy][jp]f32,
-    so2: [jx][jy][jp]f32,
-    xkco2l: [jx][jy][jp]f32,
-    xkco2o: [jx][jy][jp]f32,
-    tfn3: [jx][jy][jp]f32,
-    tcc: [jx][jy][jp]f32,
-    tcg: [jx][jy][jp]f32,
-    tkc: [jx][jy][jp]f32,
-    tkg: [jx][jy][jp]f32,
-    dtkc: [jx][jy][jp]f32,
-    chill: [jx][jy][jp]f32,
-    fmol: [jx][jy][jp]f32,
-    zc: [jx][jy][jp]f32,
-    fdbk: [jx][jy][jp][jc]f32,
-    fdbkx: [jx][jy][jp][jc]f32,
+    surfb: [jx][jy][jp][jc][4][jz]f32, // Fortran: SURFB(4,JZ,JC,JP,JY,JX)
+    surfx: [jx][jy][jp][jc][4][jz]f32, // Fortran: SURFX(4,JZ,JC,JP,JY,JX)
+    vcgro: [jx][jy][jp][jc][25]f32, // Fortran: VCGRO(25,JC,JP,JY,JX)
+    vgro: [jx][jy][jp][jc][25]f32, // Fortran: VGRO(25,JC,JP,JY,JX)
+    compl: [jx][jy][jp][jc][25]f32, // Fortran: COMPL(25,JC,JP,JY,JX)
+    etgro: [jx][jy][jp][jc][25]f32, // Fortran: ETGRO(25,JC,JP,JY,JX)
+    cbxn: [jx][jy][jp][jc][25]f32, // Fortran: CBXN(25,JC,JP,JY,JX)
+    cpool3: [jx][jy][jp][jc][25]f32, // Fortran: CPOOL3(25,JC,JP,JY,JX)
+    co2b: [jx][jy][jp][jc][25]f32, // Fortran: CO2B(25,JC,JP,JY,JX)
+    vcgr4: [jx][jy][jp][jc][25]f32, // Fortran: VCGR4(25,JC,JP,JY,JX)
+    vgro4: [jx][jy][jp][jc][25]f32, // Fortran: VGRO4(25,JC,JP,JY,JX)
+    etgr4: [jx][jy][jp][jc][25]f32, // Fortran: ETGR4(25,JC,JP,JY,JX)
+    cbxn4: [jx][jy][jp][jc][25]f32, // Fortran: CBXN4(25,JC,JP,JY,JX)
+    cpool4: [jx][jy][jp][jc][25]f32, // Fortran: CPOOL4(25,JC,JP,JY,JX)
+    hcob: [jx][jy][jp][jc][25]f32, // Fortran: HCOB(25,JC,JP,JY,JX)
+    fdbk4: [jx][jy][jp][jc][25]f32, // Fortran: FDBK4(25,JC,JP,JY,JX)
+    tfn4: [jx][jy][jp][jz]f32, // Fortran: TFN4(JZ,JP,JY,JX)
+    fdbk: [jx][jy][jp][jc]f32, // Fortran: FDBK(JC,JP,JY,JX)
+    fdbkx: [jx][jy][jp][jc]f32, // Fortran: FDBKX(JC,JP,JY,JX)
+    o2i: [jx][jy][jp]f32, // Fortran: O2I(JP,JY,JX)
+    co2i: [jx][jy][jp]f32, // Fortran: CO2I(JP,JY,JX)
+    dco2: [jx][jy][jp]f32, // Fortran: DCO2(JP,JY,JX)
+    co2q: [jx][jy][jp]f32, // Fortran: CO2Q(JP,JY,JX)
+    co2l: [jx][jy][jp]f32, // Fortran: CO2L(JP,JY,JX)
+    o2l: [jx][jy][jp]f32, // Fortran: O2L(JP,JY,JX)
+    sco2: [jx][jy][jp]f32, // Fortran: SCO2(JP,JY,JX)
+    so2: [jx][jy][jp]f32, // Fortran: SO2(JP,JY,JX)
+    xkco2l: [jx][jy][jp]f32, // Fortran: XKCO2L(JP,JY,JX)
+    xkco2o: [jx][jy][jp]f32, // Fortran: XKCO2O(JP,JY,JX)
+    tfn3: [jx][jy][jp]f32, // Fortran: TFN3(JP,JY,JX)
+    tcc: [jx][jy][jp]f32, // Fortran: TCC(JP,JY,JX)
+    tcg: [jx][jy][jp]f32, // Fortran: TCG(JP,JY,JX)
+    tkc: [jx][jy][jp]f32, // Fortran: TKC(JP,JY,JX)
+    tkg: [jx][jy][jp]f32, // Fortran: TKG(JP,JY,JX)
+    dtkc: [jx][jy][jp]f32, // Fortran: DTKC(JP,JY,JX)
+    chill: [jx][jy][jp]f32, // Fortran: CHILL(JP,JY,JX)
+    fmol: [jx][jy][jp]f32, // Fortran: FMOL(JP,JY,JX)
+    zc: [jx][jy][jp]f32, // Fortran: ZC(JP,JY,JX)
+    arlfp: [jx][jy][jp]f32, // Fortran: ARLFP(JP,JY,JX)
+    arstp: [jx][jy][jp]f32, // Fortran: ARSTP(JP,JY,JX)
+    arlfs: [jx][jy][jp]f32, // Fortran: ARLFS(JP,JY,JX)
 
     pub fn init() Blk1g {
         return std.mem.zeroInit(Blk1g, .{});
