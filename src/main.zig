@@ -124,12 +124,12 @@ pub fn main() anyerror!void {
     blk10.qrm[0][0][0] = 42.0;
     try stdout.print("blk10.qrm[0][0][0] : {}\n", .{blk10.qrm[0][0][0]});
     blk11a.tcs[0][0][0] = 43.0;
-    blk11b.wgsgar[0][0] = 41.0;
+    blk11b.wgsgr[0][0] = 41.0;
     blk12a.roxyz[0][0][0] = 76.0;
     blk12b.rh2gz[0][0][0] = 23.0;
     blk13a.h1pobh[0][0][0] = 23.0;
     blk13b.oxyg[0][0][0] = 23.0;
-    blk13c.cfomc[0][0][0][0] = 23.0;
+    blk13c.cfosc[0][0][0][0][0] = 23.0;
     blk13d.fosrh[0][0][0][0] = 23.0;
     blk14.balc[0][0][0] = 23.0;
     blk15a.qs[0][0][0] = 23.0;
@@ -143,8 +143,8 @@ pub fn main() anyerror!void {
     blk19c.zmgoh[0][0][0] = 23.0;
     blk19d.co2w[0][0][0] = 23.0;
     blk20a.xqsso[0][0][0] = 23.0;
-    blk20b.xmgoofs[0][0][0][0] = 23.0;
-    blk20c.xmgoofs[0][0][0][0] = 23.0;
+    blk20b.xmgofs[0][0][0][0] = 23.0;
+    blk20c.xmgohs[0][0][0][0] = 23.0;
     blk20d.xn4fxb[0][0][0] = 23.0;
     blk20e.xh0pxs[0][0][0] = 23.0;
     blk20f.xfe2er[0][0][0][0] = 23.0;
@@ -173,10 +173,15 @@ pub fn main() anyerror!void {
     blk9c.ppi[0][0][0] = 23.0;
     blkc.npr = 10;
 
-    for (0..87600) |_| {
-        try trnsfr(&blk13b, &blk13c, &blk21a, &blk21b, &blkc);
+    for (0..365) |i| {
+        for (0..24) |_| {
+            for (0..2) |nx| {
+                for (0..2) |ny| {
+                    try trnsfr(i, nx, ny, &blk10, &blk11a, &blk13a, &blk13b, &blk13c, &blk15a, &blk2a, &blk2b, &blk2c, &blk21a, &blk21b, &blk22b, &blk8a, &blkc);
+                }
+            }
+        }
     }
-
     try stdout.print("Modified blk11b.zlsgl[0][0][0]: {}\n", .{blk11b.zlsgl[0][0][0]});
     // const waitTime: usize = 20 * std.time.ns_per_s;
     // std.time.sleep(waitTime);
