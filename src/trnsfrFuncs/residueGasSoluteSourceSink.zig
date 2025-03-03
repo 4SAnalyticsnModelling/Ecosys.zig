@@ -6,8 +6,8 @@ const Blk21b = @import("../globalStructs/blk21b.zig").Blk21b;
 const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 const Blktrnsfr2 = @import("../localStructs/blktrnsfr2.zig").Blktrnsfr2;
 
-/// This function calculates the fluxes resulting from microbial transformations in 'nitro.zig///',root exchange in 'extract.zig', and equilibrium reactions in 'solute.zig' at sub-hourly t///ime steps.
-pub fn residueGasSoluteSourceSink(blk13b: *Blk13b, blk13c: *Blk13c, blk21a: *Blk21a, blk21b: *Blk21b, blkc: *Blkc, blktrnsfr2: *Blktrnsfr2, nx: usize, ny: usize) anyerror!void {
+/// Gas and solute sinks and sources in surface residue from microbial transformations in 'nitro.zig',root exchange in 'extract.zig', and equilibrium reactions in 'solute.zig' at sub-hourly time steps.
+pub inline fn residueGasSoluteSourceSink(blk13b: *Blk13b, blk13c: *Blk13c, blk21a: *Blk21a, blk21b: *Blk21b, blkc: *Blkc, blktrnsfr2: *Blktrnsfr2, nx: usize, ny: usize) anyerror!void {
     // solute code:
     // co=co2, ch=ch4, ox=o2, ng=n2, n2=n2o, hg=h2
     // oc=doc, on=don, op=dop, oa=acetate
