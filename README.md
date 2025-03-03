@@ -5,6 +5,6 @@ Zig version of the [ECOSYS](https://github.com/jinyun1tang/ECOSYS) model. The or
 `zig build`
 
 # Custom Compile Ecosys.zig
-`zig build -Dewgridsmax=2 -Dnsgridsmax=2 -Dsoillayermax=10 -Dpftmax=2 -Dcanopymax=10 -Dsubhrwtrcymax=15`
+`zig build -Dewgridsmax=2 -Dnsgridsmax=2 -Dsoillayersmax=10 -Dsnowlayersmax=5 -Dpftmax=1 -Dcanopymax=5 -Dsubhrwtrcymax=15 --release=fast --verbose`
 
 **see build.zig file for detailed description of the options.
