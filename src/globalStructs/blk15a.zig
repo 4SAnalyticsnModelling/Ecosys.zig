@@ -25,7 +25,7 @@ pub const Blk15a = struct {
     xn3flw: [jh][jv][jd + 1][3]f32, // Fortran: XN3FLW(3,0:JD,JV,JH)
     xnoflw: [jh][jv][jd + 1][3]f32, // Fortran: XNOFLW(3,0:JD,JV,JH)
     xh2pfs: [jh][jv][jd + 1][3]f32, // Fortran: XH2PFS(3,0:JD,JV,JH)
-    xnxfb: [jh][jv][jd + 1][3]f32, // Fortran: XNXFLS(3,0:JD,JV,JH)
+    xnxfls: [jh][jv][jd + 1][3]f32, // Fortran: XNXFLS(3,0:JD,JV,JH)
     xchflg: [jh][jv][jd + 1][3]f32, // Fortran: XCHFLG(3,0:JD,JV,JH)
     xh1pfs: [jh][jv][jd + 1][3]f32, // Fortran: XH1PFS(3,0:JD,JV,JH)
     xh1bfb: [jh][jv][jd + 1][3]f32, // Fortran: XH1BFB(3,0:JD,JV,JH)

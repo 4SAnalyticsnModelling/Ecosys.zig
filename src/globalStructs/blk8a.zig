@@ -76,14 +76,14 @@ pub const Blk8a = struct {
     ptdsnu: [jx][jy]f32, // Fortran: PTDSNU(JY,JX)
     vls: [jx][jy]f32, // Fortran: VLS(JY,JX)
     sed: [jx][jy]f32, // Fortran: SED(JY,JX)
-    nu: [jx][jy]i32, // Fortran: NU(JY,JX)
-    nui: [jx][jy]i32, // Fortran: NUI(JY,JX)
-    nj: [jx][jy]i32, // Fortran: NJ(JY,JX)
-    nk: [jx][jy]i32, // Fortran: NK(JY,JX)
-    num: [jx][jy]i32, // Fortran: NUM(JY,JX)
-    isoilr: [jx][jy]i32, // Fortran: ISOILR(JY,JX)
-    nli: [jh][jv]i32, // Fortran: NLI(JV,JH)
-    nl: [jh][jv]i32, // Fortran: NL(JV,JH)
+    nu: [jx][jy]u32, // Fortran: NU(JY,JX)
+    nui: [jx][jy]u32, // Fortran: NUI(JY,JX)
+    nj: [jx][jy]u32, // Fortran: NJ(JY,JX)
+    nk: [jx][jy]u32, // Fortran: NK(JY,JX)
+    num: [jx][jy]u32, // Fortran: NUM(JY,JX)
+    isoilr: [jx][jy]u32, // Fortran: ISOILR(JY,JX)
+    nli: [jh][jv]u32, // Fortran: NLI(JV,JH)
+    nl: [jh][jv]u32, // Fortran: NL(JV,JH)
 
     pub fn init() Blk8a {
         return std.mem.zeroInit(Blk8a, .{});

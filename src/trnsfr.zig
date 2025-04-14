@@ -32,15 +32,19 @@ const Blktrnsfrparams = @import("localStructs/blktrnsfrparams.zig").Blktrnsfrpar
 const residueGasSoluteSourceSink = @import("trnsfrFuncs/residueGasSoluteSourceSink.zig").residueGasSoluteSourceSink;
 const initStateVarsGasSoluteFluxCalc = @import("trnsfrFuncs/initStateVarsGasSoluteFluxCalc.zig").initStateVarsGasSoluteFluxCalc;
 const atmToSurfSoluteFlux = @import("trnsfrFuncs/atmToSurfSoluteFlux.zig").atmToSurfSoluteFlux;
+const subHourlyGasAndSoluteFlux = @import("trnsfrFuncs/subHourlyGasAndSoluteFlux.zig").subHourlyGasAndSoluteFlux;
 
 pub fn trnsfr(i: usize, nx: usize, ny: usize, blk10: *Blk10, blk11a: *Blk11a, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk15a: *Blk15a, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk21a: *Blk21a, blk21b: *Blk21b, blk22b: *Blk22b, blk8a: *Blk8a, blkc: *Blkc) anyerror!void {
     // const blktrnsfrparams: Blktrnsfrparams = Blktrnsfrparams.init();
     var blktrnsfr1: Blktrnsfr1 = Blktrnsfr1.init();
     var blktrnsfr2: Blktrnsfr2 = Blktrnsfr2.init();
+    var blktrnsfr10: Blktrnsfr10 = Blktrnsfr10.init();
     var blktrnsfr12: Blktrnsfr12 = Blktrnsfr12.init();
+    var blktrnsfr13: Blktrnsfr13 = Blktrnsfr13.init();
     try residueGasSoluteSourceSink(blk13b, blk13c, blk21a, blk21b, blkc, &blktrnsfr2, nx, ny);
     try initStateVarsGasSoluteFluxCalc(blk13a, blk13b, blk13c, blk8a, &blktrnsfr1, &blktrnsfr12, nx, ny);
     try atmToSurfSoluteFlux(blk10, blk11a, blk15a, blk2a, blk2b, blk2c, blk22b, nx, ny, i);
+    try subHourlyGasAndSoluteFlux(blk8a, blk15a, blk22b, blkc, &blktrnsfr10, &blktrnsfr13, nx, ny);
     // var blktrnsfr4: Blktrnsfr4 = Blktrnsfr4.init();
     // var blktrnsfr5: Blktrnsfr5 = Blktrnsfr5.init();
     // var blktrnsfr6: Blktrnsfr6 = Blktrnsfr6.init();
