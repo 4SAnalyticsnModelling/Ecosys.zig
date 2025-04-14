@@ -2,10 +2,12 @@ const std = @import("std");
 const config = @import("config");
 const Blk10 = @import("globalStructs/blk10.zig").Blk10;
 const Blk11a = @import("globalStructs/blk11a.zig").Blk11a;
+const Blk11b = @import("globalStructs/blk11b.zig").Blk11b;
 const Blk13a = @import("globalStructs/blk13a.zig").Blk13a;
 const Blk13b = @import("globalStructs/blk13b.zig").Blk13b;
 const Blk13c = @import("globalStructs/blk13c.zig").Blk13c;
 const Blk15a = @import("globalStructs/blk15a.zig").Blk15a;
+const Blk19d = @import("globalStructs/blk19d.zig").Blk19d;
 const Blk2a = @import("globalStructs/blk2a.zig").Blk2a;
 const Blk2b = @import("globalStructs/blk2b.zig").Blk2b;
 const Blk2c = @import("globalStructs/blk2c.zig").Blk2c;
@@ -33,11 +35,14 @@ const residueGasSoluteSourceSink = @import("trnsfrFuncs/residueGasSoluteSourceSi
 const initStateVarsGasSoluteFluxCalc = @import("trnsfrFuncs/initStateVarsGasSoluteFluxCalc.zig").initStateVarsGasSoluteFluxCalc;
 const atmToSurfSoluteFlux = @import("trnsfrFuncs/atmToSurfSoluteFlux.zig").atmToSurfSoluteFlux;
 const subHourlyGasAndSoluteFlux = @import("trnsfrFuncs/subHourlyGasAndSoluteFlux.zig").subHourlyGasAndSoluteFlux;
+const soilGasSoluteSourceSink = @import("trnsfrFuncs/soilGasSoluteSourceSink.zig").soilGasSoluteSourceSink;
+const initSnowpackSolute = @import("trnsfrFuncs/initSnowpackSolute.zig").initSnowpackSolute;
 
-pub fn trnsfr(i: usize, nx: usize, ny: usize, blk10: *Blk10, blk11a: *Blk11a, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk15a: *Blk15a, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk21a: *Blk21a, blk21b: *Blk21b, blk22b: *Blk22b, blk8a: *Blk8a, blkc: *Blkc) anyerror!void {
+pub fn trnsfr(i: usize, nx: usize, ny: usize, blk10: *Blk10, blk11a: *Blk11a, blk11b: *Blk11b, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk15a: *Blk15a, blk19d: *Blk19d, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk21a: *Blk21a, blk21b: *Blk21b, blk22b: *Blk22b, blk8a: *Blk8a, blkc: *Blkc) anyerror!void {
     // const blktrnsfrparams: Blktrnsfrparams = Blktrnsfrparams.init();
     var blktrnsfr1: Blktrnsfr1 = Blktrnsfr1.init();
     var blktrnsfr2: Blktrnsfr2 = Blktrnsfr2.init();
+    var blktrnsfr3: Blktrnsfr3 = Blktrnsfr3.init();
     var blktrnsfr10: Blktrnsfr10 = Blktrnsfr10.init();
     var blktrnsfr12: Blktrnsfr12 = Blktrnsfr12.init();
     var blktrnsfr13: Blktrnsfr13 = Blktrnsfr13.init();
@@ -45,6 +50,8 @@ pub fn trnsfr(i: usize, nx: usize, ny: usize, blk10: *Blk10, blk11a: *Blk11a, bl
     try initStateVarsGasSoluteFluxCalc(blk13a, blk13b, blk13c, blk8a, &blktrnsfr1, &blktrnsfr12, nx, ny);
     try atmToSurfSoluteFlux(blk10, blk11a, blk15a, blk2a, blk2b, blk2c, blk22b, nx, ny, i);
     try subHourlyGasAndSoluteFlux(blk8a, blk15a, blk22b, blkc, &blktrnsfr10, &blktrnsfr13, nx, ny);
+    try soilGasSoluteSourceSink(blk11a, blk11b, blkc, &blktrnsfr1, &blktrnsfr3, nx, ny);
+    try initSnowpackSolute(blk19d, &blktrnsfr1, nx, ny);
     // var blktrnsfr4: Blktrnsfr4 = Blktrnsfr4.init();
     // var blktrnsfr5: Blktrnsfr5 = Blktrnsfr5.init();
     // var blktrnsfr6: Blktrnsfr6 = Blktrnsfr6.init();
