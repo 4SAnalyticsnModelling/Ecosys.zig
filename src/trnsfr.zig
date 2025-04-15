@@ -7,6 +7,8 @@ const Blk13a = @import("globalStructs/blk13a.zig").Blk13a;
 const Blk13b = @import("globalStructs/blk13b.zig").Blk13b;
 const Blk13c = @import("globalStructs/blk13c.zig").Blk13c;
 const Blk15a = @import("globalStructs/blk15a.zig").Blk15a;
+const Blk18a = @import("globalStructs/blk18a.zig").Blk18a;
+const Blk18b = @import("globalStructs/blk18b.zig").Blk18b;
 const Blk19d = @import("globalStructs/blk19d.zig").Blk19d;
 const Blk2a = @import("globalStructs/blk2a.zig").Blk2a;
 const Blk2b = @import("globalStructs/blk2b.zig").Blk2b;
@@ -37,8 +39,9 @@ const atmToSurfSoluteFlux = @import("trnsfrFuncs/atmToSurfSoluteFlux.zig").atmTo
 const subHourlyGasAndSoluteFlux = @import("trnsfrFuncs/subHourlyGasAndSoluteFlux.zig").subHourlyGasAndSoluteFlux;
 const soilGasSoluteSourceSink = @import("trnsfrFuncs/soilGasSoluteSourceSink.zig").soilGasSoluteSourceSink;
 const initSnowpackSolute = @import("trnsfrFuncs/initSnowpackSolute.zig").initSnowpackSolute;
+const soluteFluxWaterNitroUptakeSolute = @import("trnsfrFuncs/soluteFluxWaterNitroUptakeSolute.zig").soluteFluxWaterNitroUptakeSolute;
 
-pub fn trnsfr(i: usize, nx: usize, ny: usize, blk10: *Blk10, blk11a: *Blk11a, blk11b: *Blk11b, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk15a: *Blk15a, blk19d: *Blk19d, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk21a: *Blk21a, blk21b: *Blk21b, blk22b: *Blk22b, blk8a: *Blk8a, blkc: *Blkc) anyerror!void {
+pub fn trnsfr(i: usize, nx: usize, ny: usize, blk10: *Blk10, blk11a: *Blk11a, blk11b: *Blk11b, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk15a: *Blk15a, blk18a: *Blk18a, blk18b: *Blk18b, blk19d: *Blk19d, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk21a: *Blk21a, blk21b: *Blk21b, blk22b: *Blk22b, blk8a: *Blk8a, blkc: *Blkc) anyerror!void {
     // const blktrnsfrparams: Blktrnsfrparams = Blktrnsfrparams.init();
     var blktrnsfr1: Blktrnsfr1 = Blktrnsfr1.init();
     var blktrnsfr2: Blktrnsfr2 = Blktrnsfr2.init();
@@ -52,6 +55,7 @@ pub fn trnsfr(i: usize, nx: usize, ny: usize, blk10: *Blk10, blk11a: *Blk11a, bl
     try subHourlyGasAndSoluteFlux(blk8a, blk15a, blk22b, blkc, &blktrnsfr10, &blktrnsfr13, nx, ny);
     try soilGasSoluteSourceSink(blk11a, blk11b, blkc, &blktrnsfr1, &blktrnsfr3, nx, ny);
     try initSnowpackSolute(blk19d, &blktrnsfr1, nx, ny);
+    try soluteFluxWaterNitroUptakeSolute(blk13b, blk13c, blk18a, blk18b, blk21a, blk21b, blk8a, blkc, &blktrnsfr1, &blktrnsfr2, &blktrnsfr3, nx, ny);
     // var blktrnsfr4: Blktrnsfr4 = Blktrnsfr4.init();
     // var blktrnsfr5: Blktrnsfr5 = Blktrnsfr5.init();
     // var blktrnsfr6: Blktrnsfr6 = Blktrnsfr6.init();

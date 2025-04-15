@@ -177,7 +177,7 @@ pub fn main() anyerror!void {
         for (0..24) |_| {
             for (0..2) |nx| {
                 for (0..2) |ny| {
-                    try trnsfr(i, nx, ny, &blk10, &blk11a, &blk11b, &blk13a, &blk13b, &blk13c, &blk15a, &blk19d, &blk2a, &blk2b, &blk2c, &blk21a, &blk21b, &blk22b, &blk8a, &blkc);
+                    try trnsfr(i, nx, ny, &blk10, &blk11a, &blk11b, &blk13a, &blk13b, &blk13c, &blk15a, &blk18a, &blk18b, &blk19d, &blk2a, &blk2b, &blk2c, &blk21a, &blk21b, &blk22b, &blk8a, &blkc);
                 }
             }
         }
