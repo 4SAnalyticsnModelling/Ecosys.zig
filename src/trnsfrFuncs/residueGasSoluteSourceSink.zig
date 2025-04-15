@@ -7,7 +7,7 @@ const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 const Blktrnsfr2 = @import("../localStructs/blktrnsfr2.zig").Blktrnsfr2;
 
 /// Gas and solute sinks and sources in surface residue from microbial transformations in 'nitro.zig',root exchange in 'extract.zig', and equilibrium reactions in 'solute.zig' at sub-hourly time steps.
-pub inline fn residueGasSoluteSourceSink(blk13b: *Blk13b, blk13c: *Blk13c, blk21a: *Blk21a, blk21b: *Blk21b, blkc: *Blkc, blktrnsfr2: *Blktrnsfr2, nx: usize, ny: usize) anyerror!void {
+pub inline fn residueGasSoluteSourceSink(blk13b: *Blk13b, blk13c: *Blk13c, blk21a: *Blk21a, blk21b: *Blk21b, blkc: *Blkc, blktrnsfr2: *Blktrnsfr2, nhw: u32, nhe: u32, nvn: u32, nvs: u32) anyerror!void {
     // solute code:
     // co=co2, ch=ch4, ox=o2, ng=n2, n2=n2o, hg=h2
     // oc=doc, on=don, op=dop, oa=acetate
@@ -35,24 +35,28 @@ pub inline fn residueGasSoluteSourceSink(blk13b: *Blk13b, blk13c: *Blk13c, blk21
     // xh1ps=net change in hpo4 from nitro.zig
     // trh1p=hpo4 dissolution from solute.zig
     //
-    blktrnsfr2.rcosk2[nx][ny][0] = blk13b.rco2o[nx][ny][0] * blkc.xnpg;
-    blktrnsfr2.rchsk2[nx][ny][0] = blk13b.rch4o[nx][ny][0] * blkc.xnpg;
-    blktrnsfr2.rngsk2[nx][ny][0] = (blk13b.rn2g[nx][ny][0] + blk13c.xn2gs[nx][ny][0]) * blkc.xnpg;
-    blktrnsfr2.rn2sk2[nx][ny][0] = blk13b.rn2o[nx][ny][0] * blkc.xnpg;
-    // blktrnsfr2.rnhsk2[nx][ny][0] = 0.0;
-    blktrnsfr2.rhgsk2[nx][ny][0] = blk13b.rh2go[nx][ny][0] * blkc.xnpg;
+    for (nhw..nhe) |nx| {
+        for (nvn..nvs) |ny| {
+            blktrnsfr2.rcosk2[nx][ny][0] = blk13b.rco2o[nx][ny][0] * blkc.xnpg;
+            blktrnsfr2.rchsk2[nx][ny][0] = blk13b.rch4o[nx][ny][0] * blkc.xnpg;
+            blktrnsfr2.rngsk2[nx][ny][0] = (blk13b.rn2g[nx][ny][0] + blk13c.xn2gs[nx][ny][0]) * blkc.xnpg;
+            blktrnsfr2.rn2sk2[nx][ny][0] = blk13b.rn2o[nx][ny][0] * blkc.xnpg;
+            // blktrnsfr2.rnhsk2[nx][ny][0] = 0.0;
+            blktrnsfr2.rhgsk2[nx][ny][0] = blk13b.rh2go[nx][ny][0] * blkc.xnpg;
 
-    inline for (0..4) |k| {
-        blktrnsfr2.rocsk2[nx][ny][0][k] = -blk13c.xoqcs[nx][ny][0][k] * blkc.xnph;
-        blktrnsfr2.ronsk2[nx][ny][0][k] = -blk13c.xoqns[nx][ny][0][k] * blkc.xnph;
-        blktrnsfr2.ropsk2[nx][ny][0][k] = -blk13c.xoqps[nx][ny][0][k] * blkc.xnph;
-        blktrnsfr2.roask2[nx][ny][0][k] = -blk13c.xoqas[nx][ny][0][k] * blkc.xnph;
+            inline for (0..4) |k| {
+                blktrnsfr2.rocsk2[nx][ny][0][k] = -blk13c.xoqcs[nx][ny][0][k] * blkc.xnph;
+                blktrnsfr2.ronsk2[nx][ny][0][k] = -blk13c.xoqns[nx][ny][0][k] * blkc.xnph;
+                blktrnsfr2.ropsk2[nx][ny][0][k] = -blk13c.xoqps[nx][ny][0][k] * blkc.xnph;
+                blktrnsfr2.roask2[nx][ny][0][k] = -blk13c.xoqas[nx][ny][0][k] * blkc.xnph;
+            }
+
+            blktrnsfr2.rn4sk2[nx][ny][0] = (-blk13c.xnh4s[nx][ny][0] - blk21a.trn4s[nx][ny][0]) * blkc.xnph;
+            blktrnsfr2.rn3sk2[nx][ny][0] = -blk21a.trn3s[nx][ny][0] * blkc.xnph;
+            blktrnsfr2.rnosk2[nx][ny][0] = (-blk13c.xno3s[nx][ny][0] - blk21a.trno3[nx][ny][0]) * blkc.xnph;
+            blktrnsfr2.rnxsk2[nx][ny][0] = (-blk13b.xno2s[nx][ny][0] - blk21b.trno2[nx][ny][0]) * blkc.xnph;
+            blktrnsfr2.rhpsk2[nx][ny][0] = (-blk13c.xh2ps[nx][ny][0] - blk21a.trh2p[nx][ny][0]) * blkc.xnph;
+            blktrnsfr2.r1psk2[nx][ny][0] = (-blk13c.xh1ps[nx][ny][0] - blk21a.trh1p[nx][ny][0]) * blkc.xnph;
+        }
     }
-
-    blktrnsfr2.rn4sk2[nx][ny][0] = (-blk13c.xnh4s[nx][ny][0] - blk21a.trn4s[nx][ny][0]) * blkc.xnph;
-    blktrnsfr2.rn3sk2[nx][ny][0] = -blk21a.trn3s[nx][ny][0] * blkc.xnph;
-    blktrnsfr2.rnosk2[nx][ny][0] = (-blk13c.xno3s[nx][ny][0] - blk21a.trno3[nx][ny][0]) * blkc.xnph;
-    blktrnsfr2.rnxsk2[nx][ny][0] = (-blk13b.xno2s[nx][ny][0] - blk21b.trno2[nx][ny][0]) * blkc.xnph;
-    blktrnsfr2.rhpsk2[nx][ny][0] = (-blk13c.xh2ps[nx][ny][0] - blk21a.trh2p[nx][ny][0]) * blkc.xnph;
-    blktrnsfr2.r1psk2[nx][ny][0] = (-blk13c.xh1ps[nx][ny][0] - blk21a.trh1p[nx][ny][0]) * blkc.xnph;
 }

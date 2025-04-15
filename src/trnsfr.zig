@@ -15,6 +15,7 @@ const Blk2b = @import("globalStructs/blk2b.zig").Blk2b;
 const Blk2c = @import("globalStructs/blk2c.zig").Blk2c;
 const Blk21a = @import("globalStructs/blk21a.zig").Blk21a;
 const Blk21b = @import("globalStructs/blk21b.zig").Blk21b;
+const Blk22a = @import("globalStructs/blk22a.zig").Blk22a;
 const Blk22b = @import("globalStructs/blk22b.zig").Blk22b;
 const Blk8a = @import("globalStructs/blk8a.zig").Blk8a;
 const Blkc = @import("globalStructs/blkc.zig").Blkc;
@@ -40,22 +41,27 @@ const subHourlyGasAndSoluteFlux = @import("trnsfrFuncs/subHourlyGasAndSoluteFlux
 const soilGasSoluteSourceSink = @import("trnsfrFuncs/soilGasSoluteSourceSink.zig").soilGasSoluteSourceSink;
 const initSnowpackSolute = @import("trnsfrFuncs/initSnowpackSolute.zig").initSnowpackSolute;
 const soluteFluxWaterNitroUptakeSolute = @import("trnsfrFuncs/soluteFluxWaterNitroUptakeSolute.zig").soluteFluxWaterNitroUptakeSolute;
+const soluteFluxSubSurfIrrig = @import("trnsfrFuncs/soluteFluxSubSurfIrrig.zig").soluteFluxSubSurfIrrig;
+const subHourlySoluteFluxSubSurfIrrig = @import("trnsfrFuncs/subHourlySoluteFluxSubSurfIrrig.zig").subHourlySoluteFluxSubSurfIrrig;
 
-pub fn trnsfr(i: usize, nx: usize, ny: usize, blk10: *Blk10, blk11a: *Blk11a, blk11b: *Blk11b, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk15a: *Blk15a, blk18a: *Blk18a, blk18b: *Blk18b, blk19d: *Blk19d, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk21a: *Blk21a, blk21b: *Blk21b, blk22b: *Blk22b, blk8a: *Blk8a, blkc: *Blkc) anyerror!void {
+pub fn trnsfr(i: usize, nhw: u32, nhe: u32, nvn: u32, nvs: u32, blk10: *Blk10, blk11a: *Blk11a, blk11b: *Blk11b, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk15a: *Blk15a, blk18a: *Blk18a, blk18b: *Blk18b, blk19d: *Blk19d, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk21a: *Blk21a, blk21b: *Blk21b, blk22a: *Blk22a, blk22b: *Blk22b, blk8a: *Blk8a, blkc: *Blkc) anyerror!void {
     // const blktrnsfrparams: Blktrnsfrparams = Blktrnsfrparams.init();
     var blktrnsfr1: Blktrnsfr1 = Blktrnsfr1.init();
     var blktrnsfr2: Blktrnsfr2 = Blktrnsfr2.init();
     var blktrnsfr3: Blktrnsfr3 = Blktrnsfr3.init();
+    var blktrnsfr8: Blktrnsfr8 = Blktrnsfr8.init();
     var blktrnsfr10: Blktrnsfr10 = Blktrnsfr10.init();
     var blktrnsfr12: Blktrnsfr12 = Blktrnsfr12.init();
     var blktrnsfr13: Blktrnsfr13 = Blktrnsfr13.init();
-    try residueGasSoluteSourceSink(blk13b, blk13c, blk21a, blk21b, blkc, &blktrnsfr2, nx, ny);
-    try initStateVarsGasSoluteFluxCalc(blk13a, blk13b, blk13c, blk8a, &blktrnsfr1, &blktrnsfr12, nx, ny);
-    try atmToSurfSoluteFlux(blk10, blk11a, blk15a, blk2a, blk2b, blk2c, blk22b, nx, ny, i);
-    try subHourlyGasAndSoluteFlux(blk8a, blk15a, blk22b, blkc, &blktrnsfr10, &blktrnsfr13, nx, ny);
-    try soilGasSoluteSourceSink(blk11a, blk11b, blkc, &blktrnsfr1, &blktrnsfr3, nx, ny);
-    try initSnowpackSolute(blk19d, &blktrnsfr1, nx, ny);
-    try soluteFluxWaterNitroUptakeSolute(blk13b, blk13c, blk18a, blk18b, blk21a, blk21b, blk8a, blkc, &blktrnsfr1, &blktrnsfr2, &blktrnsfr3, nx, ny);
+    try residueGasSoluteSourceSink(blk13b, blk13c, blk21a, blk21b, blkc, &blktrnsfr2, nhw, nhe, nvn, nvs);
+    try initStateVarsGasSoluteFluxCalc(blk13a, blk13b, blk13c, blk8a, &blktrnsfr1, &blktrnsfr12, nhw, nhe, nvn, nvs);
+    try atmToSurfSoluteFlux(blk10, blk11a, blk15a, blk2a, blk2b, blk2c, blk22b, nhw, nhe, nvn, nvs, i);
+    try subHourlyGasAndSoluteFlux(blk8a, blk15a, blk22b, blkc, &blktrnsfr10, &blktrnsfr13, nhw, nhe, nvn, nvs);
+    try soilGasSoluteSourceSink(blk11a, blk11b, blkc, &blktrnsfr1, &blktrnsfr3, nhw, nhe, nvn, nvs);
+    try initSnowpackSolute(blk19d, &blktrnsfr1, nhw, nhe, nvn, nvs);
+    try soluteFluxWaterNitroUptakeSolute(blk13b, blk13c, blk18a, blk18b, blk21a, blk21b, blk8a, blkc, &blktrnsfr1, &blktrnsfr2, &blktrnsfr3, nhw, nhe, nvn, nvs);
+    try soluteFluxSubSurfIrrig(blk13c, blk2b, blk2c, blk22a, blk8a, nhw, nhe, nvn, nvs, i);
+    try subHourlySoluteFluxSubSurfIrrig(blk22a, blk8a, blkc, &blktrnsfr8, &blktrnsfr12, nhw, nhe, nvn, nvs);
     // var blktrnsfr4: Blktrnsfr4 = Blktrnsfr4.init();
     // var blktrnsfr5: Blktrnsfr5 = Blktrnsfr5.init();
     // var blktrnsfr6: Blktrnsfr6 = Blktrnsfr6.init();

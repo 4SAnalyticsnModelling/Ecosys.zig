@@ -173,15 +173,23 @@ pub fn main() anyerror!void {
     blk9c.ppi[0][0][0] = 23.0;
     blkc.npr = 10;
 
-    for (0..365) |i| {
-        for (0..24) |_| {
-            for (0..2) |nx| {
-                for (0..2) |ny| {
-                    try trnsfr(i, nx, ny, &blk10, &blk11a, &blk11b, &blk13a, &blk13b, &blk13c, &blk15a, &blk18a, &blk18b, &blk19d, &blk2a, &blk2b, &blk2c, &blk21a, &blk21b, &blk22b, &blk8a, &blkc);
-                }
-            }
+    const nhw: u32 = 0;
+    const nhe: u32 = 2;
+    const nvn: u32 = 0;
+    const nvs: u32 = 2;
+
+    for (nhw..nhe) |nx| {
+        for (nvn..nvs) |ny| {
+            blk8a.nl[nx][ny] = 10;
         }
     }
+
+    for (0..365) |i| {
+        for (0..24) |_| {
+            try trnsfr(i, nhw, nhe, nvn, nvs, &blk10, &blk11a, &blk11b, &blk13a, &blk13b, &blk13c, &blk15a, &blk18a, &blk18b, &blk19d, &blk2a, &blk2b, &blk2c, &blk21a, &blk21b, &blk22a, &blk22b, &blk8a, &blkc);
+        }
+    }
+
     try stdout.print("Modified blk11b.zlsgl[0][0][0]: {}\n", .{blk11b.zlsgl[0][0][0]});
     // const waitTime: usize = 20 * std.time.ns_per_s;
     // std.time.sleep(waitTime);
