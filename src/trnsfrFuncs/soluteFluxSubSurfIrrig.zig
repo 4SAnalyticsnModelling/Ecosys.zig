@@ -15,9 +15,12 @@ pub inline fn soluteFluxSubSurfIrrig(blk13c: *Blk13c, blk2b: *Blk2b, blk2c: *Blk
     // c*q=irrigation solute concentrations
     // vlnh4,vlno3,vlpo4=non-band nh4,no3,po4 volume fraction
     // vlnhb,vlnob,vlpob=band nh4,no3,po4 volume fraction
+
+    // const stdout = std.io.getStdOut().writer();
     for (nhw..nhe) |nx| {
         for (nvn..nvs) |ny| {
             for (blk8a.nu[nx][ny]..blk8a.nl[nx][ny]) |l| {
+                // try stdout.print("Number of soil layer :{}\n", .{l});
                 blk22a.rcoflu[nx][ny][l] = blk22a.flu[nx][ny][l] * blk2c.ccoq[nx][ny];
                 blk22a.rchflu[nx][ny][l] = blk22a.flu[nx][ny][l] * blk2c.cchq[nx][ny];
                 blk22a.roxflu[nx][ny][l] = blk22a.flu[nx][ny][l] * blk2c.coxq[nx][ny];

@@ -43,12 +43,15 @@ const initSnowpackSolute = @import("trnsfrFuncs/initSnowpackSolute.zig").initSno
 const soluteFluxWaterNitroUptakeSolute = @import("trnsfrFuncs/soluteFluxWaterNitroUptakeSolute.zig").soluteFluxWaterNitroUptakeSolute;
 const soluteFluxSubSurfIrrig = @import("trnsfrFuncs/soluteFluxSubSurfIrrig.zig").soluteFluxSubSurfIrrig;
 const subHourlySoluteFluxSubSurfIrrig = @import("trnsfrFuncs/subHourlySoluteFluxSubSurfIrrig.zig").subHourlySoluteFluxSubSurfIrrig;
+const subHourlyGasSoluteDiffusvty = @import("trnsfrFuncs/subHourlyGasSoluteDiffusvty.zig").subHourlyGasSoluteDiffusvty;
+const stateVarsGasSoluteTrnsfr = @import("trnsfrFuncs/stateVarsGasSoluteTrnsfr.zig").stateVarsGasSoluteTrnsfr;
 
 pub fn trnsfr(i: usize, nhw: u32, nhe: u32, nvn: u32, nvs: u32, blk10: *Blk10, blk11a: *Blk11a, blk11b: *Blk11b, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk15a: *Blk15a, blk18a: *Blk18a, blk18b: *Blk18b, blk19d: *Blk19d, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk21a: *Blk21a, blk21b: *Blk21b, blk22a: *Blk22a, blk22b: *Blk22b, blk8a: *Blk8a, blkc: *Blkc) anyerror!void {
     // const blktrnsfrparams: Blktrnsfrparams = Blktrnsfrparams.init();
     var blktrnsfr1: Blktrnsfr1 = Blktrnsfr1.init();
     var blktrnsfr2: Blktrnsfr2 = Blktrnsfr2.init();
     var blktrnsfr3: Blktrnsfr3 = Blktrnsfr3.init();
+    var blktrnsfr7: Blktrnsfr7 = Blktrnsfr7.init();
     var blktrnsfr8: Blktrnsfr8 = Blktrnsfr8.init();
     var blktrnsfr10: Blktrnsfr10 = Blktrnsfr10.init();
     var blktrnsfr12: Blktrnsfr12 = Blktrnsfr12.init();
@@ -62,6 +65,8 @@ pub fn trnsfr(i: usize, nhw: u32, nhe: u32, nvn: u32, nvs: u32, blk10: *Blk10, b
     try soluteFluxWaterNitroUptakeSolute(blk13b, blk13c, blk18a, blk18b, blk21a, blk21b, blk8a, blkc, &blktrnsfr1, &blktrnsfr2, &blktrnsfr3, nhw, nhe, nvn, nvs);
     try soluteFluxSubSurfIrrig(blk13c, blk2b, blk2c, blk22a, blk8a, nhw, nhe, nvn, nvs, i);
     try subHourlySoluteFluxSubSurfIrrig(blk22a, blk8a, blkc, &blktrnsfr8, &blktrnsfr12, nhw, nhe, nvn, nvs);
+    try subHourlyGasSoluteDiffusvty(blk8a, blk11a, blk11b, blkc, &blktrnsfr1, &blktrnsfr3, &blktrnsfr12, nhw, nhe, nvn, nvs);
+    try stateVarsGasSoluteTrnsfr(blk8a, blk13a, blk13b, blk13c, &blktrnsfr1, &blktrnsfr7, &blktrnsfr12, nhw, nhe, nvn, nvs);
     // var blktrnsfr4: Blktrnsfr4 = Blktrnsfr4.init();
     // var blktrnsfr5: Blktrnsfr5 = Blktrnsfr5.init();
     // var blktrnsfr6: Blktrnsfr6 = Blktrnsfr6.init();

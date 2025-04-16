@@ -184,7 +184,7 @@ pub fn main() anyerror!void {
         }
     }
 
-    for (0..365) |i| {
+    for (0..366) |i| {
         for (0..24) |_| {
             try trnsfr(i, nhw, nhe, nvn, nvs, &blk10, &blk11a, &blk11b, &blk13a, &blk13b, &blk13c, &blk15a, &blk18a, &blk18b, &blk19d, &blk2a, &blk2b, &blk2c, &blk21a, &blk21b, &blk22a, &blk22b, &blk8a, &blkc);
         }
