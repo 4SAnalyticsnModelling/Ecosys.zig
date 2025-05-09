@@ -5,7 +5,7 @@ const tokenizeLine = @import("ecosysUtils/tokenizeLine.zig").tokenizeLine;
 const readLine = @import("ecosysUtils/readLine.zig").readLine;
 
 pub fn main() anyerror!void {
-    var buffer: [2048]u8 = undefined;
+    var buffer: [10 * 1024]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
     const allocator = fba.allocator();
 
@@ -18,9 +18,10 @@ pub fn main() anyerror!void {
     const logw = log.writer();
 
     const file = fs.openFile(input.runFile, .{}) catch |err| {
-        try logw.print("error -> Failed to open the runfile: {s}", .{@errorName(err)});
-        return;
+        try logw.print("error -> Runfile not found or failed to open the runfile: {s}\n", .{@errorName(err)});
+        return error.RunFileNotFoundOrFailedToOpenRunFile;
     };
+
     defer file.close();
 
     var blkmain: Blkmain = Blkmain.init();
@@ -34,52 +35,117 @@ pub fn main() anyerror!void {
     var ndy: u32 = 0;
 
     // Read number of E-W and N-S grid cells
-    const line1 = try readLine(file, allocator);
-    const tokens1 = try tokenizeLine(line1, allocator);
-    defer tokens1.deinit();
+    var line = try readLine(file, allocator);
+    defer allocator.free(line);
 
-    nhw = try std.fmt.parseInt(usize, tokens1.items[0], 10);
-    nhe = try std.fmt.parseInt(usize, tokens1.items[1], 10);
-    nvn = try std.fmt.parseInt(usize, tokens1.items[2], 10);
-    nvs = try std.fmt.parseInt(usize, tokens1.items[3], 10);
+    var tokens = try tokenizeLine(line, allocator);
+    defer tokens.deinit();
+
+    nhw = try std.fmt.parseInt(usize, tokens.items[0], 10);
+    nhe = try std.fmt.parseInt(usize, tokens.items[1], 10);
+    nvn = try std.fmt.parseInt(usize, tokens.items[2], 10);
+    nvs = try std.fmt.parseInt(usize, tokens.items[3], 10);
     std.debug.print("nhw: {}; nhe: {}; nvn: {}; nvs: {}\n", .{ nhw, nhe, nvn, nvs });
 
     // Read site file
-    const line2 = try readLine(file, allocator);
-    const tokens2 = try tokenizeLine(line2, allocator);
-    defer tokens2.deinit();
+    line = try readLine(file, allocator);
+    defer allocator.free(line);
 
-    blkmain.data[0] = tokens2.items[0];
+    tokens = try tokenizeLine(line, allocator);
+    defer tokens.deinit();
+
+    blkmain.data[0] = tokens.items[0];
     std.debug.print("blkmain.data[0]: {s}\n", .{blkmain.data[0]});
 
     // Read topography file
-    const line3 = try readLine(file, allocator);
-    const tokens3 = try tokenizeLine(line3, allocator);
-    defer tokens3.deinit();
+    line = try readLine(file, allocator);
+    defer allocator.free(line);
 
-    blkmain.data[1] = tokens3.items[0];
+    tokens = try tokenizeLine(line, allocator);
+    defer tokens.deinit();
+
+    blkmain.data[1] = tokens.items[0];
     std.debug.print("blkmain.data[1]: {s}\n", .{blkmain.data[1]});
 
     // Read the number of the model scenarios to be executed
-    const line4 = try readLine(file, allocator);
-    const tokens4 = try tokenizeLine(line4, allocator);
-    defer tokens4.deinit();
+    line = try readLine(file, allocator);
+    defer allocator.free(line);
 
-    nax = try std.fmt.parseInt(usize, tokens4.items[0], 10);
-    ndx = try std.fmt.parseInt(usize, tokens4.items[1], 10);
+    tokens = try tokenizeLine(line, allocator);
+    defer tokens.deinit();
+
+    nax = try std.fmt.parseInt(usize, tokens.items[0], 10);
+    ndx = try std.fmt.parseInt(usize, tokens.items[1], 10);
     std.debug.print("nax: {}; ndx: {}\n", .{ nax, ndx });
 
-    const line5 = try readLine(file, allocator);
-    const tokens5 = try tokenizeLine(line5, allocator);
-    defer tokens5.deinit();
+    line = try readLine(file, allocator);
+    defer allocator.free(line);
 
-    nay = try std.fmt.parseInt(u32, tokens5.items[0], 10);
-    ndy = try std.fmt.parseInt(u32, tokens5.items[1], 10);
+    tokens = try tokenizeLine(line, allocator);
+    defer tokens.deinit();
+
+    nay = try std.fmt.parseInt(u32, tokens.items[0], 10);
+    ndy = try std.fmt.parseInt(u32, tokens.items[1], 10);
     std.debug.print("nay: {}; ndy: {}\n", .{ nay, ndy });
 
+    // For each scene in each model scenario
     for (0..nax) |nex| {
         blkmain.na[nex] = nay;
         blkmain.nd[nex] = ndy;
-        std.debug.print("na[nex]: {}; nd[nex]: {}\n", .{ blkmain.na[nex], blkmain.nd[nex] });
+        std.debug.print("na[{}]: {}; nd[{}]: {}\n", .{ nex, nex, blkmain.na[nex], blkmain.nd[nex] });
+
+        for (0..blkmain.na[nex]) |ne| {
+            // Read weather file
+            line = try readLine(file, allocator);
+            defer allocator.free(line);
+
+            tokens = try tokenizeLine(line, allocator);
+            defer tokens.deinit();
+
+            blkmain.datac[nex][ne][2] = tokens.items[0];
+            std.debug.print("datac[{}][{}][2]: {s}\n", .{ nex, ne, blkmain.datac[nex][ne][2] });
+
+            // Read weather options
+            line = try readLine(file, allocator);
+            defer allocator.free(line);
+
+            tokens = try tokenizeLine(line, allocator);
+            defer tokens.deinit();
+
+            blkmain.datac[nex][ne][3] = tokens.items[0];
+            std.debug.print("datac[{}][{}][3]: {s}\n", .{ nex, ne, blkmain.datac[nex][ne][3] });
+
+            // Read land management file
+            line = try readLine(file, allocator);
+            defer allocator.free(line);
+
+            tokens = try tokenizeLine(line, allocator);
+            defer tokens.deinit();
+
+            blkmain.datac[nex][ne][8] = tokens.items[0];
+            std.debug.print("datac[{}][{}][8]: {s}\n", .{ nex, ne, blkmain.datac[nex][ne][8] });
+
+            // Read plant management file
+            line = try readLine(file, allocator);
+            defer allocator.free(line);
+
+            tokens = try tokenizeLine(line, allocator);
+            defer tokens.deinit();
+
+            blkmain.datac[nex][ne][9] = tokens.items[0];
+            std.debug.print("datac[{}][{}][9]: {s}\n", .{ nex, ne, blkmain.datac[nex][ne][9] });
+
+            // Read output control files
+            for (20..30) |n| {
+                line = try readLine(file, allocator);
+                defer allocator.free(line);
+
+                tokens = try tokenizeLine(line, allocator);
+                defer tokens.deinit();
+
+                blkmain.datac[nex][ne][n] = tokens.items[0];
+                std.debug.print("datac[{}][{}][{}]: {s}\n", .{ nex, ne, n, blkmain.datac[nex][ne][n] });
+            }
+        }
     }
 }
