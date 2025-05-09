@@ -1,10 +1,10 @@
 # Ecosys.zig
-Zig version of the [ECOSYS](https://github.com/jinyun1tang/ECOSYS) model. The orginal developer of the ECOSYS model (written in Fortran77) is Professor Dr. Robert Grant (University of Alberta). [Symon Mezbahuddin](mailto:symon.mezbahuddin@4sanalyticsnmodelling.com) translated the Fortran77 ECOSYS to Ecosys.zig.
+Zig version of fortran77 ECOSYS model. The orginal developer of the fortran77 ECOSYS model is Professor Dr. Robert Grant (University of Alberta).
 
 # Compile Ecosys.zig (default)
 `zig build`
 
 # Custom Compile Ecosys.zig
-`zig build -Dewgridsmax=2 -Dnsgridsmax=2 -Dsoillayersmax=10 -Dsnowlayersmax=5 -Dpftmax=1 -Dcanopymax=5 -Dsubhrwtrcymax=15 --release=fast --verbose`
+`zig build -Dewgridsmax=1 -Dnsgridsmax=1 -Dsoillayersmax=20 -Dsnowlayersmax=10  -Dpftmax=5 -Dcanopymax=10 -Dsubhrwtrcymax=60 -Doptimize=ReleaseFast --verbose`
 
 **see build.zig file for detailed description of the options.

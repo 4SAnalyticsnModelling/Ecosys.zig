@@ -1,7 +1,8 @@
 const std = @import("std");
 const Blkmain = @import("localStructs/blkmain.zig").Blkmain;
 const getRunAndLogFileArgs = @import("mainFuncs/getRunAndLogFileArgs.zig").getRunAndLogFileArgs;
-const tokenizeLine = @import("mainFuncs/tokenizeLine.zig").tokenizeLine;
+const tokenizeLine = @import("ecosysUtils/tokenizeLine.zig").tokenizeLine;
+const readLine = @import("ecosysUtils/readLine.zig").readLine;
 
 pub fn main() anyerror!void {
     var buffer: [2048]u8 = undefined;
@@ -33,8 +34,7 @@ pub fn main() anyerror!void {
     var ndy: u32 = 0;
 
     // Read number of E-W and N-S grid cells
-    const line1 = try file.reader().readUntilDelimiterOrEofAlloc(allocator, '\n', std.math.maxInt(usize)) orelse return error.UnexpectedEof;
-
+    const line1 = try readLine(file, allocator);
     const tokens1 = try tokenizeLine(line1, allocator);
     defer tokens1.deinit();
 
@@ -45,8 +45,7 @@ pub fn main() anyerror!void {
     std.debug.print("nhw: {}; nhe: {}; nvn: {}; nvs: {}\n", .{ nhw, nhe, nvn, nvs });
 
     // Read site file
-    const line2 = try file.reader().readUntilDelimiterOrEofAlloc(allocator, '\n', std.math.maxInt(usize)) orelse return error.UnexpectedEof;
-
+    const line2 = try readLine(file, allocator);
     const tokens2 = try tokenizeLine(line2, allocator);
     defer tokens2.deinit();
 
@@ -54,8 +53,7 @@ pub fn main() anyerror!void {
     std.debug.print("blkmain.data[0]: {s}\n", .{blkmain.data[0]});
 
     // Read topography file
-    const line3 = try file.reader().readUntilDelimiterOrEofAlloc(allocator, '\n', std.math.maxInt(usize)) orelse return error.UnexpectedEof;
-
+    const line3 = try readLine(file, allocator);
     const tokens3 = try tokenizeLine(line3, allocator);
     defer tokens3.deinit();
 
@@ -63,8 +61,7 @@ pub fn main() anyerror!void {
     std.debug.print("blkmain.data[1]: {s}\n", .{blkmain.data[1]});
 
     // Read the number of the model scenarios to be executed
-    const line4 = try file.reader().readUntilDelimiterOrEofAlloc(allocator, '\n', std.math.maxInt(usize)) orelse return error.UnexpectedEof;
-
+    const line4 = try readLine(file, allocator);
     const tokens4 = try tokenizeLine(line4, allocator);
     defer tokens4.deinit();
 
@@ -72,8 +69,7 @@ pub fn main() anyerror!void {
     ndx = try std.fmt.parseInt(usize, tokens4.items[1], 10);
     std.debug.print("nax: {}; ndx: {}\n", .{ nax, ndx });
 
-    const line5 = try file.reader().readUntilDelimiterOrEofAlloc(allocator, '\n', std.math.maxInt(usize)) orelse return error.UnexpectedEof;
-
+    const line5 = try readLine(file, allocator);
     const tokens5 = try tokenizeLine(line5, allocator);
     defer tokens5.deinit();
 
