@@ -1,7 +1,7 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    const exe = b.addExecutable(.{ .name = "ecosys", .root_source_file = b.path("src/main.zig"), .target = b.host });
+    const exe = b.addExecutable(.{ .name = "ecosys", .root_source_file = b.path("src/main.zig"), .target = b.graph.host, .optimize = b.standardOptimizeOption(.{}) });
 
     const ewgridsmax = b.option(usize, "ewgridsmax", "Maximum number of E-W grid cells") orelse 10;
     const nsgridsmax = b.option(usize, "nsgridsmax", "Maximum number of N-S grid cells") orelse 10;
@@ -23,7 +23,7 @@ pub fn build(b: *std.Build) void {
 
     exe.root_module.addOptions("config", options);
 
-    exe.stack_size = 128 * 1024 * 1024; // increase stack size to 128 MB to accommodate large arrays
+    exe.stack_size = 16 * 1024 * 1024; // increase stack size to 16 MB to accommodate large arrays
 
     b.installArtifact(exe);
 
