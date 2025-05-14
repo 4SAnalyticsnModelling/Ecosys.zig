@@ -9,7 +9,7 @@ Goals with the Ecosys.zig version:
 - Better convergence solutions
 - Parellelism (future option)
 
-<pre>```diff Warning: Ecosys.zig is currently under construction, not yet ready to be used.```</pre>
+```<font color="red">Warning: Ecosys.zig is currently under construction, not yet ready to be used.</font>```
 
 # Compile Ecosys.zig (default)
 `zig build`
