@@ -1,10 +1,10 @@
 # Ecosys.zig
 Zig version of fortran77 ECOSYS model. The orginal developer of the fortran77 ECOSYS model is Professor Dr. Robert Grant (University of Alberta).
 
-Goals with the Ecosys.zig version:
-- Low memory footprint
-- High speed
-- Cross-platform (Windows, MacOs, Linux)
+Ecosys.zig leverages the power of the Zig programming language to achieve:
+- Lower memory footprint
+- Higher speed
+- Cross-platform binaries (Windows, MacOs, Linux)
 - Better error handling
 - More accurate, and faster convergence solutions
 - Parellelism (future option)
