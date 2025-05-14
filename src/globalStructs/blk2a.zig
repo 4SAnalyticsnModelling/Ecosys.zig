@@ -130,13 +130,12 @@ pub const Blk2a = struct {
     atka: [jx][jy]f32, // Fortran: ATKA(JY,JX)
     atks: [jx][jy]f32, // Fortran: ATKS(JY,JX)
     engyp: [jx][jy]f32, // Fortran: ENGYP(JY,JX)
-    idtbl: [jx][jy]i32, // Fortran: IDTBL(JY,JX)
+    idtbl: [jx][jy]u32, // Fortran: IDTBL(JY,JX)
     tmpx: [366]f32, // Fortran: TMPX(366)
     tmpn: [366]f32, // Fortran: TMPN(366)
     srad: [366]f32, // Fortran: SRAD(366)
     rain: [366]f32, // Fortran: RAIN(366)
     wind: [366]f32, // Fortran: WIND(366)
-    altig: f32, // Fortran: ALTIG
     vap: f32, // Fortran: VAP
     vaps: f32, // Fortran: VAPS
     scos: f32, // Fortran: SCOS
