@@ -36,7 +36,9 @@ pub const Blkc = struct {
     ifpob: [jx][jy]i32, // Fortran: IFPOB(JY,JX)
     np: [jx][jy]i32, // Fortran: NP(JY,JX)
     np0: [jx][jy]i32, // Fortran: NP0(JY,JX)
+    iersn: [jx][jy]i32, // Fortran: IERSNG
     ietyp: [jx][jy]u32, // Fortran: IETYP(JY,JX)
+    isalt: [jx][jy]u32, // Fortran: ISALTG
     drad: [12]f32, // Fortran: DRAD(12)
     dtmpx: [12]f32, // Fortran: DTMPX(12)
     dtmpn: [12]f32, // Fortran: DTMPN(12)
@@ -73,8 +75,6 @@ pub const Blkc = struct {
     nyr: i32, // Fortran: NYR
     iterm: i32, // Fortran: ITERM
     ifin: i32, // Fortran: IFIN
-    isaltg: i32, // Fortran: ISALTG
-    iersng: i32, // Fortran: IERSNG
     npx: i32, // Fortran: NPX
     npy: i32, // Fortran: NPY
     nph: i32, // Fortran: NPH
