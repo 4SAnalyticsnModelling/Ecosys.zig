@@ -1,4 +1,4 @@
-# Ecosys.zig
+# Ecosys.zig (**warning: under construction, not for use**)
 Zig version of fortran77 ECOSYS model. The orginal developer of the fortran77 ECOSYS model is Professor Dr. Robert Grant (University of Alberta).
 
 # Compile Ecosys.zig (default)
