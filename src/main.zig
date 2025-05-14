@@ -67,10 +67,10 @@ pub fn main() anyerror!void {
         try logErr.print("error: {s}\n", .{@errorName(err)});
         return err;
     }
-    const nhw = try parseTokenToInt(u32, error.InvalidNumberOfGridCells, tokens.items[0], logErr) - 1;
-    const nvn = try parseTokenToInt(u32, error.InvalidNumberOfGridCells, tokens.items[1], logErr) - 1;
-    const nhe = try parseTokenToInt(u32, error.InvalidNumberOfGridCells, tokens.items[2], logErr);
-    const nvs = try parseTokenToInt(u32, error.InvalidNumberOfGridCells, tokens.items[3], logErr);
+    const nhw = try parseTokenToInt(u32, error.InvalidNumberOfGridCells_W, tokens.items[0], logErr) - 1;
+    const nvn = try parseTokenToInt(u32, error.InvalidNumberOfGridCells_N, tokens.items[1], logErr) - 1;
+    const nhe = try parseTokenToInt(u32, error.InvalidNumberOfGridCells_E, tokens.items[2], logErr);
+    const nvs = try parseTokenToInt(u32, error.InvalidNumberOfGridCells_S, tokens.items[3], logErr);
     try logRun.print("Grid cell positions: West: {}; East: {}; North: {}; South: {}\n", .{ nhw, nhe, nvn, nvs });
     tokens.deinit();
     allocator.free(line);
