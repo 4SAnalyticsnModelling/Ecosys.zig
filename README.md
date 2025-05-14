@@ -4,12 +4,12 @@ Zig version of fortran77 ECOSYS model. The orginal developer of the fortran77 EC
 Goals with the Ecosys.zig version:
 - Low memory footprint
 - High speed
-- Cross-platform
+- Cross-platform (Windows, MacOs, Linux)
 - Better error handling
-- Better convergence solutions
+- More accurate, and faster convergence solutions
 - Parellelism (future option)
 
-```<font color="red">Warning: Ecosys.zig is currently under construction, not yet ready to be used.</font>```
+**Warning: Ecosys.zig is currently under construction. The codes are not yet ready for use.
 
 # Compile Ecosys.zig (default)
 `zig build`
