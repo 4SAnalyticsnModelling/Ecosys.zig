@@ -1,5 +1,15 @@
-# Ecosys.zig (**warning: under construction, not for use**)
+# Ecosys.zig
 Zig version of fortran77 ECOSYS model. The orginal developer of the fortran77 ECOSYS model is Professor Dr. Robert Grant (University of Alberta).
+
+Goals with the Ecosys.zig version:
+- Low memory footprint
+- High speed
+- Cross-platform
+- Better error handling
+- Better convergence solutions
+- Parellelism (future option)
+
+<pre>```diff Warning: Ecosys.zig is currently under construction, not yet ready to be used.```</pre>
 
 # Compile Ecosys.zig (default)
 `zig build`
