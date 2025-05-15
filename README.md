@@ -6,6 +6,8 @@
 - Zig uses **row-major** array ordering, whereas Fortran uses **column-major**. Therefore, all array dimensions in `Ecosys.zig` are reversed relative to those in the original **ECOSYS**.  
 - Zig arrays are **zero-indexed**, while Fortran arrays typically start at **index 1**.
 
+# Motivation
+
 `Ecosys.zig` leverages the power of the Zig programming language to achieve:
 
 - lower memory footprint
