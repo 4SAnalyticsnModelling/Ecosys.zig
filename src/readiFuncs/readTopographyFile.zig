@@ -7,8 +7,8 @@ const tokenizeLine = @import("../ecosysUtils/tokenizeLine.zig").tokenizeLine;
 const dylnFunc = @import("dylnFunc.zig").dylnFunc;
 const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
-/// This function reads site cluster data
-pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Writer, siteClusterName: []const u8, blk2a: *Blk2a, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) anyerror!void {
+/// This function reads topography and soil data
+pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Writer, siteClusterName: []const u8, blk2a: *Blk2a, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) anyerror!void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_readSiteFile;
