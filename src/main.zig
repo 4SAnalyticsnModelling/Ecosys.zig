@@ -39,11 +39,13 @@ pub fn main() anyerror!void {
     defer {
         if (runOK) {
             logErr.print("success: Ecosys model run in {s} completed successfully at UTC {:0>4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}! Please check the outputs in the 'outputs' folder.\n", .{ runFile, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second }) catch {};
+            std.debug.print("success: Ecosys model run in {s} completed successfully at UTC {:0>4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}! Please check the outputs in the 'outputs' folder.\n", .{ runFile, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second });
         }
     }
     // Run failure notice to be printed if runOK is false due to any error
     errdefer {
         logErr.print("error: Ecosys model run in {s} stopped unwantedly at UTC {:0>4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2} due to some error(s)! Please fix the error(s) and try again.\n", .{ runFile, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second }) catch {};
+        std.debug.print("error: Ecosys model run in {s} stopped unwantedly at UTC {:0>4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2} due to some error(s)! Please fix the error(s) and try again.\n", .{ runFile, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second });
     }
     const file = fs.openFile(runFile, .{}) catch {
         const err = error.RunFileNotFoundOrFailedToOpenRunFile;
@@ -63,28 +65,28 @@ pub fn main() anyerror!void {
     var line = try readLine(file, allocator);
     var tokens = try tokenizeLine(line, allocator);
     if (tokens.items.len != 4) {
-        const err = error.InvalidInputForGridCellNumber;
+        const err = error.InvalidInputForGridCellNumberInRunScript;
         try logErr.print("error: {s}\n", .{@errorName(err)});
         return err;
     }
-    const nhw = try parseTokenToInt(u32, error.InvalidNumberOfGridCells_W, tokens.items[0], logErr) - 1;
-    const nvn = try parseTokenToInt(u32, error.InvalidNumberOfGridCells_N, tokens.items[1], logErr) - 1;
-    const nhe = try parseTokenToInt(u32, error.InvalidNumberOfGridCells_E, tokens.items[2], logErr);
-    const nvs = try parseTokenToInt(u32, error.InvalidNumberOfGridCells_S, tokens.items[3], logErr);
-    try logRun.print("Grid cell positions: West: {}; East: {}; North: {}; South: {}\n", .{ nhw, nhe, nvn, nvs });
+    const nhw = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_W, tokens.items[0], logErr) - 1;
+    const nvn = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_N, tokens.items[1], logErr) - 1;
+    const nhe = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_E, tokens.items[2], logErr);
+    const nvs = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_S, tokens.items[3], logErr);
+    try logRun.print("=> Grid cell positions: W: {}; E: {}; N: {}; S: {}.\n", .{ nhw, nhe, nvn, nvs });
     tokens.deinit();
     allocator.free(line);
     // Read site cluster file
     line = try readLine(file, allocator);
     tokens = try tokenizeLine(line, allocator);
     if (tokens.items.len != 1) {
-        const err = error.InvalidSiteClusterFile;
+        const err = error.InvalidSiteClusterFileInRunScript;
         try logErr.print("error: {s}\n", .{@errorName(err)});
         return err;
     }
     // Read site files within the site cluster
     const siteClusterName: []const u8 = tokens.items[0];
-    try logRun.print("Site cluster file: {s}\n", .{siteClusterName});
+    try logRun.print("=> Site cluster file: {s}.\n", .{siteClusterName});
     try readSiteFile(allocator, logErr, siteClusterName, &blk2a, &blkc);
     tokens.deinit();
     allocator.free(line);
@@ -92,44 +94,44 @@ pub fn main() anyerror!void {
     line = try readLine(file, allocator);
     tokens = try tokenizeLine(line, allocator);
     if (tokens.items.len != 1) {
-        const err = error.InvalidTopographyFile;
+        const err = error.InvalidTopographyFileInRunScript;
         try logErr.print("error: {s}\n", .{@errorName(err)});
         return err;
     }
     blkmain.data[1] = tokens.items[0];
-    try logRun.print("Topography file: {s}\n", .{blkmain.data[1]});
+    try logRun.print("=> Topography file: {s}.\n", .{blkmain.data[1]});
     tokens.deinit();
     allocator.free(line);
     // Read the number of the model scenarios to be executed
     line = try readLine(file, allocator);
     tokens = try tokenizeLine(line, allocator);
     if (tokens.items.len != 2) {
-        const err = error.InvalidNumberOfModelScenarios;
+        const err = error.InvalidNumberOfModelScenariosInRunScript;
         try logErr.print("error: {s}\n", .{@errorName(err)});
         return err;
     }
-    const nax = try parseTokenToInt(u32, error.InvalidNumberOfModelScenarios, tokens.items[0], logErr);
-    const ndx = try parseTokenToInt(u32, error.InvalidNumberOfModelScenarios, tokens.items[1], logErr);
-    try logRun.print("Number of model scenarios: {}; Times to be repeated: {}\n", .{ nax, ndx });
+    const nax = try parseTokenToInt(u32, error.InvalidNumberOfModelScenariosInRunScript, tokens.items[0], logErr);
+    const ndx = try parseTokenToInt(u32, error.InvalidNumberOfModelScenariosInRunScript, tokens.items[1], logErr);
+    try logRun.print("=> Number of model scenarios: {}; Times to be repeated: {}.\n", .{ nax, ndx });
     tokens.deinit();
     allocator.free(line);
     // For each scenario
     for (0..nax) |nex| {
         // Error message to be written later in the error log file if number of model scenarios is invalid
         errdefer {
-            const err = error.InvalidNumberOfModelScenarios;
+            const err = error.InvalidNumberOfModelScenariosInRunScript;
             logErr.print("error: Traceback: {s}\n", .{@errorName(err)}) catch {};
         }
         line = try readLine(file, allocator);
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 2) {
-            const err = error.InvalidNumberOfScenes;
+            const err = error.InvalidNumberOfScenesInRunScript;
             try logErr.print("error: {s}\n", .{@errorName(err)});
             return err;
         }
-        const nay = try parseTokenToInt(u32, error.InvalidNumberOfScenes, tokens.items[0], logErr);
-        const ndy = try parseTokenToInt(u32, error.InvalidNumberOfScenes, tokens.items[1], logErr);
-        try logRun.print("Number of model scenes in a scenario: {}; Times to be repeated: {}\n", .{ nay, ndy });
+        const nay = try parseTokenToInt(u32, error.InvalidNumberOfScenesInRunScript, tokens.items[0], logErr);
+        const ndy = try parseTokenToInt(u32, error.InvalidNumberOfScenesInRunScript, tokens.items[1], logErr);
+        try logRun.print("=> Number of model scenes in a scenario: {}; Times to be repeated: {}.\n", .{ nay, ndy });
         tokens.deinit();
         allocator.free(line);
         blkmain.na[nex] = nay;
@@ -138,55 +140,55 @@ pub fn main() anyerror!void {
         for (0..blkmain.na[nex]) |ne| {
             // Error message to be written later in the error log file if number of scenes is invalid
             errdefer {
-                const err = error.InvalidNumberOfScenes;
+                const err = error.InvalidNumberOfScenesInRunScript;
                 logErr.print("error: Traceback: {s}\n", .{@errorName(err)}) catch {};
             }
             // Read weather file
             line = try readLine(file, allocator);
             tokens = try tokenizeLine(line, allocator);
             if (tokens.items.len != 1) {
-                const err = error.InvalidWeatherNetwork;
+                const err = error.InvalidWeatherNetworkInRunScript;
                 try logErr.print("error: {s}\n", .{@errorName(err)});
                 return err;
             }
             blkmain.datac[nex][ne][2] = tokens.items[0];
-            try logRun.print("Weather network file (scenario #{} scene #{}): {s}\n", .{ nex, ne, blkmain.datac[nex][ne][2] });
+            try logRun.print("=> Weather network file (scenario #{} scene #{}): {s}.\n", .{ nex, ne, blkmain.datac[nex][ne][2] });
             tokens.deinit();
             allocator.free(line);
             // Read options file
             line = try readLine(file, allocator);
             tokens = try tokenizeLine(line, allocator);
             if (tokens.items.len != 1) {
-                const err = error.InvalidOptionsFile;
+                const err = error.InvalidOptionsFileInRunScript;
                 try logErr.print("error: {s}\n", .{@errorName(err)});
                 return err;
             }
             blkmain.datac[nex][ne][3] = tokens.items[0];
-            try logRun.print("Options file (scenario #{} scene #{}): {s}\n", .{ nex, ne, blkmain.datac[nex][ne][3] });
+            try logRun.print("=> Options file (scenario #{} scene #{}): {s}.\n", .{ nex, ne, blkmain.datac[nex][ne][3] });
             tokens.deinit();
             allocator.free(line);
             // Read land management file
             line = try readLine(file, allocator);
             tokens = try tokenizeLine(line, allocator);
             if (tokens.items.len != 1) {
-                const err = error.InvalidLandManagementFile;
+                const err = error.InvalidLandManagementFileInRunScript;
                 try logErr.print("error: {s}\n", .{@errorName(err)});
                 return err;
             }
             blkmain.datac[nex][ne][8] = tokens.items[0];
-            try logRun.print("Land management file (scenario #{} scene #{}): {s}\n", .{ nex, ne, blkmain.datac[nex][ne][8] });
+            try logRun.print("=> Land management file (scenario #{} scene #{}): {s}.\n", .{ nex, ne, blkmain.datac[nex][ne][8] });
             tokens.deinit();
             allocator.free(line);
             // Read plant management file
             line = try readLine(file, allocator);
             tokens = try tokenizeLine(line, allocator);
             if (tokens.items.len != 1) {
-                const err = error.InvalidPlantManagementFile;
+                const err = error.InvalidPlantManagementFileInRunScript;
                 try logErr.print("error: {s}\n", .{@errorName(err)});
                 return err;
             }
             blkmain.datac[nex][ne][9] = tokens.items[0];
-            try logRun.print("Plant management file (scenario #{} scene #{}): {s}\n", .{ nex, ne, blkmain.datac[nex][ne][9] });
+            try logRun.print("=> Plant management file (scenario #{} scene #{}): {s}.\n", .{ nex, ne, blkmain.datac[nex][ne][9] });
             tokens.deinit();
             allocator.free(line);
             // Read output control files
@@ -194,12 +196,12 @@ pub fn main() anyerror!void {
                 line = try readLine(file, allocator);
                 tokens = try tokenizeLine(line, allocator);
                 if (tokens.items.len != 1) {
-                    const err = error.InvalidOutputControlFile;
+                    const err = error.InvalidOutputControlFileInRunScript;
                     try logErr.print("error: {s}: Invalid {s}\n", .{ @errorName(err), outputControlFileType[n - 20] });
                     return err;
                 }
                 blkmain.datac[nex][ne][n] = tokens.items[0];
-                try logRun.print("{s} (scenario #{} scene #{}): {s}\n", .{ outputControlFileType[n - 20], nex, ne, blkmain.datac[nex][ne][n] });
+                try logRun.print("=> {s} (scenario #{} scene #{}): {s}.\n", .{ outputControlFileType[n - 20], nex, ne, blkmain.datac[nex][ne][n] });
                 tokens.deinit();
                 allocator.free(line);
             }

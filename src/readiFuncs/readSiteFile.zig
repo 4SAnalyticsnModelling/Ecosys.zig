@@ -8,7 +8,6 @@ const flatIndex = @import("../ecosysUtils/flatIndex.zig").flatIndex;
 const dylnFunc = @import("dylnFunc.zig").dylnFunc;
 const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
-
 /// This function reads site cluster data
 pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Writer, siteClusterName: []const u8, blk2a: *Blk2a, blkc: *Blkc) anyerror!void {
     // Open site cluster file
@@ -18,27 +17,36 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
         return error.SiteClusterFileNotFoundOrFailedToOpenSiteClusterFile;
     };
     defer siteClusterFile.close();
+    // Create a log file to write site file inputs to check if they are all appropriately read
+    var logSitefile = try fs.createFile("outputs/checkPointLogs/siteFileInputCheckLog", .{ .read = false });
+    defer logSitefile.close();
+    const logSite = logSitefile.writer();
+    const wtflag: [5][]const u8 = .{ "no", "yes, natural, stationary", "yes, natural, mobile", "yes, artificial, stationary", "yes, artificial, mobile" };
+    const saltopt: [2][]const u8 = .{ "no salinity simulation", "salinity simulation" };
+    const erosionopt: [5][]const u8 = .{ "no change in elevation", "allow freeze-thaw to change elevation", "allow freeze-thaw + erosion to change elevation", "allow freeze-thaw + soc accumulation to change elevation", "allow freeze-thaw + soc accumulation + erosion to change elevation" };
+    const gridconnopt: [3][]const u8 = .{ "lateral connections between grid cells (and hence lateral flux simulations)", "not a valid option", "no lateral connection/flux simulation" };
     // Read grid position of each site in the site cluster file
     while (true) {
         var line = readLine(siteClusterFile, allocator) catch break; // break out of the loop at the EOF.
         var tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 4) {
-            const err = error.InvalidInputForGridCellPositions;
+            const err = error.InvalidInputForGridCellPositionsInSiteClusterFile;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
             return err;
         }
         // Read grid cell positions in W, N, E, and S direction
-        const nh1 = try parseTokenToInt(u32, error.InvalidGridCellPosition_W, tokens.items[0], logFileWriter) - 1;
-        const nv1 = try parseTokenToInt(u32, error.InvalidGridCellPosition_N, tokens.items[1], logFileWriter) - 1;
-        const nh2 = try parseTokenToInt(u32, error.InvalidGridCellPosition_E, tokens.items[2], logFileWriter);
-        const nv2 = try parseTokenToInt(u32, error.InvalidGridCellPosition_S, tokens.items[3], logFileWriter);
+        const nh1 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteClusterFile_W, tokens.items[0], logFileWriter) - 1;
+        const nv1 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteClusterFile_N, tokens.items[1], logFileWriter) - 1;
+        const nh2 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteClusterFile_E, tokens.items[2], logFileWriter);
+        const nv2 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteClusterFile_S, tokens.items[3], logFileWriter);
+        try logSite.print("=> Site grid cell positions: W: {}, N: {}, E: {}, S: {}.\n", .{ nh1, nv1, nh2, nv2 });
         allocator.free(line);
         tokens.deinit();
         // Read each site file in the site cluster
         line = try readLine(siteClusterFile, allocator);
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 1) {
-            const err = error.InvalidInputForSiteFileName;
+            const err = error.InvalidInputForSiteFileNameInSiteClusterFile;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
             return err;
         }
@@ -70,6 +78,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
             return err;
         }
+        try logSite.print("=> [Start of {s} file.] {s} line#1 inputs: latitude: {d} degree, elevation: {d} m, MAT: {d} degree C, water table simulation: {s}.\n", .{ siteFileName, siteFileName, alatg, altig, atcag, wtflag[idtblg] });
         allocator.free(line);
         tokens.deinit();
         line = try readLine(siteFile, allocator);
@@ -91,6 +100,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
         const z2oeg = try parseTokenToFloat(f32, error.InvalidAtmN2OConcentration, tokens.items[4], logFileWriter);
         // Read atmospheric NH3 concentration (ppm)
         const znh3eg = try parseTokenToFloat(f32, error.InvalidAtmNH3Concentration, tokens.items[5], logFileWriter);
+        try logSite.print("=> {s} line#2 inputs for atmospheric gas concentrations: O2: {} ppm, N2: {} ppm, CO2: {d} ppm, CH4: {d} ppm, N2O: {d} ppm, NH3: {d} ppm.\n", .{ siteFileName, oxyeg, z2geg, co2eig, ch4eg, z2oeg, znh3eg });
         allocator.free(line);
         tokens.deinit();
         line = try readLine(siteFile, allocator);
@@ -116,8 +126,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
             return err;
         }
-
-        // Read lateral mass and energy transport options; 1 = lateral connections between grid cells (and hence lateral flux simulations); 3 = no lateral connection
+        // Read lateral mass and energy transport options; 1 = lateral connections between grid cells (and hence lateral flux simulations); 3 = no lateral connection/flux simulation
         const ncng = try parseTokenToInt(u32, error.InvalidLateralFluxOption, tokens.items[3], logFileWriter);
         if (ncng != 1) {
             if (ncng != 3) {
@@ -130,8 +139,11 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
         const dtblig = try parseTokenToFloat(f32, error.InvalidExtWTD, tokens.items[4], logFileWriter);
         // Read the depth of artificial water table to simulate artificial drainage (m)
         const dtbldig = try parseTokenToFloat(f32, error.InvalidArtificialWTD, tokens.items[5], logFileWriter);
-        // Slope of natural water table (deg) relative to landscape surface
+        // Slope of natural water table relative to landscape surface
         const dtblgg = try parseTokenToFloat(f32, error.InvalidWTDSlope, tokens.items[6], logFileWriter);
+        const iersngforopt: u32 = @max(0, @min(4, iersng + 1));
+        const ncngforopt: u32 = ncng - 1;
+        try logSite.print("=> {s} line#3 inputs -> Koppen climate zone: {}, salinity simulation: {s}, erosion/surface change simulation: {s}, grid cell connectivity: {s}, external WTD: {d} m, artificial WTD: {d} m, slope of WT relative to landscape surface: {d}. Note: WTD will be simulated only if water table option in line#1 is chosen AND external WTD in line#3 < depth of the lowest soil layer in soil file. Artificial drainage will be simulated only if artificial water table option in line#1 is chosen AND artificial WTD in line#3 < external WTD in line#3.\n", .{ siteFileName, ietypg, saltopt[isaltg], erosionopt[iersngforopt], gridconnopt[ncngforopt], dtblig, dtbldig, dtblgg });
         allocator.free(line);
         tokens.deinit();
         line = try readLine(siteFile, allocator);
@@ -158,6 +170,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
         const rchgwtg = try parseTokenToFloat(f32, error.InvalidDistToExtWT_W, tokens.items[11], logFileWriter);
         // Read lower boundary conditions for water flux simulations through lower boundary
         const rchgdg = try parseTokenToFloat(f32, error.InvalidLowerBoundCond, tokens.items[12], logFileWriter);
+        try logSite.print("=> {s} line#4 inputs for model boundary conditions -> multiplier for surface run-off/run-on simulation through N: {d}, E: {d}, S: {d}, and W: {d} boundary. Multiplier for sub-surface discharge/recharge simulation through N: {d}, E: {d}, S: {d}, and W: {d} boundary. Lateral distance to external WT (natural or artificial) to the N: {d} m, E: {d} m, S: {d} m, and W: {d} m direction. Multiplier for water flux simulation (e.g. deep percolation, capillary-rise) through lower boundary: {d}.\n", .{ siteFileName, rchqng, rchqeg, rchqsg, rchqwg, rchgnug, rchgeug, rchgsug, rchgwug, rchgntg, rchgetg, rchgstg, rchgwtg, rchgdg });
         allocator.free(line);
         tokens.deinit();
         line = try readLine(siteFile, allocator);
@@ -168,9 +181,10 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
             return err;
         }
         // Read width of the W-E landscape (m)
-        const dhi = try parseTokenToFloat(f32, error.InvalidGridWidth_WE, tokens.items[0], logFileWriter);
+        const dhi = try parseTokenToFloat(f32, error.InvalidGridWidthInSiteFile_WE, tokens.items[0], logFileWriter);
         // Read width of the N-S landscape (m)
-        const dvi = try parseTokenToFloat(f32, error.InvalidGridWidth_NS, tokens.items[1], logFileWriter);
+        const dvi = try parseTokenToFloat(f32, error.InvalidGridWidthInSiteFile_NS, tokens.items[1], logFileWriter);
+        try logSite.print("=> {s} line#5 inputs for grid cell size -> W-E width: {d} m, N-S width: {d} m. [End of {s} file.]\n", .{ siteFileName, dhi, dvi, siteFileName });
         allocator.free(line);
         tokens.deinit();
         for (nh1..nh2) |nx| {
@@ -210,8 +224,6 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                 blk2a.dv[nx][ny] = dvi;
                 blk2a.co2e[nx][ny] = blk2a.co2ei[nx][ny];
                 blk2a.h2ge[nx][ny] = 1.0e-03;
-                std.debug.print("dh[{}][{}]: {}, dv[{}][{}]: {}\n", .{ nx, ny, blk2a.dh[nx][ny], nx, ny, blk2a.dv[nx][ny] });
-                std.debug.print("alti[{}][{}]: {}\n", .{ nx, ny, blk2a.alti[nx][ny] });
                 // Calculate maximum daylenth for plant phenology
                 // dylm = maximum daylength (h)
                 if (blkc.alat[nx][ny] > 0.0) {
