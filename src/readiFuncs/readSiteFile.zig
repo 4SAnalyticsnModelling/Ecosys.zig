@@ -4,12 +4,17 @@ const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 const Blkmain = @import("../localStructs/blkmain.zig").Blkmain;
 const readLine = @import("../ecosysUtils/readLine.zig").readLine;
 const tokenizeLine = @import("../ecosysUtils/tokenizeLine.zig").tokenizeLine;
-const flatIndex = @import("../ecosysUtils/flatIndex.zig").flatIndex;
 const dylnFunc = @import("dylnFunc.zig").dylnFunc;
 const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
 /// This function reads site cluster data
-pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Writer, siteClusterName: []const u8, blk2a: *Blk2a, blkc: *Blkc) anyerror!void {
+pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Writer, siteClusterName: []const u8, blk2a: *Blk2a, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) anyerror!void {
+    // Log error message if this function fails
+    errdefer {
+        const err = error.FunctionFailed_readSiteFile;
+        logFileWriter.print("error: {s}\n", .{@errorName(err)}) catch {};
+        std.debug.print("error: {s}\n", .{@errorName(err)});
+    }
     // Open site cluster file
     const fs = std.fs.cwd();
     const siteClusterFile = fs.openFile(siteClusterName, .{}) catch |err| {
@@ -25,6 +30,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
     const saltopt: [2][]const u8 = .{ "no salinity simulation", "salinity simulation" };
     const erosionopt: [5][]const u8 = .{ "no change in elevation", "allow freeze-thaw to change elevation", "allow freeze-thaw + erosion to change elevation", "allow freeze-thaw + soc accumulation to change elevation", "allow freeze-thaw + soc accumulation + erosion to change elevation" };
     const gridconnopt: [3][]const u8 = .{ "lateral connections between grid cells (and hence lateral flux simulations)", "not a valid option", "no lateral connection/flux simulation" };
+    var gridCount: u32 = 0;
     // Read grid position of each site in the site cluster file
     while (true) {
         var line = readLine(siteClusterFile, allocator) catch break; // break out of the loop at the EOF.
@@ -40,6 +46,11 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
         const nh2 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteClusterFile_E, tokens.items[2], logFileWriter);
         const nv2 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteClusterFile_S, tokens.items[3], logFileWriter);
         try logSite.print("=> Site grid cell positions: W: {}, N: {}, E: {}, S: {}.\n", .{ nh1, nv1, nh2, nv2 });
+        if (nh1 > nh2 or nv1 > nv2 or nh1 < nhw or nh2 > nhe or nv1 < nvn or nv2 > nvs) {
+            const err = error.InvalidInputForGridCellPositionsInSiteClusterFile;
+            try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+            return err;
+        }
         allocator.free(line);
         tokens.deinit();
         // Read each site file in the site cluster
@@ -189,8 +200,13 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
         tokens.deinit();
         for (nh1..nh2) |nx| {
             for (nv1..nv2) |ny| {
+                gridCount += 1;
                 // Assign topography and environmental parameters
                 blkc.alat[nx][ny] = alatg;
+                blkc.ietyp[nx][ny] = ietypg;
+                blkc.isalt[nx][ny] = isaltg;
+                blkc.iersn[nx][ny] = iersng;
+                blkc.ncn[nx][ny] = ncng;
                 blk2a.alti[nx][ny] = altig;
                 blk2a.atcai[nx][ny] = atcag;
                 blk2a.idtbl[nx][ny] = idtblg;
@@ -200,10 +216,6 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                 blk2a.ch4e[nx][ny] = ch4eg;
                 blk2a.z2oe[nx][ny] = z2oeg;
                 blk2a.znh3e[nx][ny] = znh3eg;
-                blkc.ietyp[nx][ny] = ietypg;
-                blkc.isalt[nx][ny] = isaltg;
-                blkc.iersn[nx][ny] = iersng;
-                blkc.ncn[nx][ny] = ncng;
                 blk2a.dtbli[nx][ny] = dtblig;
                 blk2a.dtbldi[nx][ny] = dtbldig;
                 blk2a.dtblg[nx][ny] = dtblgg;
@@ -233,5 +245,10 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                 }
             }
         }
+    }
+    if (gridCount != (nhe - nhw) * (nvs - nvn)) {
+        const err = error.InvalidInputForGridCellPositionsInSiteClusterFile;
+        try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+        return err;
     }
 }

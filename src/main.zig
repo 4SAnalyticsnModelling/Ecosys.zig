@@ -87,7 +87,7 @@ pub fn main() anyerror!void {
     // Read site files within the site cluster
     const siteClusterName: []const u8 = tokens.items[0];
     try logRun.print("=> Site cluster file: {s}.\n", .{siteClusterName});
-    try readSiteFile(allocator, logErr, siteClusterName, &blk2a, &blkc);
+    try readSiteFile(allocator, logErr, siteClusterName, &blk2a, &blkc, nhw, nvn, nhe, nvs);
     tokens.deinit();
     allocator.free(line);
     // Read topography file
