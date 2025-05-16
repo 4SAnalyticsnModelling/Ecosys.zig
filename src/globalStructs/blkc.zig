@@ -68,7 +68,6 @@ pub const Blkc = struct {
     xnpq: f32, // Fortran: XNPQ
     xnpv: f32, // Fortran: XNPV
     doy: f32, // Fortran: DOY
-    igo: i32, // Fortran: IGO
     idayr: i32, // Fortran: IDAYR
     iyrc: i32, // Fortran: IYRC
     iyrr: i32, // Fortran: IYRR

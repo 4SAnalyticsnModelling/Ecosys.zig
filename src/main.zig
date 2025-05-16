@@ -9,9 +9,10 @@ const readSiteFile = @import("readiFuncs/readSiteFile.zig").readSiteFile;
 const mkDir = @import("ecosysUtils/mkDir.zig").mkDir;
 const parseTokenToInt = @import("ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
-const timeStampUTC = @import("ecosysUtils/timeStampUTC.zig").timeStampUTC;
-///This function reads the site cluster file and all site files within it.
+const elapsedTime = @import("ecosysUtils/elapsedTime.zig").elapsedTime;
+/// Ecosys main function
 pub fn main() anyerror!void {
+    const startTime_us: i64 = std.time.microTimestamp();
     var buffer: [10 * 1024]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
     const allocator = fba.allocator();
@@ -32,20 +33,26 @@ pub fn main() anyerror!void {
     var logError = try fs.createFile("outputs/errorLogs/errorLogFile", .{ .read = false });
     defer logError.close();
     const logErr = logError.writer();
-    const ts: u64 = @intCast(std.time.milliTimestamp());
-    const dt = timeStampUTC(ts);
     var runOK: bool = false;
     // Successful compeletion confirmation to be printed at the end of the model run if runOK is true
     defer {
         if (runOK) {
-            logErr.print("success: Ecosys model run in {s} completed successfully at UTC {:0>4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}! Please check the outputs in the 'outputs' folder.\n", .{ runFile, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second }) catch {};
-            std.debug.print("success: Ecosys model run in {s} completed successfully at UTC {:0>4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}! Please check the outputs in the 'outputs' folder.\n", .{ runFile, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second });
+            const endTime_us: i64 = std.time.microTimestamp();
+            const timeElapsedWithUnit = elapsedTime(startTime_us, endTime_us);
+            const timeElapsed: f64 = timeElapsedWithUnit.value;
+            const timeElapsedUnit: []const u8 = timeElapsedWithUnit.unit;
+            logErr.print("success: Ecosys model run in {s} successfully completed in {d} {s}!\n", .{ runFile, timeElapsed, timeElapsedUnit }) catch {};
+            std.debug.print("error: Ecosys model run in {s} successfully completed in {d} {s}!\n", .{ runFile, timeElapsed, timeElapsedUnit });
         }
     }
     // Run failure notice to be printed if runOK is false due to any error
     errdefer {
-        logErr.print("error: Ecosys model run in {s} stopped unwantedly at UTC {:0>4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2} due to some error(s)! Please fix the error(s) and try again.\n", .{ runFile, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second }) catch {};
-        std.debug.print("error: Ecosys model run in {s} stopped unwantedly at UTC {:0>4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2} due to some error(s)! Please fix the error(s) and try again.\n", .{ runFile, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second });
+        const endTime_us: i64 = std.time.microTimestamp();
+        const timeElapsedWithUnit = elapsedTime(startTime_us, endTime_us);
+        const timeElapsed: f64 = timeElapsedWithUnit.value;
+        const timeElapsedUnit: []const u8 = timeElapsedWithUnit.unit;
+        logErr.print("error: Ecosys model run in {s} stopped unexpectedly in {d} {s} due to some error(s)! Please fix the error(s) and try again.\n", .{ runFile, timeElapsed, timeElapsedUnit }) catch {};
+        std.debug.print("error: Ecosys model run in {s} stopped unexpectedly in {d} {s} due to some error(s)! Please fix the error(s) and try again.\n", .{ runFile, timeElapsed, timeElapsedUnit });
     }
     const file = fs.openFile(runFile, .{}) catch {
         const err = error.RunFileNotFoundOrFailedToOpenRunFile;
@@ -76,18 +83,17 @@ pub fn main() anyerror!void {
     try logRun.print("=> Grid cell positions: W: {}; E: {}; N: {}; S: {}.\n", .{ nhw, nhe, nvn, nvs });
     tokens.deinit();
     allocator.free(line);
-    // Read site cluster file
+    // Read site file
     line = try readLine(file, allocator);
     tokens = try tokenizeLine(line, allocator);
     if (tokens.items.len != 1) {
-        const err = error.InvalidSiteClusterFileInRunScript;
+        const err = error.InvalidSiteFileInRunScript;
         try logErr.print("error: {s}\n", .{@errorName(err)});
         return err;
     }
-    // Read site files within the site cluster
-    const siteClusterName: []const u8 = tokens.items[0];
-    try logRun.print("=> Site cluster file: {s}.\n", .{siteClusterName});
-    try readSiteFile(allocator, logErr, siteClusterName, &blk2a, &blkc, nhw, nvn, nhe, nvs);
+    const siteFileName: []const u8 = tokens.items[0];
+    try logRun.print("=> Site file: {s}.\n", .{siteFileName});
+    try readSiteFile(allocator, logErr, siteFileName, &blk2a, &blkc, nhw, nvn, nhe, nvs);
     tokens.deinit();
     allocator.free(line);
     // Read topography file
