@@ -44,7 +44,7 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
         const nv1 = try parseTokenToInt(u32, error.InvalidGridCellPositionInTopographyFile_N, tokens.items[1], logFileWriter) - 1;
         const nh2 = try parseTokenToInt(u32, error.InvalidGridCellPositionInTopographyFile_E, tokens.items[2], logFileWriter);
         const nv2 = try parseTokenToInt(u32, error.InvalidGridCellPositionInTopographyFile_S, tokens.items[3], logFileWriter);
-        try logSite.print("=> Grid cell positions: W: {}, N: {}, E: {}, S: {}.\n", .{ nh1, nv1, nh2, nv2 });
+        try logTopo.print("=> Grid cell positions: W: {}, N: {}, E: {}, S: {}.\n", .{ nh1, nv1, nh2, nv2 });
         if (nh1 > nh2 or nv1 > nv2 or nh1 < nhw or nh2 > nhe or nv1 < nvn or nv2 > nvs) {
             const err = error.InvalidInputForGridCellPositionsInTopographyFile;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
@@ -58,6 +58,7 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
                 blk2a.sl[nx][ny] = try parseTokenToFloat(f32, error.InvalidSlopeInTopographyFile, tokens.items[5], logFileWriter);
                 // Read initial snowpack depth (cm)
                 blk11a.dpths[nx][ny] = try parseTokenToFloat(f32, error.InvalidInitSnowDpthInTopographyFile, tokens.items[6], logFileWriter);
+                try logTopo.print("=> Grid cell position W-E: {}, N-S: {}, aspect: {d} degree, slope: {d} degree, initial snowpack depth: {d} cm.\n", .{ nx, ny, blk2a.asp[nx][ny], blk2a.sl[nx][ny], blk11a.dpths[nx][ny] });
             }
         }
         allocator.free(line);
@@ -76,6 +77,7 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
             return error.SoilFileNotFoundOrFailedToOpenSoilFile;
         };
         defer soilFile.close();
+
         allocator.free(line);
         tokens.deinit();
         line = try readLine(soilFile, allocator);

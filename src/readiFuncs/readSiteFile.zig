@@ -63,7 +63,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
         const landscapeUnitFileName: []const u8 = tokens.items[0];
         const landscapeUnitFile = fs.openFile(landscapeUnitFileName, .{}) catch |err| {
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
-            return error.LandscapeUnitFileNotFoundInSiteFileOrFailedToOpenLandScapeUnitFile;
+            return error.LandscapeUnitFileNotFoundInSiteFileOrFailedToOpenLandscapeUnitFile;
         };
         defer landscapeUnitFile.close();
         allocator.free(line);
@@ -221,7 +221,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
             for (nv1..nv2) |ny| {
                 blk2a.co2e[nx][ny] = blk2a.co2ei[nx][ny];
                 blk2a.h2ge[nx][ny] = 1.0e-03;
-                // Calculate maximum daylenth for plant phenology
+                // Calculate maximum daylength for plant phenology
                 // dylm = maximum daylength (h)
                 if (blkc.alat[nx][ny] > 0.0) {
                     blkc.dylm[nx][ny] = try dylnFunc(blkc, 173, nx, ny);
