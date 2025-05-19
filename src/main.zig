@@ -1,4 +1,7 @@
 const std = @import("std");
+const Blk11a = @import("globalStructs/blk11a.zig").Blk11a;
+const Blk8a = @import("globalStructs/blk8a.zig").Blk8a;
+const Blk8b = @import("globalStructs/blk8b.zig").Blk8b;
 const Blk2a = @import("globalStructs/blk2a.zig").Blk2a;
 const Blkc = @import("globalStructs/blkc.zig").Blkc;
 const Blkmain = @import("localStructs/blkmain.zig").Blkmain;
@@ -6,6 +9,7 @@ const getRunAndLogFileArgs = @import("mainFuncs/getRunAndLogFileArgs.zig").getRu
 const tokenizeLine = @import("ecosysUtils/tokenizeLine.zig").tokenizeLine;
 const readLine = @import("ecosysUtils/readLine.zig").readLine;
 const readSiteFile = @import("readiFuncs/readSiteFile.zig").readSiteFile;
+const readTopographyFile = @import("readiFuncs/readTopographyFile.zig").readTopographyFile;
 const mkDir = @import("ecosysUtils/mkDir.zig").mkDir;
 const parseTokenToInt = @import("ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
@@ -65,8 +69,12 @@ pub fn main() anyerror!void {
     defer logRunfile.close();
     const logRun = logRunfile.writer();
     var blkmain: Blkmain = Blkmain.init();
+    var blk11a: Blk11a = Blk11a.init();
     var blk2a: Blk2a = Blk2a.init();
+    var blk8a: Blk8a = Blk8a.init();
+    var blk8b: Blk8b = Blk8b.init();
     var blkc: Blkc = Blkc.init();
+
     const outputControlFileType: [10][]const u8 = .{ "Hourly carbon output file", "Hourly water output file", "Hourly nitrogen output file", "Hourly phosphorus output file", "Hourly energy/heat output file", "Daily carbon output file", "Daily water output file", "Daily nitrogen output file", "Daily phosphorus output file", "Daily energy/heat output file" };
     // Read number of E-W and N-S grid cells
     var line = try readLine(file, allocator);
@@ -104,8 +112,9 @@ pub fn main() anyerror!void {
         try logErr.print("error: {s}\n", .{@errorName(err)});
         return err;
     }
-    blkmain.data[1] = tokens.items[0];
-    try logRun.print("=> Topography file: {s}.\n", .{blkmain.data[1]});
+    const topographyName: []const u8 = tokens.items[0];
+    try logRun.print("=> Topography file: {s}.\n", .{topographyName});
+    try readTopographyFile(allocator, logErr, topographyName, &blk11a, &blk2a, &blk8a, &blk8b, nhw, nvn, nhe, nvs);
     tokens.deinit();
     allocator.free(line);
     // Read the number of the model scenarios to be executed

@@ -84,6 +84,7 @@ pub const Blk8a = struct {
     isoilr: [jx][jy]u32, // Fortran: ISOILR(JY,JX)
     nli: [jh][jv]u32, // Fortran: NLI(JV,JH)
     nl: [jh][jv]u32, // Fortran: NL(JV,JH)
+    nm: [jx][jy]u32, // Fortran Dimension: NM(JY,JX) in readi.f file
 
     pub fn init() Blk8a {
         return std.mem.zeroInit(Blk8a, .{});

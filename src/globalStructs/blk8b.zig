@@ -34,7 +34,7 @@ pub const Blk8b = struct {
     silt: [jx][jy][jz]f32, // Fortran: SILT(JZ,JY,JX)
     clay: [jx][jy][jz]f32, // Fortran: CLAY(JZ,JY,JX)
     fslope: [jx][jy][2]f32, // Fortran: FSLOPE(2,JY,JX)
-    ixtyp: [jx][jy][2]i32, // Fortran: IXTYP(2,JY,JX)
+    ixtyp: [jx][jy][2]u32, // Fortran: IXTYP(2,JY,JX)
     albx: [jx][jy]f32, // Fortran: ALBX(JY,JX)
     poros0: [jx][jy]f32, // Fortran: POROS0(JY,JX)
     psims: [jx][jy]f32, // Fortran: PSIMS(JY,JX)
