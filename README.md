@@ -24,7 +24,7 @@
 
 - parallelism (planned for future development)
 
-⚠️  `Ecosys.zig` is currently under active development. The code is not yet ready for production use.
+⚠️  `Ecosys.zig` is currently under active development. The code is incomplete and not yet ready for production use.
 
 # Compile Ecosys.zig
 
