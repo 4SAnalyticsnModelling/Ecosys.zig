@@ -6,7 +6,7 @@ const jz = config.soillayersmax;
 const js = config.snowlayersmax;
 
 pub const Blk11a = struct {
-    hcnd: [jx][jy][jz + 1][100][3]f32, // Fortran: HCND(3,100,0:JZ,JY,JX)
+    cndmvg: [jx][jy][jz + 1][3]f32, // Fortran: HCND(3,100,0:JZ,JY,JX), new Mualem-Van Genuchten (mvg) conductivity inEcosys.zig.
     tcs: [jx][jy][jz + 1]f32, // Fortran: TCS(0:JZ,JY,JX)
     tks: [jx][jy][jz + 1]f32, // Fortran: TKS(0:JZ,JY,JX)
     tsmx: [jx][jy][jz + 1]f32, // Fortran: TSMX(0:JZ,JY,JX)
@@ -20,6 +20,7 @@ pub const Blk11a = struct {
     thetw: [jx][jy][jz + 1]f32, // Fortran: THETW(0:JZ,JY,JX)
     theti: [jx][jy][jz + 1]f32, // Fortran: THETI(0:JZ,JY,JX)
     thtp: [jx][jy][jz + 1]f32, // Fortran: THETP(0:JZ,JY,JX)
+    psisminf: [jx][jy][jz + 1]f32, // psism at inflection point for new mvg model in Ecosys.zig.
     psism: [jx][jy][jz + 1]f32, // Fortran: PSISM(0:JZ,JY,JX)
     psist: [jx][jy][jz + 1]f32, // Fortran: PSIST(0:JZ,JY,JX)
     vola: [jx][jy][jz + 1]f32, // Fortran: VOLA(0:JZ,JY,JX)
@@ -63,7 +64,7 @@ pub const Blk11a = struct {
     xwflxs: [jx][jy][js]f32, // Fortran: XWFLXS(JS,JY,JX)
     xwflxi: [jx][jy][js]f32, // Fortran: XWFLXI(JS,JY,JX)
     xthaww: [jx][jy][js]f32, // Fortran: XTHAWW(JS,JY,JX)
-    cdepths: [jx][jy][js + 1]f32, // Fortran: CDPTHS(0:JS,JY,JX)
+    cdpths: [jx][jy][js + 1]f32, // Fortran: CDPTHS(0:JS,JY,JX)
     volwrx: [jx][jy]f32, // Fortran: VOLWRX(JY,JX)
     bare: [jx][jy]f32, // Fortran: BARE(JY,JX)
     cvrd: [jx][jy]f32, // Fortran: CVRD(JY,JX)

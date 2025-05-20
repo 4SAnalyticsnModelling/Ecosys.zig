@@ -46,7 +46,7 @@ pub fn main() anyerror!void {
             const timeElapsed: f64 = timeElapsedWithUnit.value;
             const timeElapsedUnit: []const u8 = timeElapsedWithUnit.unit;
             logErr.print("success: Ecosys model run in {s} successfully completed in {d} {s}!\n", .{ runFile, timeElapsed, timeElapsedUnit }) catch {};
-            std.debug.print("error: Ecosys model run in {s} successfully completed in {d} {s}!\n", .{ runFile, timeElapsed, timeElapsedUnit });
+            std.debug.print("success: Ecosys model run in {s} successfully completed in {d} {s}!\n", .{ runFile, timeElapsed, timeElapsedUnit });
         }
     }
     // Run failure notice to be printed if runOK is false due to any error

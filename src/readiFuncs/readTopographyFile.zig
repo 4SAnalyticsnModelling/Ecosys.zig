@@ -30,7 +30,7 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
     const logTopo = logTopofile.writer();
     const ixtyp1flag: [12][]const u8 = .{ "other/default", "maize", "wheat", "soybean", "new straw", "old straw", "compost", "green manure", "new deciduous", "new coniferous", "old deciduous", "old coniferous" };
     const ixtyp2flag: [3][]const u8 = .{ "other/default", "ruminant", "non-ruminant" };
-    const isoilrflag: [2][]const u8 = .{ "natural soil profile", "reconstructed soil profile" };
+    const isoilrflag: [2][]const u8 = .{ "natural", "reconstructed" };
     var gridCount: u32 = 0;
     while (true) {
         var line = readLine(topographyFile, allocator) catch break; // break out of the loop at the EOF.
@@ -150,6 +150,108 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
                 blk8a.nl[nx][ny] = blk8a.nli[nx][ny];
                 try logTopo.print("=> [Start of {s} file] grid cell position W-E: {}, N-S: {}, water potential at field capacity: {d} MPa, water potential at wilting point: {d} MPa, wet soil albedo: {d}, litter pH: {d}, C: {} gm-2, N :{} gm-2, P: {} gm-2 in fine surface litter, C: {} gm-2, N: {} gm-2, P: {} gm-2 in woody surface litter, C: {} gm-2, N: {} gm-2, P: {} gm-2 in manure surface litter, plant surface litter type: {s}, animal surface litter type: {s}, soil surface layer #: {}, maximum rooting layer #: {}, # of additional soil layer below maximum rooting layer (with data): {}, # of additional soil layer below maximum rooting layer (without data): {}, soil profile type: {s}.\n", .{ soilFileName, nx, ny, blk8a.psifc[nx][ny], blk8a.psiwp[nx][ny], blk8a.albs[nx][ny], blk8a.ph[nx][ny][0], blk8a.rsc[nx][ny][0][1], blk8a.rsn[nx][ny][0][1], blk8a.rsp[nx][ny][0][1], blk8a.rsc[nx][ny][0][0], blk8a.rsn[nx][ny][0][0], blk8a.rsp[nx][ny][0][0], blk8a.rsc[nx][ny][0][2], blk8a.rsn[nx][ny][0][2], blk8a.rsp[nx][ny][0][2], ixtyp1flag[blk8b.ixtyp[nx][ny][0]], ixtyp2flag[blk8b.ixtyp[nx][ny][1]], blk8a.nui[nx][ny], blk8a.nj[nx][ny], nl1, nl2, isoilrflag[blk8a.isoilr[nx][ny]] });
                 gridCount += 1;
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        // Read soil physical properties
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine2;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#2] grid cell position W-E: {}, N-S: {}, depths to the bottom of", .{ soilFileName, nx, ny });
+                // Read the depth (m) to the bottom of each layer
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cdpth[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidSoilLayerDepth, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} m", .{ l + 1, blk8a.cdpth[nx][ny][l + 1] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine2;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#3] grid cell position W-E: {}, N-S: {}, initial bulk densities of", .{ soilFileName, nx, ny });
+                // Read initial bulk density (Mg m-3) of each layer. Note: bulk density = 0.0 for a water layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.bkdsi[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSoilLayerDepth, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} Mg m-3", .{ l + 1, blk8a.bkdsi[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        // Read hydrologic properties
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine4;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#4] grid cell position W-E: {}, N-S: {}, water potential at initial inflection points of", .{ soilFileName, nx, ny });
+                // Read water potential at initial inflection point (MPa) of soil moisture retention curve for each layer. Note: 0.0 = unknown inflection point.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk11a.psisminf[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidInflectionPoint, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} MPa", .{ l + 1, blk11a.psisminf[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine5;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#5] grid cell position W-E: {}, N-S: {}, water contents at field capacity of", .{ soilFileName, nx, ny });
+                // Read water content (m3 m-3) at field capacity for each layer. Note: any negative number = unknown water content at field capacity.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.fc[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidFieldCapacity, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} m3 m-3", .{ l + 1, blk8a.fc[nx][ny][l + 1] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine6;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#6] grid cell position W-E: {}, N-S: {}, water contents at wilting point of", .{ soilFileName, nx, ny });
+                // Read water content (m3 m-3) at wilting point for each layer. Note: any negative number = unknown water content at wilting point.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.wp[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidWiltingPoint, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} m3 m-3", .{ l + 1, blk8a.wp[nx][ny][l + 1] });
+                }
+                try logTopo.print(".\n", .{});
             }
         }
         allocator.free(line);
