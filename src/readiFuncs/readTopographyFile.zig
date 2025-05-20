@@ -180,7 +180,7 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
         for (nh1..nh2) |nx| {
             for (nv1..nv2) |ny| {
                 if (tokens.items.len != blk8a.nm[nx][ny]) {
-                    const err = error.InvalidInputSoilFileLine2;
+                    const err = error.InvalidInputSoilFileLine3;
                     try logFileWriter.print("error: {s}\n", .{@errorName(err)});
                     return err;
                 }
@@ -250,6 +250,46 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
                 for (0..blk8a.nm[nx][ny]) |l| {
                     blk8a.wp[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidWiltingPoint, tokens.items[l], logFileWriter);
                     try logTopo.print(" -> layer #{}: {d} m3 m-3", .{ l + 1, blk8a.wp[nx][ny][l + 1] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine7;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#7] grid cell position W-E: {}, N-S: {}, saturated hydraulic conductivities (vertical) of", .{ soilFileName, nx, ny });
+                // Read saturated hydraulic conductivity (vertical) (mm h-1) for each layer. Note: any negative number = unknown saturated hydraulic conductivity (vertical).
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.scnv[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidWiltingPoint, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} mm h-1", .{ l + 1, blk8a.scnv[nx][ny][l + 1] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine8;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#8] grid cell position W-E: {}, N-S: {}, saturated hydraulic conductivities (lateral) of", .{ soilFileName, nx, ny });
+                // Read saturated hydraulic conductivity (lateral) (mm h-1) for each layer. Note: any negative number = unknown saturated hydraulic conductivity (lateral).
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.scnh[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidWiltingPoint, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} mm h-1", .{ l + 1, blk8a.scnh[nx][ny][l + 1] });
                 }
                 try logTopo.print(".\n", .{});
             }
