@@ -20,7 +20,6 @@ pub const Blk11a = struct {
     thetw: [jx][jy][jz + 1]f32, // Fortran: THETW(0:JZ,JY,JX)
     theti: [jx][jy][jz + 1]f32, // Fortran: THETI(0:JZ,JY,JX)
     thtp: [jx][jy][jz + 1]f32, // Fortran: THETP(0:JZ,JY,JX)
-    psisminf: [jx][jy][jz + 1]f32, // psism at inflection point for new mvg model in Ecosys.zig.
     psism: [jx][jy][jz + 1]f32, // Fortran: PSISM(0:JZ,JY,JX)
     psist: [jx][jy][jz + 1]f32, // Fortran: PSIST(0:JZ,JY,JX)
     vola: [jx][jy][jz + 1]f32, // Fortran: VOLA(0:JZ,JY,JX)

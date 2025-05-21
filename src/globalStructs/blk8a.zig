@@ -13,6 +13,7 @@ pub const Blk8a = struct {
     fmpr: [jx][jy][jz + 1]f32, // Fortran: FMPR(0:JZ,JY,JX)
     cdpth: [jx][jy][jz + 1]f32, // Fortran: CDPTH(0:JZ,JY,JX)
     bkds: [jx][jy][jz + 1]f32, // Fortran: BKDS(0:JZ,JY,JX)
+    psisminf: [jx][jy][jz]f32, // psism at inflection point for new mvg model in Ecosys.zig.
     fc: [jx][jy][jz + 1]f32, // Fortran: FC(0:JZ,JY,JX)
     wp: [jx][jy][jz + 1]f32, // Fortran: WP(0:JZ,JY,JX)
     scnv: [jx][jy][jz + 1]f32, // Fortran: SCNV(0:JZ,JY,JX)
@@ -51,6 +52,7 @@ pub const Blk8a = struct {
     ccaco: [jx][jy][jz]f32, // Fortran: CCACO(JZ,JY,JX)
     ccaso: [jx][jy][jz]f32, // Fortran: CCASO(JZ,JY,JX)
     calpo: [jx][jy][jz]f32, // Fortran: CALPO(JZ,JY,JX)
+    cfepo: [jx][jy][jz]f32, // Fortran: CFEPO(JZ,JY,JX)
     gkc4: [jx][jy][jz]f32, // Fortran: GKC4(JZ,JY,JX)
     gkch: [jx][jy][jz]f32, // Fortran: GKCH(JZ,JY,JX)
     gkca: [jx][jy][jz]f32, // Fortran: GKCA(JZ,JY,JX)

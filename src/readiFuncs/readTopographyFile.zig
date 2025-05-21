@@ -206,10 +206,10 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
                     return err;
                 }
                 try logTopo.print("=> [{s} file line#4] grid cell position W-E: {}, N-S: {}, water potential at initial inflection points of", .{ soilFileName, nx, ny });
-                // Read water potential at initial inflection point (MPa) of soil moisture retention curve for each layer. Note: 0.0 = unknown inflection point.
+                // Read water potential at initial inflection point (MPa) of soil moisture retention curve for each layer. Note: 0.0 = unknown water potential at initial inflection point.
                 for (0..blk8a.nm[nx][ny]) |l| {
-                    blk11a.psisminf[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidInflectionPoint, tokens.items[l], logFileWriter);
-                    try logTopo.print(" -> layer #{}: {d} MPa", .{ l + 1, blk11a.psisminf[nx][ny][l] });
+                    blk8a.psisminf[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidInflectionPoint, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} MPa", .{ l + 1, blk8a.psisminf[nx][ny][l] });
                 }
                 try logTopo.print(".\n", .{});
             }
@@ -268,7 +268,7 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
                 try logTopo.print("=> [{s} file line#7] grid cell position W-E: {}, N-S: {}, saturated hydraulic conductivities (vertical) of", .{ soilFileName, nx, ny });
                 // Read saturated hydraulic conductivity (vertical) (mm h-1) for each layer. Note: any negative number = unknown saturated hydraulic conductivity (vertical).
                 for (0..blk8a.nm[nx][ny]) |l| {
-                    blk8a.scnv[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidWiltingPoint, tokens.items[l], logFileWriter);
+                    blk8a.scnv[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidVerticalHydraulicConductivity, tokens.items[l], logFileWriter);
                     try logTopo.print(" -> layer #{}: {d} mm h-1", .{ l + 1, blk8a.scnv[nx][ny][l + 1] });
                 }
                 try logTopo.print(".\n", .{});
@@ -288,8 +288,795 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
                 try logTopo.print("=> [{s} file line#8] grid cell position W-E: {}, N-S: {}, saturated hydraulic conductivities (lateral) of", .{ soilFileName, nx, ny });
                 // Read saturated hydraulic conductivity (lateral) (mm h-1) for each layer. Note: any negative number = unknown saturated hydraulic conductivity (lateral).
                 for (0..blk8a.nm[nx][ny]) |l| {
-                    blk8a.scnh[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidWiltingPoint, tokens.items[l], logFileWriter);
+                    blk8a.scnh[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidLateralHydraulicConductivity, tokens.items[l], logFileWriter);
                     try logTopo.print(" -> layer #{}: {d} mm h-1", .{ l + 1, blk8a.scnh[nx][ny][l + 1] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        // Read physical properties
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine9;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#9] grid cell position W-E: {}, N-S: {}, sand contents of", .{ soilFileName, nx, ny });
+                // Read sand contents (kg Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.csand[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSandContent, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} kg Mg-1", .{ l + 1, blk8a.csand[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine10;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#10] grid cell position W-E: {}, N-S: {}, silt contents of", .{ soilFileName, nx, ny });
+                // Read silt contents (kg Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.csilt[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSiltContent, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} kg Mg-1", .{ l + 1, blk8a.csilt[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine11;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#11] grid cell position W-E: {}, N-S: {}, macropore fractions of", .{ soilFileName, nx, ny });
+                // Read macropore fraction for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.fhol[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidMacroporeFraction, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.fhol[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine12;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#12] grid cell position W-E: {}, N-S: {}, rock fractions of", .{ soilFileName, nx, ny });
+                // Read rock fraction for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.rock[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidRockFraction, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.rock[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        // Read chemical properties
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine13;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#13] grid cell position W-E: {}, N-S: {}, pH of", .{ soilFileName, nx, ny });
+                // Read pH for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.ph[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidpH, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.ph[nx][ny][l + 1] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine14;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#14] grid cell position W-E: {}, N-S: {}, cation exchange capacity (CEC) of", .{ soilFileName, nx, ny });
+                // Read CEC (cmol kg-1) for each layer. Note: any negative number = unknown CEC.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cec[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidCEC, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} cmol kg-1", .{ l + 1, blk8a.cec[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine15;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#15] grid cell position W-E: {}, N-S: {}, anion exchange capacity (AEC) of", .{ soilFileName, nx, ny });
+                // Read AEC (cmol kg-1) for each layer. Note: any negative number = unknown AEC.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.aec[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidAEC, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} cmol kg-1", .{ l + 1, blk8a.aec[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        // Read organic C, N, and P concentrations
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine16;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#16] grid cell position W-E: {}, N-S: {}, SOC concentrations of", .{ soilFileName, nx, ny });
+                // Read SOC concentration (kg Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.corgc[nx][ny][l + 1] = try parseTokenToFloat(f32, error.InvalidSOCConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} kg Mg-1", .{ l + 1, blk8a.corgc[nx][ny][l + 1] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine17;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#17] grid cell position W-E: {}, N-S: {}, POC concentrations of", .{ soilFileName, nx, ny });
+                // Read POC (Particulate Organic Carbon; part of SOC) concentration (kg Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.corgr[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidPOCConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} kg Mg-1", .{ l + 1, blk8a.corgr[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine18;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#18] grid cell position W-E: {}, N-S: {}, SON concentrations of", .{ soilFileName, nx, ny });
+                // Read SON (Soil Organic Nitrogen) concentration (g Mg-1) for each layer. Note: any negative number = unknown SON.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.corgn[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSONConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.corgn[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine19;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#19] grid cell position W-E: {}, N-S: {}, SOP concentrations of", .{ soilFileName, nx, ny });
+                // Read SOP (Soil Organic Phosphorous) concentration (g Mg-1) for each layer. Note: any negative number = unknown SOP.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.corgp[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSOPConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.corgp[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        // Read inorganic N and P concentrations
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine20;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#20] grid cell position W-E: {}, N-S: {}, NH4 (soluble + exchangeable) concentrations of", .{ soilFileName, nx, ny });
+                // Read NH4 (soluble + exchangeable) concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cnh4[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidNH4Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cnh4[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine21;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#21] grid cell position W-E: {}, N-S: {}, NO3 (soluble + exchangeable) concentrations of", .{ soilFileName, nx, ny });
+                // Read NO3 (soluble + exchangeable) concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cno3[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidNO3Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cno3[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine22;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#22] grid cell position W-E: {}, N-S: {}, H2PO4 (soluble + exchangeable) concentrations of", .{ soilFileName, nx, ny });
+                // Read H2PO4 (soluble + exchangeable) concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cpo4[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidH2PO4Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cpo4[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        // Read cation and anion concentrations - soluble concentrations from saturated paste extract.
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine23;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#23] grid cell position W-E: {}, N-S: {}, soluble Al concentrations of", .{ soilFileName, nx, ny });
+                // Read soluble Al concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cal[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSolubleAlConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cal[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine24;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#24] grid cell position W-E: {}, N-S: {}, soluble Fe concentrations of", .{ soilFileName, nx, ny });
+                // Read soluble Al concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cfe[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSolubleFeConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cfe[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine25;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#25] grid cell position W-E: {}, N-S: {}, soluble Ca concentrations of", .{ soilFileName, nx, ny });
+                // Read soluble Ca concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cca[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSolubleCaConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cca[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine26;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#26] grid cell position W-E: {}, N-S: {}, soluble Mg concentrations of", .{ soilFileName, nx, ny });
+                // Read soluble Mg concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cmg[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSolubleMgConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cmg[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine27;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#27] grid cell position W-E: {}, N-S: {}, soluble Na concentrations of", .{ soilFileName, nx, ny });
+                // Read soluble Na concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cna[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSolubleNaConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cna[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine28;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#28] grid cell position W-E: {}, N-S: {}, soluble K concentrations of", .{ soilFileName, nx, ny });
+                // Read soluble K concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cka[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSolubleKConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cka[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine29;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#29] grid cell position W-E: {}, N-S: {}, soluble SO4 concentrations of", .{ soilFileName, nx, ny });
+                // Read soluble SO4 concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cso4[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSolubleSO4Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cso4[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine30;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#30] grid cell position W-E: {}, N-S: {}, soluble Cl concentrations of", .{ soilFileName, nx, ny });
+                // Read soluble Cl concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.ccl[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidSolubleClConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.ccl[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        // Read precipitated mineral concentrations
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine31;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#31] grid cell position W-E: {}, N-S: {}, AlPO4 concentrations of", .{ soilFileName, nx, ny });
+                // Read AlPO4 concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.calpo[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidAlPO4Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.calpo[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine32;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#32] grid cell position W-E: {}, N-S: {}, FePO4 concentrations of", .{ soilFileName, nx, ny });
+                // Read FePO4 concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cfepo[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidFePO4Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cfepo[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine33;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#33] grid cell position W-E: {}, N-S: {},  CaHPO4 concentrations of", .{ soilFileName, nx, ny });
+                // Read CaHPO4 concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.ccapd[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidCaHPO4Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.ccapd[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine34;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#34] grid cell position W-E: {}, N-S: {},  apatite concentrations of", .{ soilFileName, nx, ny });
+                // Read apatite concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.ccaph[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidApatiteConcentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.ccaph[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine35;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#35] grid cell position W-E: {}, N-S: {},  AlOH3 concentrations of", .{ soilFileName, nx, ny });
+                // Read AlOH3 concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.caloh[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidAlOH3Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.caloh[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine36;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#36] grid cell position W-E: {}, N-S: {},  FeOH3 concentrations of", .{ soilFileName, nx, ny });
+                // Read FeOH3 concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.cfeoh[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidFeOH3Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.cfeoh[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine37;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#37] grid cell position W-E: {}, N-S: {},  CaCO3 concentrations of", .{ soilFileName, nx, ny });
+                // Read CaCO3 concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.ccaco[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidCaCO3Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.ccaco[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine38;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#38] grid cell position W-E: {}, N-S: {},  CaSO4 concentrations of", .{ soilFileName, nx, ny });
+                // Read CaSO4 concentration (g Mg-1) for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.ccaso[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidCaSO4Concentration, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d} g Mg-1", .{ l + 1, blk8a.ccaso[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        // Read gapon selectivity coefficients
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine39;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#39] grid cell position W-E: {}, N-S: {},  gapon selectivity coefficients for Ca-NH4 of", .{ soilFileName, nx, ny });
+                // Read gapon selectivity coefficients for Ca-NH4 for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.gkc4[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidGapOnSelCoeffCaNH4, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.gkc4[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine39;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#39] grid cell position W-E: {}, N-S: {},  gapon selectivity coefficients for Ca-NH4 of", .{ soilFileName, nx, ny });
+                // Read gapon selectivity coefficients for Ca-NH4 for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.gkc4[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidGapOnSelCoeffCaNH4, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.gkc4[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine40;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#40] grid cell position W-E: {}, N-S: {},  gapon selectivity coefficients for Ca-H of", .{ soilFileName, nx, ny });
+                // Read gapon selectivity coefficients for Ca-H for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.gkch[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidGapOnSelCoeffCaH, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.gkch[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine41;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#41] grid cell position W-E: {}, N-S: {},  gapon selectivity coefficients for Ca-Al of", .{ soilFileName, nx, ny });
+                // Read gapon selectivity coefficients for Ca-Al for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.gkca[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidGapOnSelCoeffCaAl, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.gkca[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine42;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#42] grid cell position W-E: {}, N-S: {},  gapon selectivity coefficients for Ca-Mg of", .{ soilFileName, nx, ny });
+                // Read gapon selectivity coefficients for Ca-Mg for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.gkcm[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidGapOnSelCoeffCaMg, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.gkcm[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine43;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#43] grid cell position W-E: {}, N-S: {},  gapon selectivity coefficients for Ca-Na of", .{ soilFileName, nx, ny });
+                // Read gapon selectivity coefficients for Ca-Na for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.gkcn[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidGapOnSelCoeffCaNa, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.gkcn[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine44;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#44] grid cell position W-E: {}, N-S: {},  gapon selectivity coefficients for Ca-K of", .{ soilFileName, nx, ny });
+                // Read gapon selectivity coefficients for Ca-K for each layer.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.gkck[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidGapOnSelCoeffCaK, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.gkck[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine45;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#45] grid cell position W-E: {}, N-S: {},  initial water contents (m3 m-3) of", .{ soilFileName, nx, ny });
+                // Read initial water contents (m3 m-3) for each layer. Any number greater than 1 = saturated, 1 = at field capacity, less than or equal to zero = at wilting point, anything between 0 and 1, as is.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.thw[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidInitialWaterContent, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.thw[nx][ny][l] });
+                }
+                try logTopo.print(".\n", .{});
+            }
+        }
+        allocator.free(line);
+        tokens.deinit();
+        line = try readLine(soilFile, allocator);
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                if (tokens.items.len != blk8a.nm[nx][ny]) {
+                    const err = error.InvalidInputSoilFileLine46;
+                    try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    return err;
+                }
+                try logTopo.print("=> [{s} file line#46] grid cell position W-E: {}, N-S: {},  initial ice contents (m3 m-3) of", .{ soilFileName, nx, ny });
+                // Read initial ice contents (m3 m-3) for each layer. Any number greater than 1 = saturated, 1 = at field capacity, less than or equal to zero = at wilting point, anything between 0 and 1, as is.
+                for (0..blk8a.nm[nx][ny]) |l| {
+                    blk8a.thi[nx][ny][l] = try parseTokenToFloat(f32, error.InvalidInitialIceContent, tokens.items[l], logFileWriter);
+                    try logTopo.print(" -> layer #{}: {d}", .{ l + 1, blk8a.thi[nx][ny][l] });
                 }
                 try logTopo.print(".\n", .{});
             }
