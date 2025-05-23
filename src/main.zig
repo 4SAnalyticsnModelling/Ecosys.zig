@@ -1,4 +1,5 @@
 const std = @import("std");
+const offset: u32 = 1;
 const Blk11a = @import("globalStructs/blk11a.zig").Blk11a;
 const Blk8a = @import("globalStructs/blk8a.zig").Blk8a;
 const Blk8b = @import("globalStructs/blk8b.zig").Blk8b;
@@ -17,7 +18,7 @@ const elapsedTime = @import("ecosysUtils/elapsedTime.zig").elapsedTime;
 /// Ecosys main function
 pub fn main() anyerror!void {
     const startTime_us: i64 = std.time.microTimestamp();
-    var buffer: [10 * 1024]u8 = undefined;
+    var buffer: [20 * 1024]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
     const allocator = fba.allocator();
     const runFile: []const u8 = try getRunAndLogFileArgs(allocator);
@@ -74,7 +75,6 @@ pub fn main() anyerror!void {
     var blk8a: Blk8a = Blk8a.init();
     var blk8b: Blk8b = Blk8b.init();
     var blkc: Blkc = Blkc.init();
-
     const outputControlFileType: [10][]const u8 = .{ "Hourly carbon output file", "Hourly water output file", "Hourly nitrogen output file", "Hourly phosphorus output file", "Hourly energy/heat output file", "Daily carbon output file", "Daily water output file", "Daily nitrogen output file", "Daily phosphorus output file", "Daily energy/heat output file" };
     // Read number of E-W and N-S grid cells
     var line = try readLine(file, allocator);
@@ -84,11 +84,11 @@ pub fn main() anyerror!void {
         try logErr.print("error: {s}\n", .{@errorName(err)});
         return err;
     }
-    const nhw = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_W, tokens.items[0], logErr) - 1;
-    const nvn = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_N, tokens.items[1], logErr) - 1;
+    const nhw = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_W, tokens.items[0], logErr) - offset;
+    const nvn = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_N, tokens.items[1], logErr) - offset;
     const nhe = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_E, tokens.items[2], logErr);
     const nvs = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_S, tokens.items[3], logErr);
-    try logRun.print("=> Grid cell positions: W: {}; E: {}; N: {}; S: {}.\n", .{ nhw, nhe, nvn, nvs });
+    try logRun.print("=> Grid cell positions: W: {}; E: {}; N: {}; S: {}.\n", .{ nhw + offset, nhe, nvn + offset, nvs });
     tokens.deinit();
     allocator.free(line);
     // Read site file
@@ -114,7 +114,7 @@ pub fn main() anyerror!void {
     }
     const topographyName: []const u8 = tokens.items[0];
     try logRun.print("=> Topography file: {s}.\n", .{topographyName});
-    try readTopographyFile(allocator, logErr, topographyName, &blk11a, &blk2a, &blk8a, &blk8b, nhw, nvn, nhe, nvs);
+    try readTopographyFile(allocator, logErr, topographyName, &blk11a, &blk2a, &blk8a, &blk8b, &blkc, nhw, nvn, nhe, nvs);
     tokens.deinit();
     allocator.free(line);
     // Read the number of the model scenarios to be executed
@@ -167,7 +167,7 @@ pub fn main() anyerror!void {
                 return err;
             }
             blkmain.datac[nex][ne][2] = tokens.items[0];
-            try logRun.print("=> Weather network file (scenario #{} scene #{}): {s}.\n", .{ nex, ne, blkmain.datac[nex][ne][2] });
+            try logRun.print("=> Weather network file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, blkmain.datac[nex][ne][2] });
             tokens.deinit();
             allocator.free(line);
             // Read options file
@@ -179,7 +179,7 @@ pub fn main() anyerror!void {
                 return err;
             }
             blkmain.datac[nex][ne][3] = tokens.items[0];
-            try logRun.print("=> Options file (scenario #{} scene #{}): {s}.\n", .{ nex, ne, blkmain.datac[nex][ne][3] });
+            try logRun.print("=> Options file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, blkmain.datac[nex][ne][3] });
             tokens.deinit();
             allocator.free(line);
             // Read land management file
@@ -191,7 +191,7 @@ pub fn main() anyerror!void {
                 return err;
             }
             blkmain.datac[nex][ne][8] = tokens.items[0];
-            try logRun.print("=> Land management file (scenario #{} scene #{}): {s}.\n", .{ nex, ne, blkmain.datac[nex][ne][8] });
+            try logRun.print("=> Land management file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, blkmain.datac[nex][ne][8] });
             tokens.deinit();
             allocator.free(line);
             // Read plant management file
@@ -203,7 +203,7 @@ pub fn main() anyerror!void {
                 return err;
             }
             blkmain.datac[nex][ne][9] = tokens.items[0];
-            try logRun.print("=> Plant management file (scenario #{} scene #{}): {s}.\n", .{ nex, ne, blkmain.datac[nex][ne][9] });
+            try logRun.print("=> Plant management file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, blkmain.datac[nex][ne][9] });
             tokens.deinit();
             allocator.free(line);
             // Read output control files
@@ -216,7 +216,7 @@ pub fn main() anyerror!void {
                     return err;
                 }
                 blkmain.datac[nex][ne][n] = tokens.items[0];
-                try logRun.print("=> {s} (scenario #{} scene #{}): {s}.\n", .{ outputControlFileType[n - 20], nex, ne, blkmain.datac[nex][ne][n] });
+                try logRun.print("=> {s} (scenario #{} scene #{}): {s}.\n", .{ outputControlFileType[n - 20], nex + offset, ne + offset, blkmain.datac[nex][ne][n] });
                 tokens.deinit();
                 allocator.free(line);
             }
