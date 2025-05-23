@@ -46,7 +46,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
         const nv1 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteFile_N, tokens.items[1], logFileWriter) - offset;
         const nh2 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteFile_E, tokens.items[2], logFileWriter);
         const nv2 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteFile_S, tokens.items[3], logFileWriter);
-        try logSite.print("=> Grid cell positions: W: {}, N: {}, E: {}, S: {}.\n", .{ nh1 + offset, nv1 + offset, nh2 + offset, nv2 + offset });
+        try logSite.print("=> Grid cell positions: W: {}, N: {}, E: {}, S: {}.\n", .{ nh1 + offset, nv1 + offset, nh2, nv2 });
         if (nh1 > nh2 or nv1 > nv2 or nh1 < nhw or nh2 > nhe or nv1 < nvn or nv2 > nvs) {
             const err = error.InvalidInputForGridCellPositionsInSiteFile;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});

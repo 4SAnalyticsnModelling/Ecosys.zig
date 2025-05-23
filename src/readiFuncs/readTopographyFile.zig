@@ -1246,7 +1246,7 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: std.fs.Fi
                     blk8a.rsp[nx][ny][l + offset][0] = try parseTokenToFloat(f32, error.InvalidInitialManureResiduePhosphorousContent, tokens.items[l], logFileWriter);
                     try logTopo.print(" -> layer #{}: {d}", .{ l + offset, blk8a.rsp[nx][ny][l + offset][0] });
                 }
-                try logTopo.print(".\n", .{});
+                try logTopo.print(". [End of {s} file].\n", .{soilFileName});
             }
         }
         allocator.free(line);
