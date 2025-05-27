@@ -3,21 +3,22 @@ const config = @import("config");
 const jx = config.ewgridsmax;
 const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
+const offset: u32 = 1;
 
 pub const Blk21b = struct {
-    trxh0: [jx][jy][jz + 1]f32, // Fortran: TRXH0(0:JZ,JY,JX)
-    trxh1: [jx][jy][jz + 1]f32, // Fortran: TRXH1(0:JZ,JY,JX)
-    trxh2: [jx][jy][jz + 1]f32, // Fortran: TRXH2(0:JZ,JY,JX)
-    trx1p: [jx][jy][jz + 1]f32, // Fortran: TRX1P(0:JZ,JY,JX)
-    trx2p: [jx][jy][jz + 1]f32, // Fortran: TRX2P(0:JZ,JY,JX)
-    tralpo: [jx][jy][jz + 1]f32, // Fortran: TRALPO(0:JZ,JY,JX)
-    trfepo: [jx][jy][jz + 1]f32, // Fortran: TRFEPO(0:JZ,JY,JX)
-    trcapd: [jx][jy][jz + 1]f32, // Fortran: TRCAPD(0:JZ,JY,JX)
-    trcaph: [jx][jy][jz + 1]f32, // Fortran: TRCAPH(0:JZ,JY,JX)
-    trcapm: [jx][jy][jz + 1]f32, // Fortran: TRCAPM(0:JZ,JY,JX)
-    tbion: [jx][jy][jz + 1]f32, // Fortran: TBION(0:JZ,JY,JX)
-    trno2: [jx][jy][jz + 1]f32, // Fortran: TRNO2(0:JZ,JY,JX)
-    trn3g: [jx][jy][jz + 1]f32, // Fortran: TRN3G(0:JZ,JY,JX)
+    trxh0: [jx][jy][jz + offset]f32, // Fortran: TRXH0(0:JZ,JY,JX)
+    trxh1: [jx][jy][jz + offset]f32, // Fortran: TRXH1(0:JZ,JY,JX)
+    trxh2: [jx][jy][jz + offset]f32, // Fortran: TRXH2(0:JZ,JY,JX)
+    trx1p: [jx][jy][jz + offset]f32, // Fortran: TRX1P(0:JZ,JY,JX)
+    trx2p: [jx][jy][jz + offset]f32, // Fortran: TRX2P(0:JZ,JY,JX)
+    tralpo: [jx][jy][jz + offset]f32, // Fortran: TRALPO(0:JZ,JY,JX)
+    trfepo: [jx][jy][jz + offset]f32, // Fortran: TRFEPO(0:JZ,JY,JX)
+    trcapd: [jx][jy][jz + offset]f32, // Fortran: TRCAPD(0:JZ,JY,JX)
+    trcaph: [jx][jy][jz + offset]f32, // Fortran: TRCAPH(0:JZ,JY,JX)
+    trcapm: [jx][jy][jz + offset]f32, // Fortran: TRCAPM(0:JZ,JY,JX)
+    tbion: [jx][jy][jz + offset]f32, // Fortran: TBION(0:JZ,JY,JX)
+    trno2: [jx][jy][jz + offset]f32, // Fortran: TRNO2(0:JZ,JY,JX)
+    trn3g: [jx][jy][jz + offset]f32, // Fortran: TRN3G(0:JZ,JY,JX)
     trbh0: [jx][jy][jz]f32, // Fortran: TRBH0(JZ,JY,JX)
     trbh1: [jx][jy][jz]f32, // Fortran: TRBH1(JZ,JY,JX)
     trbh2: [jx][jy][jz]f32, // Fortran: TRBH2(JZ,JY,JX)

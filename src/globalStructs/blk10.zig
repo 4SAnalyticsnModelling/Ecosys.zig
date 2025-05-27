@@ -8,6 +8,7 @@ const nphx = config.subhrwtrcymax; // Fortran: 60  (here nphx ≡ user defined, 
 const jh = jx + 1;
 const jv = jy + 1;
 const jd = jz + 1;
+const offset: u32 = 1;
 
 pub const Blk10 = struct {
     iflbm: [jx][jy][2][2][nphx]i32, // Fortran: IFLBM(60,2,2,JY,JX)
@@ -16,13 +17,13 @@ pub const Blk10 = struct {
     qrmn: [jh][jv][2][2][nphx]f32, // Fortran: QRMN(60,2,2,JV,JH)
     vhcpwm: [jx][jy][js][nphx]f32, // Fortran: VHCPWM(60,JS,JY,JX)
     flqwm: [jx][jy][js][nphx]f32, // Fortran: FLQWM(60,JS,JY,JX)
-    volwm: [jx][jy][jz + 1][nphx]f32, // Fortran: VOLWM(60,0:JZ,JY,JX)
-    volpm: [jx][jy][jz + 1][nphx]f32, // Fortran: VOLPM(60,0:JZ,JY,JX)
-    film: [jx][jy][jz + 1][nphx]f32, // Fortran: FILM(60,0:JZ,JY,JX)
-    roxsk: [jx][jy][jz + 1][nphx]f32, // Fortran: ROXSK(60,0:JZ,JY,JX)
-    thetpm: [jx][jy][jz + 1][nphx]f32, // Fortran: THETPM(60,0:JZ,JY,JX)
-    tort: [jx][jy][jz + 1][nphx]f32, // Fortran: TORT(60,0:JZ,JY,JX)
-    dfgs: [jx][jy][jz + 1][nphx]f32, // Fortran: DFGS(60,0:JZ,JY,JX)
+    volwm: [jx][jy][jz + offset][nphx]f32, // Fortran: VOLWM(60,0:JZ,JY,JX)
+    volpm: [jx][jy][jz + offset][nphx]f32, // Fortran: VOLPM(60,0:JZ,JY,JX)
+    film: [jx][jy][jz + offset][nphx]f32, // Fortran: FILM(60,0:JZ,JY,JX)
+    roxsk: [jx][jy][jz + offset][nphx]f32, // Fortran: ROXSK(60,0:JZ,JY,JX)
+    thetpm: [jx][jy][jz + offset][nphx]f32, // Fortran: THETPM(60,0:JZ,JY,JX)
+    tort: [jx][jy][jz + offset][nphx]f32, // Fortran: TORT(60,0:JZ,JY,JX)
+    dfgs: [jx][jy][jz + offset][nphx]f32, // Fortran: DFGS(60,0:JZ,JY,JX)
     volwhm: [jx][jy][jz][nphx]f32, // Fortran: VOLWHM(60,JZ,JY,JX)
     flpm: [jx][jy][jz][nphx]f32, // Fortran: FLPM(60,JZ,JY,JX)
     finhm: [jx][jy][jz][nphx]f32, // Fortran: FINHM(60,JZ,JY,JX)

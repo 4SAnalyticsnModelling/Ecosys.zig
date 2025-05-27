@@ -4,16 +4,17 @@ const jx = config.ewgridsmax;
 const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
 const jc = config.canopymax;
+const offset: u32 = 1;
 
 pub const Blk18a = struct {
-    csnt: [jx][jy][jz + 1][2][4]f32, // Fortran: CSNT(4,0:1,0:JZ,JY,JX)
-    zsnt: [jx][jy][jz + 1][2][4]f32, // Fortran: ZSNT(4,0:1,0:JZ,JY,JX)
-    psnt: [jx][jy][jz + 1][2][4]f32, // Fortran: PSNT(4,0:1,0:JZ,JY,JX)
+    csnt: [jx][jy][jz + offset][2][4]f32, // Fortran: CSNT(4,0:1,0:JZ,JY,JX)
+    zsnt: [jx][jy][jz + offset][2][4]f32, // Fortran: ZSNT(4,0:1,0:JZ,JY,JX)
+    psnt: [jx][jy][jz + offset][2][4]f32, // Fortran: PSNT(4,0:1,0:JZ,JY,JX)
     tdfomc: [jx][jy][jz][5]f32, // Fortran: TDFOMC(0:4,JZ,JY,JX)
     tdfomn: [jx][jy][jz][5]f32, // Fortran: TDFOMN(0:4,JZ,JY,JX)
     tdfomp: [jx][jy][jz][5]f32, // Fortran: TDFOMP(0:4,JZ,JY,JX)
-    tupwtr: [jx][jy][jz + 1]f32, // Fortran: TUPWTR(0:JZ,JY,JX)
-    tupht: [jx][jy][jz + 1]f32, // Fortran: TUPHT(0:JZ,JY,JX)
+    tupwtr: [jx][jy][jz + offset]f32, // Fortran: TUPWTR(0:JZ,JY,JX)
+    tupht: [jx][jy][jz + offset]f32, // Fortran: TUPHT(0:JZ,JY,JX)
     tcofla: [jx][jy][jz]f32, // Fortran: TCOFLA(JZ,JY,JX)
     toxfla: [jx][jy][jz]f32, // Fortran: TOXFLA(JZ,JY,JX)
     tchfla: [jx][jy][jz]f32, // Fortran: TCHFLA(JZ,JY,JX)

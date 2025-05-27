@@ -5,10 +5,11 @@ const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
 const jp = config.pftmax;
 const jc = config.canopymax;
+const offset: u32 = 1;
 
 pub const Blk1p = struct {
     wglflp: [jx][jy][jp][jc][26][jz]f32, // Fortran: WGLFLP(JZ,0:25,JC,JP,JY,JX)
-    psnc: [jx][jy][jp][jz + 1][2][4]f32, // Fortran: PSNC(4,0:1,0:JZ,JP,JY,JX)
+    psnc: [jx][jy][jp][jz + offset][2][4]f32, // Fortran: PSNC(4,0:1,0:JZ,JP,JY,JX)
     cfopp: [jx][jy][jp][4][6]f32, // Fortran: CFOPP(0:5,4,JP,JY,JX)
     ppoolr: [jx][jy][jp][jz][2]f32, // Fortran: PPOOLR(2,JZ,JP,JY,JX)
     cppolr: [jx][jy][jp][jz][2]f32, // Fortran: CPPOLR(2,JZ,JP,JY,JX)

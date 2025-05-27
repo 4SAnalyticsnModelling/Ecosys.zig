@@ -5,22 +5,23 @@ const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
 const jh = jx + 1;
 const jv = jy + 1;
+const offset: u32 = 1;
 
 pub const Blk8a = struct {
-    rsc: [jx][jy][jz + 1][3]f32, // Fortran: RSC(0:2,0:JZ,JY,JX)
-    rsn: [jx][jy][jz + 1][3]f32, // Fortran: RSN(0:2,0:JZ,JY,JX)
-    rsp: [jx][jy][jz + 1][3]f32, // Fortran: RSP(0:2,0:JZ,JY,JX)
-    fmpr: [jx][jy][jz + 1]f32, // Fortran: FMPR(0:JZ,JY,JX)
-    cdpth: [jx][jy][jz + 1]f32, // Fortran: CDPTH(0:JZ,JY,JX)
-    bkds: [jx][jy][jz + 1]f32, // Fortran: BKDS(0:JZ,JY,JX)
+    rsc: [jx][jy][jz + offset][3]f32, // Fortran: RSC(0:2,0:JZ,JY,JX)
+    rsn: [jx][jy][jz + offset][3]f32, // Fortran: RSN(0:2,0:JZ,JY,JX)
+    rsp: [jx][jy][jz + offset][3]f32, // Fortran: RSP(0:2,0:JZ,JY,JX)
+    fmpr: [jx][jy][jz + offset]f32, // Fortran: FMPR(0:JZ,JY,JX)
+    cdpth: [jx][jy][jz + offset]f32, // Fortran: CDPTH(0:JZ,JY,JX)
+    bkds: [jx][jy][jz + offset]f32, // Fortran: BKDS(0:JZ,JY,JX)
     psisminf: [jx][jy][jz]f32, // psism at inflection point for new mvg model in Ecosys.zig.
-    fc: [jx][jy][jz + 1]f32, // Fortran: FC(0:JZ,JY,JX)
-    wp: [jx][jy][jz + 1]f32, // Fortran: WP(0:JZ,JY,JX)
-    scnv: [jx][jy][jz + 1]f32, // Fortran: SCNV(0:JZ,JY,JX)
-    ph: [jx][jy][jz + 1]f32, // Fortran: PH(0:JZ,JY,JX)
-    ccapd: [jx][jy][jz + 1]f32, // Fortran: CCAPD(JZ,JY,JX)
-    ccaph: [jx][jy][jz + 1]f32, // Fortran: CCAPH(JZ,JY,JX)
-    corgc: [jx][jy][jz + 1]f32, // Fortran: CORGC(0:JZ,JY,JX)
+    fc: [jx][jy][jz + offset]f32, // Fortran: FC(0:JZ,JY,JX)
+    wp: [jx][jy][jz + offset]f32, // Fortran: WP(0:JZ,JY,JX)
+    scnv: [jx][jy][jz + offset]f32, // Fortran: SCNV(0:JZ,JY,JX)
+    ph: [jx][jy][jz + offset]f32, // Fortran: PH(0:JZ,JY,JX)
+    ccapd: [jx][jy][jz + offset]f32, // Fortran: CCAPD(JZ,JY,JX)
+    ccaph: [jx][jy][jz + offset]f32, // Fortran: CCAPH(JZ,JY,JX)
+    corgc: [jx][jy][jz + offset]f32, // Fortran: CORGC(0:JZ,JY,JX)
     rock: [jx][jy][jz]f32, // Fortran: ROCK(JZ,JY,JX)
     scnh: [jx][jy][jz]f32, // Fortran: SCNH(JZ,JY,JX)
     csand: [jx][jy][jz]f32, // Fortran: CSAND(JZ,JY,JX)

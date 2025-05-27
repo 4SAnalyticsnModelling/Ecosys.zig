@@ -6,29 +6,30 @@ const jz = config.soillayersmax;
 const jh = jx + 1;
 const jv = jy + 1;
 const jd = jz + 1;
+const offset: u32 = 1;
 
 pub const Blk8b = struct {
     dist: [jh][jv][jd][3]f32, // Fortran: DIST(3,JD,JV,JH)
     disp: [jh][jv][jd][3]f32, // Fortran: DISP(3,JD,JV,JH)
-    dlyr: [jx][jy][jz + 1][3]f32, // Fortran: DLYR(3,0:JZ,JY,JX)
-    area: [jx][jy][jz + 1][3]f32, // Fortran: AREA(3,0:JZ,JY,JX)
-    dlyri: [jx][jy][jz + 1][3]f32, // Fortran: DLYRI(3,0:JZ,JY,JX)
+    dlyr: [jx][jy][jz + offset][3]f32, // Fortran: DLYR(3,0:JZ,JY,JX)
+    area: [jx][jy][jz + offset][3]f32, // Fortran: AREA(3,0:JZ,JY,JX)
+    dlyri: [jx][jy][jz + offset][3]f32, // Fortran: DLYRI(3,0:JZ,JY,JX)
     iytyp: [jx][jy][366][3]i32, // Fortran: IYTYP(0:2,366,JY,JX)
     xdpth: [jx][jy][jz][3]f32, // Fortran: XDPTH(3,JZ,JY,JX)
-    dpth: [jx][jy][jz + 1]f32, // Fortran: DPTH(JZ,JY,JX) with 0:JZ
-    poros: [jx][jy][jz + 1]f32, // Fortran: POROS(0:JZ,JY,JX)
-    psl: [jx][jy][jz + 1]f32, // Fortran: PSL(0:JZ,JY,JX)
-    fcl: [jx][jy][jz + 1]f32, // Fortran: FCL(0:JZ,JY,JX)
-    wpl: [jx][jy][jz + 1]f32, // Fortran: WPL(0:JZ,JY,JX)
-    psd: [jx][jy][jz + 1]f32, // Fortran: PSD(0:JZ,JY,JX)
-    fcd: [jx][jy][jz + 1]f32, // Fortran: FCD(0:JZ,JY,JX)
-    volx: [jx][jy][jz + 1]f32, // Fortran: VOLX(0:JZ,JY,JX)
-    voly: [jx][jy][jz + 1]f32, // Fortran: VOLY(0:JZ,JY,JX)
-    bkvl: [jx][jy][jz + 1]f32, // Fortran: BKVL(0:JZ,JY,JX)
-    srp: [jx][jy][jz + 1]f32, // Fortran: SRP(0:JZ,JY,JX)
-    tfnd: [jx][jy][jz + 1]f32, // Fortran: TFND(0:JZ,JY,JX)
-    volai: [jx][jy][jz + 1]f32, // Fortran: VOLAI(0:JZ,JY,JX)
-    cdpthz: [jx][jy][jz + 1]f32, // Fortran: CDPTHZ(0:JZ,JY,JX)
+    dpth: [jx][jy][jz + offset]f32, // Fortran: DPTH(JZ,JY,JX) with 0:JZ
+    poros: [jx][jy][jz + offset]f32, // Fortran: POROS(0:JZ,JY,JX)
+    psl: [jx][jy][jz + offset]f32, // Fortran: PSL(0:JZ,JY,JX)
+    fcl: [jx][jy][jz + offset]f32, // Fortran: FCL(0:JZ,JY,JX)
+    wpl: [jx][jy][jz + offset]f32, // Fortran: WPL(0:JZ,JY,JX)
+    psd: [jx][jy][jz + offset]f32, // Fortran: PSD(0:JZ,JY,JX)
+    fcd: [jx][jy][jz + offset]f32, // Fortran: FCD(0:JZ,JY,JX)
+    volx: [jx][jy][jz + offset]f32, // Fortran: VOLX(0:JZ,JY,JX)
+    voly: [jx][jy][jz + offset]f32, // Fortran: VOLY(0:JZ,JY,JX)
+    bkvl: [jx][jy][jz + offset]f32, // Fortran: BKVL(0:JZ,JY,JX)
+    srp: [jx][jy][jz + offset]f32, // Fortran: SRP(0:JZ,JY,JX)
+    tfnd: [jx][jy][jz + offset]f32, // Fortran: TFND(0:JZ,JY,JX)
+    volai: [jx][jy][jz + offset]f32, // Fortran: VOLAI(0:JZ,JY,JX)
+    cdpthz: [jx][jy][jz + offset]f32, // Fortran: CDPTHZ(0:JZ,JY,JX)
     dpthz: [jx][jy][jz]f32, // Fortran: DPTHZ(JZ,JY,JX)
     sand: [jx][jy][jz]f32, // Fortran: SAND(JZ,JY,JX)
     silt: [jx][jy][jz]f32, // Fortran: SILT(JZ,JY,JX)

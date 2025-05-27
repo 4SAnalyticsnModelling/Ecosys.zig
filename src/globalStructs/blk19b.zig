@@ -3,22 +3,23 @@ const config = @import("config");
 const jx = config.ewgridsmax;
 const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
+const offset: u32 = 1;
 
 pub const Blk19b = struct {
-    xoh1b: [jx][jy][jz + 1]f32, // Fortran: XOH1B(0:JZ,JY,JX)
-    xoh2b: [jx][jy][jz + 1]f32, // Fortran: XOH2B(0:JZ,JY,JX)
-    xh1pb: [jx][jy][jz + 1]f32, // Fortran: XH1PB(0:JZ,JY,JX)
-    xh2pb: [jx][jy][jz + 1]f32, // Fortran: XH2PB(0:JZ,JY,JX)
-    palpo: [jx][jy][jz + 1]f32, // Fortran: PALPO(0:JZ,JY,JX)
-    pfepo: [jx][jy][jz + 1]f32, // Fortran: PFEPO(0:JZ,JY,JX)
-    pcapd: [jx][jy][jz + 1]f32, // Fortran: PCAPD(0:JZ,JY,JX)
-    pcaph: [jx][jy][jz + 1]f32, // Fortran: PCAPH(0:JZ,JY,JX)
-    pcapm: [jx][jy][jz + 1]f32, // Fortran: PCAPM(0:JZ,JY,JX)
-    palpb: [jx][jy][jz + 1]f32, // Fortran: PALPB(0:JZ,JY,JX)
-    pfepb: [jx][jy][jz + 1]f32, // Fortran: PFEPB(0:JZ,JY,JX)
-    pcpdb: [jx][jy][jz + 1]f32, // Fortran: PCPDB(0:JZ,JY,JX)
-    pcpmb: [jx][jy][jz + 1]f32, // Fortran: PCPMB(0:JZ,JY,JX)
-    pcphb: [jx][jy][jz + 1]f32, // Fortran: PCPHB(0:JZ,JY,JX)
+    xoh1b: [jx][jy][jz + offset]f32, // Fortran: XOH1B(0:JZ,JY,JX)
+    xoh2b: [jx][jy][jz + offset]f32, // Fortran: XOH2B(0:JZ,JY,JX)
+    xh1pb: [jx][jy][jz + offset]f32, // Fortran: XH1PB(0:JZ,JY,JX)
+    xh2pb: [jx][jy][jz + offset]f32, // Fortran: XH2PB(0:JZ,JY,JX)
+    palpo: [jx][jy][jz + offset]f32, // Fortran: PALPO(0:JZ,JY,JX)
+    pfepo: [jx][jy][jz + offset]f32, // Fortran: PFEPO(0:JZ,JY,JX)
+    pcapd: [jx][jy][jz + offset]f32, // Fortran: PCAPD(0:JZ,JY,JX)
+    pcaph: [jx][jy][jz + offset]f32, // Fortran: PCAPH(0:JZ,JY,JX)
+    pcapm: [jx][jy][jz + offset]f32, // Fortran: PCAPM(0:JZ,JY,JX)
+    palpb: [jx][jy][jz + offset]f32, // Fortran: PALPB(0:JZ,JY,JX)
+    pfepb: [jx][jy][jz + offset]f32, // Fortran: PFEPB(0:JZ,JY,JX)
+    pcpdb: [jx][jy][jz + offset]f32, // Fortran: PCPDB(0:JZ,JY,JX)
+    pcpmb: [jx][jy][jz + offset]f32, // Fortran: PCPMB(0:JZ,JY,JX)
+    pcphb: [jx][jy][jz + offset]f32, // Fortran: PCPHB(0:JZ,JY,JX)
     paloh: [jx][jy][jz]f32, // Fortran: PALOH(JZ,JY,JX)
     pfeoh: [jx][jy][jz]f32, // Fortran: PFEOH(JZ,JY,JX)
     pcaco: [jx][jy][jz]f32, // Fortran: PCACO(JZ,JY,JX)

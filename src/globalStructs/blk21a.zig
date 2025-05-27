@@ -3,15 +3,16 @@ const config = @import("config");
 const jx = config.ewgridsmax;
 const jy = config.nsgridsmax;
 const jz = config.soillayersmax;
+const offset: u32 = 1;
 
 pub const Blk21a = struct {
-    trn4s: [jx][jy][jz + 1]f32, // Fortran: TRN4S(0:JZ,JY,JX)
-    trn3s: [jx][jy][jz + 1]f32, // Fortran: TRN3S(0:JZ,JY,JX)
-    trno3: [jx][jy][jz + 1]f32, // Fortran: TRNO3(0:JZ,JY,JX)
-    trh2o: [jx][jy][jz + 1]f32, // Fortran: TRH2O(0:JZ,JY,JX)
-    trh1p: [jx][jy][jz + 1]f32, // Fortran: TRH1P(0:JZ,JY,JX)
-    trh2p: [jx][jy][jz + 1]f32, // Fortran: TRH2P(0:JZ,JY,JX)
-    trxn4: [jx][jy][jz + 1]f32, // Fortran: TRXN4(0:JZ,JY,JX)
+    trn4s: [jx][jy][jz + offset]f32, // Fortran: TRN4S(0:JZ,JY,JX)
+    trn3s: [jx][jy][jz + offset]f32, // Fortran: TRN3S(0:JZ,JY,JX)
+    trno3: [jx][jy][jz + offset]f32, // Fortran: TRNO3(0:JZ,JY,JX)
+    trh2o: [jx][jy][jz + offset]f32, // Fortran: TRH2O(0:JZ,JY,JX)
+    trh1p: [jx][jy][jz + offset]f32, // Fortran: TRH1P(0:JZ,JY,JX)
+    trh2p: [jx][jy][jz + offset]f32, // Fortran: TRH2P(0:JZ,JY,JX)
+    trxn4: [jx][jy][jz + offset]f32, // Fortran: TRXN4(0:JZ,JY,JX)
     trn4b: [jx][jy][jz]f32, // Fortran: TRN4B(JZ,JY,JX)
     trn3b: [jx][jy][jz]f32, // Fortran: TRN3B(JZ,JY,JX)
     trnob: [jx][jy][jz]f32, // Fortran: TRNOB(JZ,JY,JX)
