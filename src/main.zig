@@ -17,8 +17,11 @@ const elapsedTime = @import("ecosysUtils/elapsedTime.zig").elapsedTime;
 /// Ecosys main function
 pub fn main() anyerror!void {
     const startTimeUs: i64 = std.time.microTimestamp();
+    // Buffer for allocators
     var buffer: [2 * 1024]u8 = undefined;
+    // Buffer for file I/O: read
     var inBuf: [2 * 1024]u8 = undefined;
+    // Buffer for file I/O: write
     var outBuf: [2 * 1024]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
     const allocator = fba.allocator();

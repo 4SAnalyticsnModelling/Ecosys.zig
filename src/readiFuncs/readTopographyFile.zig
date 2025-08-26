@@ -23,7 +23,9 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
         logFileWriter.flush() catch {};
         std.debug.print("error: {s}\n", .{@errorName(err)});
     }
+    // Buffer for file I/O: read
     var inBuf: [2 * 1024]u8 = undefined;
+    // Buffer for file I/O: write
     var outBuf: [2 * 1024]u8 = undefined;
     // Open topography file
     const fs = std.fs.cwd();
