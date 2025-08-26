@@ -2,7 +2,7 @@ const std = @import("std");
 const Blk8a = @import("../globalStructs/blk8a.zig").Blk8a;
 const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 /// This function sets flag if field capacity, wilting point, and/or vertical and lateral saturated hydraulic conductivity data is unknown.
-pub fn setFlagForUnknownHydrologicProperties(logFileWriter: std.fs.File.Writer, blk8a: *Blk8a, blkc: *Blkc, nx: usize, ny: usize) anyerror!void {
+pub fn setFlagForUnknownHydrologicProperties(logFileWriter: *std.Io.Writer, blk8a: *Blk8a, blkc: *Blkc, nx: usize, ny: usize) anyerror!void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_setFlagForUnknownHydrologicProperties;

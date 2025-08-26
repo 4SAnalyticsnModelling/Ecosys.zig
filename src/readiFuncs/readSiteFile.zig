@@ -9,36 +9,47 @@ const dylnFunc = @import("dylnFunc.zig").dylnFunc;
 const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
 /// This function reads site data
-pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Writer, siteName: []const u8, blk2a: *Blk2a, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) anyerror!void {
+pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, siteName: []const u8, blk2a: *Blk2a, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) anyerror!void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_readSiteFile;
         logFileWriter.print("error: {s}\n", .{@errorName(err)}) catch {};
+        logFileWriter.flush() catch {};
         std.debug.print("error: {s}\n", .{@errorName(err)});
     }
+    var inBuf: [2 * 1024]u8 = undefined;
+    var outBuf: [2 * 1024]u8 = undefined;
     // Open site file
     const fs = std.fs.cwd();
-    const siteFile = fs.openFile(siteName, .{}) catch {
+    const sitefile = fs.openFile(siteName, .{}) catch {
         const err = error.SiteFileNotFoundOrFailedToOpenSiteFile;
         try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+        try logFileWriter.flush();
         return err;
     };
-    defer siteFile.close();
+    defer sitefile.close();
+    var siteFileBuf = sitefile.reader(&inBuf);
+    const siteFile = &siteFileBuf.interface;
     // Create a log file to write site file inputs to check if they are all appropriately read
     var logSiteFile = try fs.createFile("outputs/checkPointLogs/siteFileInputCheckLog", .{ .read = false });
     defer logSiteFile.close();
-    const logSite = logSiteFile.writer();
+    var logSiteFileBuf = logSiteFile.writer(&outBuf);
+    const logSite = &logSiteFileBuf.interface;
     const wtflag: [5][]const u8 = .{ "no", "yes, natural, stationary", "yes, natural, mobile", "yes, artificial, stationary", "yes, artificial, mobile" };
     const saltopt: [2][]const u8 = .{ "no salinity simulation", "salinity simulation" };
     const erosionopt: [5][]const u8 = .{ "no change in elevation", "allow freeze-thaw to change elevation", "allow freeze-thaw + erosion to change elevation", "allow freeze-thaw + soc accumulation to change elevation", "allow freeze-thaw + soc accumulation + erosion to change elevation" };
     const gridconnopt: [3][]const u8 = .{ "lateral connections between grid cells (and hence lateral flux simulations)", "not a valid option", "no lateral connection/flux simulation" };
     var gridCount: u32 = 0;
     while (true) {
-        var line = readLine(siteFile, allocator) catch break; // break out of the loop at the EOF.
+        var line = readLine(siteFile) catch |err| switch (err) {
+            error.EndOfStream => break,
+            else => return err,
+        }; // break out of the loop at the EOF.
         var tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 4) {
             const err = error.InvalidInputForGridCellPositionsInSiteFile;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+            try logFileWriter.flush();
             return err;
         }
         // Read grid cell positions in W, N, E, and S direction
@@ -47,34 +58,39 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
         const nh2 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteFile_E, tokens.items[2], logFileWriter);
         const nv2 = try parseTokenToInt(u32, error.InvalidGridCellPositionInSiteFile_S, tokens.items[3], logFileWriter);
         try logSite.print("=> Grid cell positions: W: {}, N: {}, E: {}, S: {}.\n", .{ nh1 + offset, nv1 + offset, nh2, nv2 });
+        try logSite.flush();
         if (nh1 > nh2 or nv1 > nv2 or nh1 < nhw or nh2 > nhe or nv1 < nvn or nv2 > nvs) {
             const err = error.InvalidInputForGridCellPositionsInSiteFile;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+            try logFileWriter.flush();
             return err;
         }
-        allocator.free(line);
-        tokens.deinit();
+        tokens.deinit(allocator);
         // Read each landscape unit file within the site file
-        line = try readLine(siteFile, allocator);
+        line = try readLine(siteFile);
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 1) {
             const err = error.InvalidInputForLandscapeUnitNameInSiteFile;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+            try logFileWriter.flush();
             return err;
         }
         const landscapeUnitFileName: []const u8 = tokens.items[0];
-        const landscapeUnitFile = fs.openFile(landscapeUnitFileName, .{}) catch |err| {
+        const landUnitFile = fs.openFile(landscapeUnitFileName, .{}) catch |err| {
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+            try logFileWriter.flush();
             return error.LandscapeUnitFileNotFoundInSiteFileOrFailedToOpenLandscapeUnitFile;
         };
-        defer landscapeUnitFile.close();
-        allocator.free(line);
-        tokens.deinit();
-        line = try readLine(landscapeUnitFile, allocator);
+        defer landUnitFile.close();
+        var landUnitFileBuf = landUnitFile.reader(&inBuf);
+        const landscapeUnitFile = &landUnitFileBuf.interface;
+        tokens.deinit(allocator);
+        line = try readLine(landscapeUnitFile);
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 4) {
             const err = error.InvalidInputLandscapeUnitFileLine1;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+            try logFileWriter.flush();
             return err;
         }
         for (nh1..nh2) |nx| {
@@ -90,18 +106,20 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                 if (blk2a.idtbl[nx][ny] > 4) {
                     const err = error.InvalidWaterTableFlag;
                     try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    try logFileWriter.flush();
                     return err;
                 }
                 try logSite.print("=> [Start of {s} file.] {s} line#1 inputs: grid cell position W-E: {}, N-S: {}, latitude: {d} degree, elevation: {d} m, MAT: {d} degree C, water table simulation: {s}.\n", .{ landscapeUnitFileName, landscapeUnitFileName, nx + offset, ny + offset, blkc.alat[nx][ny], blk2a.alti[nx][ny], blk2a.atcai[nx][ny], wtflag[blk2a.idtbl[nx][ny]] });
+                try logSite.flush();
             }
         }
-        allocator.free(line);
-        tokens.deinit();
-        line = try readLine(landscapeUnitFile, allocator);
+        tokens.deinit(allocator);
+        line = try readLine(landscapeUnitFile);
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 6) {
             const err = error.InvalidInputLandscapeUnitFileLine2;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+            try logFileWriter.flush();
             return err;
         }
         for (nh1..nh2) |nx| {
@@ -119,15 +137,16 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                 // Read atmospheric NH3 concentration (ppm)
                 blk2a.znh3e[nx][ny] = try parseTokenToFloat(f32, error.InvalidAtmNH3Concentration, tokens.items[5], logFileWriter);
                 try logSite.print("=> {s} line#2 inputs for atmospheric gas concentrations: grid cell position W-E: {}, N-S: {}, O2: {} ppm, N2: {} ppm, CO2: {d} ppm, CH4: {d} ppm, N2O: {d} ppm, NH3: {d} ppm.\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blk2a.oxye[nx][ny], blk2a.z2ge[nx][ny], blk2a.co2ei[nx][ny], blk2a.ch4e[nx][ny], blk2a.z2oe[nx][ny], blk2a.znh3e[nx][ny] });
+                try logSite.flush();
             }
         }
-        allocator.free(line);
-        tokens.deinit();
-        line = try readLine(landscapeUnitFile, allocator);
+        tokens.deinit(allocator);
+        line = try readLine(landscapeUnitFile);
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 7) {
             const err = error.InvalidInputLandscapeUnitFileLine3;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+            try logFileWriter.flush();
             return err;
         }
         for (nh1..nh2) |nx| {
@@ -139,6 +158,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                 if (blkc.isalt[nx][ny] > 1) {
                     const err = error.InvalidSaltOption;
                     try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    try logFileWriter.flush();
                     return err;
                 }
                 // Read erosion options; 0 = allow freeze-thaw to change elevation; 1 = allow freeze-thaw plus erosion to change elevation; 2 = allow freeze-thaw plus soc accumulation to change elevation; 3 = allow freeze-thaw plus soc accumulation plus erosion to change elevation, -1 = no change in elevation
@@ -146,6 +166,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                 if (blkc.iersn[nx][ny] > 3 or blkc.iersn[nx][ny] < -1) {
                     const err = error.InvalidErosionOption;
                     try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                    try logFileWriter.flush();
                     return err;
                 }
                 // Read lateral mass and energy transport options; 1 = lateral connections between grid cells (and hence lateral flux simulations); 3 = no lateral connection/flux simulation
@@ -154,6 +175,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                     if (blkc.ncn[nx][ny] != 3) {
                         const err = error.InvalidLateralFluxOption;
                         try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+                        try logFileWriter.flush();
                         return err;
                     }
                 }
@@ -166,15 +188,16 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                 const iersngforopt: u32 = @max(0, @min(4, blkc.iersn[nx][ny] + 1));
                 const ncngforopt: u32 = blkc.ncn[nx][ny] - 1;
                 try logSite.print("=> {s} line#3 inputs: grid cell position W-E: {}, N-S: {}, Koppen climate zone: {}, salinity simulation: {s}, erosion/surface change simulation: {s}, grid cell connectivity: {s}, external WTD: {d} m, artificial WTD: {d} m, slope of WT relative to landscape surface: {d}. Note: WTD will be simulated only if water table option in line#1 is chosen AND external WTD in line#3 < depth of the lowest soil layer in soil file. Artificial drainage will be simulated only if artificial water table option in line#1 is chosen AND artificial WTD in line#3 < external WTD in line#3.\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blkc.ietyp[nx][ny], saltopt[blkc.isalt[nx][ny]], erosionopt[iersngforopt], gridconnopt[ncngforopt], blk2a.dtbli[nx][ny], blk2a.dtbldi[nx][ny], blk2a.dtblg[nx][ny] });
+                try logSite.flush();
             }
         }
-        allocator.free(line);
-        tokens.deinit();
-        line = try readLine(landscapeUnitFile, allocator);
+        tokens.deinit(allocator);
+        line = try readLine(landscapeUnitFile);
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 13) {
             const err = error.InvalidInputLandscapeFileLine4;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+            try logFileWriter.flush();
             return err;
         }
         for (nh1..nh2) |nx| {
@@ -197,15 +220,16 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                 // Read lower boundary conditions for water flux simulations through lower boundary
                 blk2a.rchgd[nx][ny] = try parseTokenToFloat(f32, error.InvalidLowerBoundCond, tokens.items[12], logFileWriter);
                 try logSite.print("=> {s} line#4 inputs for model boundary conditions: grid cell position W-E: {}, N-S: {}, multiplier for surface run-off/run-on simulation through N: {d}, E: {d}, S: {d}, and W: {d} boundary. Multiplier for sub-surface discharge/recharge simulation through N: {d}, E: {d}, S: {d}, and W: {d} boundary. Lateral distance to external WT (natural or artificial) to the N: {d} m, E: {d} m, S: {d} m, and W: {d} m direction. Multiplier for water flux simulation (e.g. deep percolation, capillary-rise) through lower boundary: {d}.\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blk2a.rchqn[nx][ny], blk2a.rchqe[nx][ny], blk2a.rchqs[nx][ny], blk2a.rchqw[nx][ny], blk2a.rchgnu[nx][ny], blk2a.rchgeu[nx][ny], blk2a.rchgsu[nx][ny], blk2a.rchgwu[nx][ny], blk2a.rchgnt[nx][ny], blk2a.rchget[nx][ny], blk2a.rchgst[nx][ny], blk2a.rchgwt[nx][ny], blk2a.rchgd[nx][ny] });
+                try logSite.flush();
             }
         }
-        allocator.free(line);
-        tokens.deinit();
-        line = try readLine(landscapeUnitFile, allocator);
+        tokens.deinit(allocator);
+        line = try readLine(landscapeUnitFile);
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 2) {
             const err = error.InvalidInputLandscapeFileLine5;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+            try logFileWriter.flush();
             return err;
         }
         for (nh1..nh2) |nx| {
@@ -215,10 +239,10 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
                 // Read width of the N-S landscape (m)
                 blk2a.dv[nx][ny] = try parseTokenToFloat(f32, error.InvalidGridWidthInLandscapeFile_NS, tokens.items[1], logFileWriter);
                 try logSite.print("=> {s} line#5 inputs for grid cell size: grid cell position W-E: {}, N-S: {}, W-E width: {d} m, N-S width: {d} m. [End of {s} file.]\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blk2a.dh[nx][ny], blk2a.dv[nx][ny], landscapeUnitFileName });
+                try logSite.flush();
             }
         }
-        allocator.free(line);
-        tokens.deinit();
+        tokens.deinit(allocator);
         for (nh1..nh2) |nx| {
             for (nv1..nv2) |ny| {
                 blk2a.co2e[nx][ny] = blk2a.co2ei[nx][ny];
@@ -237,6 +261,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: std.fs.File.Wri
     if (gridCount != (nhe - nhw) * (nvs - nvn)) {
         const err = error.InvalidInputForGridCellPositionsInSiteFile;
         try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+        try logFileWriter.flush();
         return err;
     }
 }

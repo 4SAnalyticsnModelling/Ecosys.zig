@@ -1,7 +1,7 @@
 const std = @import("std");
 
 pub fn elapsedTime(
-    startTime_us: i64,
+    startTime_us: i64, // us = Micro Second
     endTime_us: i64,
 ) struct { value: f64, unit: []const u8 } {
     const elapsed_us: i64 = endTime_us - startTime_us;
