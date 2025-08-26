@@ -26,7 +26,8 @@
 
 ⚠️  `Ecosys.zig` is currently under active development. The code is incomplete and not yet ready for production use.
 
-# Compile Ecosys.zig
+# Compile Ecosys.zig 
+**(with zig version 0.15.1)**
 
 => `zig build` (**default compilation**)
 
