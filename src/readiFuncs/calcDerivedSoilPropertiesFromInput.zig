@@ -8,6 +8,7 @@ pub fn calcDerivedSoilPropertiesFromInput(logFileWriter: *std.Io.Writer, blk8a: 
     errdefer {
         const err = error.FunctionFailed_calcDerivedSoilPropertiesFromInput;
         logFileWriter.print("error: {s}\n", .{@errorName(err)}) catch {};
+        logFileWriter.flush() catch {};
         std.debug.print("error: {s}\n", .{@errorName(err)});
     }
     for (0..blk8a.nl[ny][nx]) |l| {
