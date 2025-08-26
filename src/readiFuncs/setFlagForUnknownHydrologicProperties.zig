@@ -7,6 +7,7 @@ pub fn setFlagForUnknownHydrologicProperties(logFileWriter: *std.Io.Writer, blk8
     errdefer {
         const err = error.FunctionFailed_setFlagForUnknownHydrologicProperties;
         logFileWriter.print("error: {s}\n", .{@errorName(err)}) catch {};
+        logFileWriter.flush() catch {};
         std.debug.print("error: {s}\n", .{@errorName(err)});
     }
     for (blk8a.nu[ny][nx]..blk8a.nm[ny][nx]) |l| {
