@@ -7,7 +7,6 @@ const Blk2a = @import("globalStructs/blk2a.zig").Blk2a;
 const Blkc = @import("globalStructs/blkc.zig").Blkc;
 const Blkmain = @import("localStructs/blkmain.zig").Blkmain;
 const tokenizeLine = @import("ecosysUtils/tokenizeLine.zig").tokenizeLine;
-const readLine = @import("ecosysUtils/readLine.zig").readLine;
 const readSiteFile = @import("readiFuncs/readSiteFile.zig").readSiteFile;
 const readTopographyFile = @import("readiFuncs/readTopographyFile.zig").readTopographyFile;
 const mkDir = @import("ecosysUtils/mkDir.zig").mkDir;
@@ -20,9 +19,9 @@ pub fn main() anyerror!void {
     // Buffer for allocators
     var buffer: [2 * 1024]u8 = undefined;
     // Buffer for file I/O: read
-    var inBuf: [2 * 1024]u8 = undefined;
+    var inBuf: [1024]u8 = undefined;
     // Buffer for file I/O: write
-    var outBuf: [2 * 1024]u8 = undefined;
+    var outBuf: [1024]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
     const allocator = fba.allocator();
     // Read and check ecosys run submission arguments
@@ -99,7 +98,7 @@ pub fn main() anyerror!void {
     var blkc: Blkc = Blkc.init();
     const outputControlFileType: [10][]const u8 = .{ "Hourly carbon output file", "Hourly water output file", "Hourly nitrogen output file", "Hourly phosphorus output file", "Hourly energy/heat output file", "Daily carbon output file", "Daily water output file", "Daily nitrogen output file", "Daily phosphorus output file", "Daily energy/heat output file" };
     // Read number of E-W and N-S grid cells
-    var line = try readLine(ecosysRun);
+    var line = try ecosysRun.takeDelimiterExclusive('\n');
     var tokens = try tokenizeLine(line, allocator);
     if (tokens.items.len != 4) {
         const err = error.InvalidInputForGridCellNumberInRunScript;
@@ -113,9 +112,13 @@ pub fn main() anyerror!void {
     const nvs = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_S, tokens.items[3], logErr);
     try logRun.print("=> Grid cell positions: W: {}; E: {}; N: {}; S: {}.\n", .{ nhw + offset, nhe, nvn + offset, nvs });
     try logRun.flush();
+    // Free up memory allocated in tokenized line
+    for (tokens.items) |tok| {
+        allocator.free(tok);
+    }
     tokens.deinit(allocator);
     // Read site file
-    line = try readLine(ecosysRun);
+    line = try ecosysRun.takeDelimiterExclusive('\n');
     tokens = try tokenizeLine(line, allocator);
     if (tokens.items.len != 1) {
         const err = error.InvalidSiteFileInRunScript;
@@ -123,13 +126,18 @@ pub fn main() anyerror!void {
         try logErr.flush();
         return err;
     }
-    const siteFileName: []const u8 = tokens.items[0];
+    const siteFileName = try allocator.alloc(u8, tokens.items[0].len);
+    std.mem.copyForwards(u8, siteFileName, tokens.items[0]);
+    defer allocator.free(siteFileName);
     try logRun.print("=> Site file: {s}.\n", .{siteFileName});
     try logRun.flush();
     try readSiteFile(allocator, logErr, siteFileName, &blk2a, &blkc, nhw, nvn, nhe, nvs);
+    for (tokens.items) |tok| {
+        allocator.free(tok);
+    }
     tokens.deinit(allocator);
     // Read topography file
-    line = try readLine(ecosysRun);
+    line = try ecosysRun.takeDelimiterExclusive('\n');
     tokens = try tokenizeLine(line, allocator);
     if (tokens.items.len != 1) {
         const err = error.InvalidTopographyFileInRunScript;
@@ -141,9 +149,12 @@ pub fn main() anyerror!void {
     try logRun.print("=> Topography file: {s}.\n", .{topographyName});
     try logRun.flush();
     try readTopographyFile(allocator, logErr, topographyName, &blk11a, &blk2a, &blk8a, &blk8b, &blkc, nhw, nvn, nhe, nvs);
+    for (tokens.items) |tok| {
+        allocator.free(tok);
+    }
     tokens.deinit(allocator);
     // Read the number of the model scenarios to be executed
-    line = try readLine(ecosysRun);
+    line = try ecosysRun.takeDelimiterExclusive('\n');
     tokens = try tokenizeLine(line, allocator);
     if (tokens.items.len != 2) {
         const err = error.InvalidNumberOfModelScenariosInRunScript;
@@ -153,8 +164,11 @@ pub fn main() anyerror!void {
     }
     const nax = try parseTokenToInt(u32, error.InvalidNumberOfModelScenariosInRunScript, tokens.items[0], logErr);
     const ndx = try parseTokenToInt(u32, error.InvalidNumberOfModelScenariosInRunScript, tokens.items[1], logErr);
-    try logRun.print("=> Number of model scenarios: {}; Times to be repeated: {}.\n", .{ nax, ndx });
+    try logRun.print("=> Number of model scenarios: {} each repeated: {} times.\n", .{ nax, ndx });
     try logRun.flush();
+    for (tokens.items) |tok| {
+        allocator.free(tok);
+    }
     tokens.deinit(allocator);
     // For each scenario
     for (0..nax) |nex| {
@@ -164,7 +178,7 @@ pub fn main() anyerror!void {
             logErr.print("error: Traceback: {s}\n", .{@errorName(err)}) catch {};
             logErr.flush() catch {};
         }
-        line = try readLine(ecosysRun);
+        line = try ecosysRun.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 2) {
             const err = error.InvalidNumberOfScenesInRunScript;
@@ -174,8 +188,11 @@ pub fn main() anyerror!void {
         }
         const nay = try parseTokenToInt(u32, error.InvalidNumberOfScenesInRunScript, tokens.items[0], logErr);
         const ndy = try parseTokenToInt(u32, error.InvalidNumberOfScenesInRunScript, tokens.items[1], logErr);
-        try logRun.print("=> Number of model scenes in a scenario: {}; Times to be repeated: {}.\n", .{ nay, ndy });
+        try logRun.print("=> Number of model scenes in a scenario: {} each repeated: {} times.\n", .{ nay, ndy });
         try logRun.flush();
+        for (tokens.items) |tok| {
+            allocator.free(tok);
+        }
         tokens.deinit(allocator);
         blkmain.na[nex] = nay;
         blkmain.nd[nex] = ndy;
@@ -188,7 +205,7 @@ pub fn main() anyerror!void {
                 logErr.flush() catch {};
             }
             // Open weather file
-            line = try readLine(ecosysRun);
+            line = try ecosysRun.takeDelimiterExclusive('\n');
             tokens = try tokenizeLine(line, allocator);
             if (tokens.items.len != 1) {
                 const err = error.InvalidWeatherFileInRunScript;
@@ -196,12 +213,17 @@ pub fn main() anyerror!void {
                 try logErr.flush();
                 return err;
             }
-            const weatherFileName: []const u8 = tokens.items[0];
+            const weatherFileName = try allocator.alloc(u8, tokens.items[0].len);
+            std.mem.copyForwards(u8, weatherFileName, tokens.items[0]);
+            defer allocator.free(weatherFileName);
             try logRun.print("=> Weather file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, weatherFileName });
             try logRun.flush();
+            for (tokens.items) |tok| {
+                allocator.free(tok);
+            }
             tokens.deinit(allocator);
             // Read options file
-            line = try readLine(ecosysRun);
+            line = try ecosysRun.takeDelimiterExclusive('\n');
             tokens = try tokenizeLine(line, allocator);
             if (tokens.items.len != 1) {
                 const err = error.InvalidOptionsFileInRunScript;
@@ -209,13 +231,18 @@ pub fn main() anyerror!void {
                 try logErr.flush();
                 return err;
             }
-            const optionFileName: []const u8 = tokens.items[0];
+            const optionFileName = try allocator.alloc(u8, tokens.items[0].len);
+            std.mem.copyForwards(u8, optionFileName, tokens.items[0]);
+            defer allocator.free(optionFileName);
             try logRun.print("=> Options file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, optionFileName });
             try logRun.flush();
+            for (tokens.items) |tok| {
+                allocator.free(tok);
+            }
             tokens.deinit(allocator);
             // Read weather file
             // Read land management file
-            line = try readLine(ecosysRun);
+            line = try ecosysRun.takeDelimiterExclusive('\n');
             tokens = try tokenizeLine(line, allocator);
             if (tokens.items.len != 1) {
                 const err = error.InvalidLandManagementFileInRunScript;
@@ -226,9 +253,12 @@ pub fn main() anyerror!void {
             blkmain.datac[nex][ne][8] = tokens.items[0];
             try logRun.print("=> Land management file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, blkmain.datac[nex][ne][8] });
             try logRun.flush();
+            for (tokens.items) |tok| {
+                allocator.free(tok);
+            }
             tokens.deinit(allocator);
             // Read plant management file
-            line = try readLine(ecosysRun);
+            line = try ecosysRun.takeDelimiterExclusive('\n');
             tokens = try tokenizeLine(line, allocator);
             if (tokens.items.len != 1) {
                 const err = error.InvalidPlantManagementFileInRunScript;
@@ -239,10 +269,13 @@ pub fn main() anyerror!void {
             blkmain.datac[nex][ne][9] = tokens.items[0];
             try logRun.print("=> Plant management file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, blkmain.datac[nex][ne][9] });
             try logRun.flush();
+            for (tokens.items) |tok| {
+                allocator.free(tok);
+            }
             tokens.deinit(allocator);
             // Read output control files
             for (20..30) |n| {
-                line = try readLine(ecosysRun);
+                line = try ecosysRun.takeDelimiterExclusive('\n');
                 tokens = try tokenizeLine(line, allocator);
                 if (tokens.items.len != 1) {
                     const err = error.InvalidOutputControlFileInRunScript;
@@ -253,6 +286,9 @@ pub fn main() anyerror!void {
                 blkmain.datac[nex][ne][n] = tokens.items[0];
                 try logRun.print("=> {s} (scenario #{} scene #{}): {s}.\n", .{ outputControlFileType[n - 20], nex + offset, ne + offset, blkmain.datac[nex][ne][n] });
                 try logRun.flush();
+                for (tokens.items) |tok| {
+                    allocator.free(tok);
+                }
                 tokens.deinit(allocator);
             }
         }

@@ -3,7 +3,6 @@ const offset: u32 = 1;
 const Blk2a = @import("../globalStructs/blk2a.zig").Blk2a;
 const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 const Blkmain = @import("../localStructs/blkmain.zig").Blkmain;
-const readLine = @import("../ecosysUtils/readLine.zig").readLine;
 const tokenizeLine = @import("../ecosysUtils/tokenizeLine.zig").tokenizeLine;
 const dylnFunc = @import("dylnFunc.zig").dylnFunc;
 const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
@@ -18,9 +17,9 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
         std.debug.print("error: {s}\n", .{@errorName(err)});
     }
     // Buffer for file I/O: read
-    var inBuf: [2 * 1024]u8 = undefined;
+    var inBuf: [1024]u8 = undefined;
     // Buffer for file I/O: write
-    var outBuf: [2 * 1024]u8 = undefined;
+    var outBuf: [1024]u8 = undefined;
     // Open site file
     const fs = std.fs.cwd();
     const sitefile = fs.openFile(siteName, .{}) catch {
@@ -43,7 +42,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
     const gridconnopt: [3][]const u8 = .{ "lateral connections between grid cells (and hence lateral flux simulations)", "not a valid option", "no lateral connection/flux simulation" };
     var gridCount: u32 = 0;
     while (true) {
-        var line = readLine(siteFile) catch |err| switch (err) {
+        var line = siteFile.takeDelimiterExclusive('\n') catch |err| switch (err) {
             error.EndOfStream => break,
             else => return err,
         }; // break out of the loop at the EOF.
@@ -67,9 +66,13 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
             try logFileWriter.flush();
             return err;
         }
+        // Free up memory allocated in tokenized line
+        for (tokens.items) |tok| {
+            allocator.free(tok);
+        }
         tokens.deinit(allocator);
         // Read each landscape unit file within the site file
-        line = try readLine(siteFile);
+        line = try siteFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 1) {
             const err = error.InvalidInputForLandscapeUnitNameInSiteFile;
@@ -77,7 +80,9 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
             try logFileWriter.flush();
             return err;
         }
-        const landscapeUnitFileName: []const u8 = tokens.items[0];
+        const landscapeUnitFileName = try allocator.alloc(u8, tokens.items[0].len);
+        std.mem.copyForwards(u8, landscapeUnitFileName, tokens.items[0]);
+        defer allocator.free(landscapeUnitFileName);
         const landUnitFile = fs.openFile(landscapeUnitFileName, .{}) catch |err| {
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
             try logFileWriter.flush();
@@ -86,8 +91,11 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
         defer landUnitFile.close();
         var landUnitFileBuf = landUnitFile.reader(&inBuf);
         const landscapeUnitFile = &landUnitFileBuf.interface;
+        for (tokens.items) |tok| {
+            allocator.free(tok);
+        }
         tokens.deinit(allocator);
-        line = try readLine(landscapeUnitFile);
+        line = try landscapeUnitFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 4) {
             const err = error.InvalidInputLandscapeUnitFileLine1;
@@ -115,8 +123,11 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
                 try logSite.flush();
             }
         }
+        for (tokens.items) |tok| {
+            allocator.free(tok);
+        }
         tokens.deinit(allocator);
-        line = try readLine(landscapeUnitFile);
+        line = try landscapeUnitFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 6) {
             const err = error.InvalidInputLandscapeUnitFileLine2;
@@ -142,8 +153,11 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
                 try logSite.flush();
             }
         }
+        for (tokens.items) |tok| {
+            allocator.free(tok);
+        }
         tokens.deinit(allocator);
-        line = try readLine(landscapeUnitFile);
+        line = try landscapeUnitFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 7) {
             const err = error.InvalidInputLandscapeUnitFileLine3;
@@ -193,8 +207,11 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
                 try logSite.flush();
             }
         }
+        for (tokens.items) |tok| {
+            allocator.free(tok);
+        }
         tokens.deinit(allocator);
-        line = try readLine(landscapeUnitFile);
+        line = try landscapeUnitFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 13) {
             const err = error.InvalidInputLandscapeFileLine4;
@@ -225,8 +242,11 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
                 try logSite.flush();
             }
         }
+        for (tokens.items) |tok| {
+            allocator.free(tok);
+        }
         tokens.deinit(allocator);
-        line = try readLine(landscapeUnitFile);
+        line = try landscapeUnitFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 2) {
             const err = error.InvalidInputLandscapeFileLine5;
@@ -243,6 +263,9 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
                 try logSite.print("=> {s} line#5 inputs for grid cell size: grid cell position W-E: {}, N-S: {}, W-E width: {d} m, N-S width: {d} m. [End of {s} file.]\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blk2a.dh[nx][ny], blk2a.dv[nx][ny], landscapeUnitFileName });
                 try logSite.flush();
             }
+        }
+        for (tokens.items) |tok| {
+            allocator.free(tok);
         }
         tokens.deinit(allocator);
         for (nh1..nh2) |nx| {
