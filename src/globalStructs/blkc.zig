@@ -7,9 +7,9 @@ const jp = config.pftmax;
 
 pub const Blkc = struct {
     isoil: [jx][jy][jz][4]u32, // Fortran: ISOIL(4,JZ,JY,JX)
-    lsg: [jx][jy][jz]i32, // Fortran: LSG(JZ,JY,JX)
-    iflgi: [jx][jy][jp]i32, // Fortran: IFLGI(JP,JY,JX)
-    iflgc: [jx][jy][jp]i32, // Fortran: IFLGC(JP,JY,JX)
+    lsg: [jx][jy][jz]u32, // Fortran: LSG(JZ,JY,JX)
+    iflgi: [jx][jy][jp]u32, // Fortran: IFLGI(JP,JY,JX)
+    iflgc: [jx][jy][jp]u32, // Fortran: IFLGC(JP,JY,JX)
     zerop: [jx][jy][jp]f32, // Fortran: ZEROP(JP,JY,JX)
     zeroq: [jx][jy][jp]f32, // Fortran: ZEROQ(JP,JY,JX)
     zerol: [jx][jy][jp]f32, // Fortran: ZEROL(JP,JY,JX)
@@ -29,13 +29,13 @@ pub const Blkc = struct {
     xcorp: [jx][jy]f32, // Fortran: XCORP(JY,JX)
     alat: [jx][jy]f32, // Fortran: ALAT(JY,JX)
     ncn: [jx][jy]u32, // Fortran: NCN(JY,JX)
-    iflgv: [jx][jy]i32, // Fortran: IFLGV(JY,JX)
-    iflgs: [jx][jy]i32, // Fortran: IFLGS(JY,JX)
-    ifnhb: [jx][jy]i32, // Fortran: IFNHB(JY,JX)
-    ifnob: [jx][jy]i32, // Fortran: IFNOB(JY,JX)
-    ifpob: [jx][jy]i32, // Fortran: IFPOB(JY,JX)
-    np: [jx][jy]i32, // Fortran: NP(JY,JX)
-    np0: [jx][jy]i32, // Fortran: NP0(JY,JX)
+    iflgv: [jx][jy]u32, // Fortran: IFLGV(JY,JX)
+    iflgs: [jx][jy]u32, // Fortran: IFLGS(JY,JX)
+    ifnhb: [jx][jy]u32, // Fortran: IFNHB(JY,JX)
+    ifnob: [jx][jy]u32, // Fortran: IFNOB(JY,JX)
+    ifpob: [jx][jy]u32, // Fortran: IFPOB(JY,JX)
+    np: [jx][jy]u32, // Fortran: NP(JY,JX)
+    np0: [jx][jy]u32, // Fortran: NP0(JY,JX)
     iersn: [jx][jy]i32, // Fortran: IERSNG
     ietyp: [jx][jy]u32, // Fortran: IETYP(JY,JX)
     isalt: [jx][jy]u32, // Fortran: ISALTG
@@ -49,7 +49,7 @@ pub const Blkc = struct {
     dco2e: [12]f32, // Fortran: DCO2E(12)
     dcn4r: [12]f32, // Fortran: DCN4R(12)
     dcnor: [12]f32, // Fortran: DCNOR(12)
-    iwthr: [2]i32, // Fortran: IWTHR(2)
+    iwthr: [2]u32, // Fortran: IWTHR(2)
     tarea: f32, // Fortran: TAREA
     zero: f32, // Fortran: ZERO
     zero2: f32, // Fortran: ZERO2
@@ -68,33 +68,33 @@ pub const Blkc = struct {
     xnpq: f32, // Fortran: XNPQ
     xnpv: f32, // Fortran: XNPV
     doy: f32, // Fortran: DOY
-    idayr: i32, // Fortran: IDAYR
-    iyrc: i32, // Fortran: IYRC
-    iyrr: i32, // Fortran: IYRR
-    nyr: i32, // Fortran: NYR
-    iterm: i32, // Fortran: ITERM
-    ifin: i32, // Fortran: IFIN
-    npx: i32, // Fortran: NPX
-    npy: i32, // Fortran: NPY
-    nph: i32, // Fortran: NPH
-    npt: i32, // Fortran: NPT
-    npg: i32, // Fortran: NPG
-    iclm: i32, // Fortran: ICLM
-    imng: i32, // Fortran: IMNG
-    iflgw: i32, // Fortran: IFLGW
-    npr: i32, // Fortran: NPR
-    nps: i32, // Fortran: NPS
-    jout: i32, // Fortran: JOUT
-    iout: i32, // Fortran: IOUT
-    kout: i32, // Fortran: KOUT
-    iold: i32, // Fortran: IOLD
-    ilast: i32, // Fortran: ILAST
-    irun: i32, // Fortran: IRUN
-    ibegin: i32, // Fortran: IBEGIN
-    istart: i32, // Fortran: ISTART
-    iend: i32, // Fortran: IEND
-    lyrx: i32, // Fortran: LYRX
-    lyrc: i32, // Fortran: LYRC
+    idayr: u32, // Fortran: IDAYR
+    iyrc: u32, // Fortran: IYRC
+    iyrr: u32, // Fortran: IYRR
+    nyr: u32, // Fortran: NYR
+    iterm: u32, // Fortran: ITERM
+    ifin: u32, // Fortran: IFIN
+    npx: u32, // Fortran: NPX
+    npy: u32, // Fortran: NPY
+    nph: u32, // Fortran: NPH
+    npt: u32, // Fortran: NPT
+    npg: u32, // Fortran: NPG
+    iclm: u32, // Fortran: ICLM
+    imng: u32, // Fortran: IMNG
+    iflgw: u32, // Fortran: IFLGW
+    npr: u32, // Fortran: NPR
+    nps: u32, // Fortran: NPS
+    jout: u32, // Fortran: JOUT
+    iout: u32, // Fortran: IOUT
+    kout: u32, // Fortran: KOUT
+    iold: u32, // Fortran: IOLD
+    ilast: u32, // Fortran: ILAST
+    irun: u32, // Fortran: IRUN
+    ibegin: u32, // Fortran: IBEGIN
+    istart: u32, // Fortran: ISTART
+    iend: u32, // Fortran: IEND
+    lyrx: u32, // Fortran: LYRX
+    lyrc: u32, // Fortran: LYRC
 
     pub fn init() Blkc {
         return std.mem.zeroInit(Blkc, .{});

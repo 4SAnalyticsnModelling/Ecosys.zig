@@ -164,14 +164,25 @@ pub fn main() !void {
     try logRun.print("=> Number of model scenarios: {} each repeated: {} times.\n", .{ nax, ndx });
     try logRun.flush();
     tokens.deinit(allocator);
-    var igo: u32 = 0;
+    var nPass: usize = 0; // This flag prevents repeated writing out of inputs for repeating cycles of scenarios and scenes.
+    // Create a log file to write option file inputs to check if they are all appropriately read
+    var logOptionFile = try fs.createFile("outputs/checkPointLogs/optionFileInputCheckLog", .{ .truncate = false });
+    defer logOptionFile.close();
+    var logOptionFileBuf = logOptionFile.writer(&outBuf);
+    const logOption = &logOptionFileBuf.interface;
     // Find cursor position at the start of the scenario
     const startScenario = ecosysRunFileBuf.logicalPos();
-    // For each scenario
-    for (0..ndx) |ns| {
+    // For each pass in scenarios
+    for (0..ndx) |nfx| {
         fba.reset();
         try ecosysRunFileBuf.seekTo(startScenario);
+        // For each scenario
         for (0..nax) |nex| {
+            if (nfx == 0) {
+                nPass = 0;
+            } else {
+                nPass += nfx;
+            }
             // Error message to be written later in the error log file if number of model scenarios is invalid
             errdefer {
                 const err = error.InvalidNumberOfModelScenariosInRunScript;
@@ -180,7 +191,6 @@ pub fn main() !void {
             }
             line = try ecosysRun.takeDelimiterExclusive('\n');
             tokens = try tokenizeLine(line, allocator);
-            std.debug.print("test line position: {s}, scenario #: {d}, start scenario position {d}\n", .{ tokens.items[0], ns, startScenario });
             if (tokens.items.len != 2) {
                 const err = error.InvalidNumberOfScenesInRunScript;
                 try logErr.print("error: {s}\n", .{@errorName(err)});
@@ -189,110 +199,128 @@ pub fn main() !void {
             }
             const nay = try parseTokenToInt(u32, error.InvalidNumberOfScenesInRunScript, tokens.items[0], logErr);
             const ndy = try parseTokenToInt(u32, error.InvalidNumberOfScenesInRunScript, tokens.items[1], logErr);
-            try logRun.print("=> Number of model scenes in a scenario: {} each repeated: {} times.\n", .{ nay, ndy });
-            try logRun.flush();
+            if (nPass == 0) {
+                try logRun.print("=> Number of model scenes in a scenario: {} each repeated: {} times.\n", .{ nay, ndy });
+                try logRun.flush();
+            }
             tokens.deinit(allocator);
-            blkmain.na[nex] = nay;
-            blkmain.nd[nex] = ndy;
-            // Create a log file to write option file inputs to check if they are all appropriately read
-            var logOptionFile = try fs.createFile("outputs/checkPointLogs/optionFileInputCheckLog", .{ .truncate = false });
-            defer logOptionFile.close();
-            var logOptionFileBuf = logOptionFile.writer(&outBuf);
-            const logOption = &logOptionFileBuf.interface;
-            // For each scene in a scenario
-            for (0..blkmain.na[nex]) |ne| {
-                // Error message to be written later in the error log file if number of scenes is invalid
-                errdefer {
-                    const err = error.InvalidNumberOfScenesInRunScript;
-                    logErr.print("error: Traceback: {s}\n", .{@errorName(err)}) catch {};
-                    logErr.flush() catch {};
-                }
-                // Read weather file names
-                line = try ecosysRun.takeDelimiterExclusive('\n');
-                tokens = try tokenizeLine(line, allocator);
-                if (tokens.items.len != 1) {
-                    const err = error.InvalidWeatherFileInRunScript;
-                    try logErr.print("error: {s}\n", .{@errorName(err)});
-                    try logErr.flush();
-                    return err;
-                }
-                const weatherFileName = try allocatorLite.dupe(u8, tokens.items[0]);
-                defer allocatorLite.free(weatherFileName);
-                try logRun.print("=> Weather file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, weatherFileName });
-                try logRun.flush();
-                tokens.deinit(allocator);
-                // Read option file names
-                line = try ecosysRun.takeDelimiterExclusive('\n');
-                tokens = try tokenizeLine(line, allocator);
-                if (tokens.items.len != 1) {
-                    const err = error.InvalidOptionsFileInRunScript;
-                    try logErr.print("error: {s}\n", .{@errorName(err)});
-                    try logErr.flush();
-                    return err;
-                }
-                const optionFileName = try allocatorLite.dupe(u8, tokens.items[0]);
-                defer allocatorLite.free(optionFileName);
-                try logRun.print("=> Options file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, optionFileName });
-                try logRun.flush();
-                tokens.deinit(allocator);
-                // Open and read option file
-                try readOptionFile(allocator, logErr, logOption, optionFileName, &blkmain, &files);
-                // Open and read weather file
-                //
-                // Read land management file
-                line = try ecosysRun.takeDelimiterExclusive('\n');
-                tokens = try tokenizeLine(line, allocator);
-                if (tokens.items.len != 1) {
-                    const err = error.InvalidLandManagementFileInRunScript;
-                    try logErr.print("error: {s}\n", .{@errorName(err)});
-                    try logErr.flush();
-                    return err;
-                }
-                blkmain.datac[nex][ne][8] = tokens.items[0];
-                try logRun.print("=> Land management file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, blkmain.datac[nex][ne][8] });
-                try logRun.flush();
-                tokens.deinit(allocator);
-                // Read plant management file
-                line = try ecosysRun.takeDelimiterExclusive('\n');
-                tokens = try tokenizeLine(line, allocator);
-                if (tokens.items.len != 1) {
-                    const err = error.InvalidPlantManagementFileInRunScript;
-                    try logErr.print("error: {s}\n", .{@errorName(err)});
-                    try logErr.flush();
-                    return err;
-                }
-                blkmain.datac[nex][ne][9] = tokens.items[0];
-                try logRun.print("=> Plant management file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, blkmain.datac[nex][ne][9] });
-                try logRun.flush();
-                tokens.deinit(allocator);
-                // Read output control files
-                var hourlyC: []const u8 = undefined;
-                var hourlyW: []const u8 = undefined;
-                var hourlyN: []const u8 = undefined;
-                var hourlyP: []const u8 = undefined;
-                var hourlyE: []const u8 = undefined;
-                var dailyC: []const u8 = undefined;
-                var dailyW: []const u8 = undefined;
-                var dailyN: []const u8 = undefined;
-                var dailyP: []const u8 = undefined;
-                var dailyE: []const u8 = undefined;
-                const listOfOutputFiles: [10]*[]const u8 = .{ &hourlyC, &hourlyW, &hourlyN, &hourlyP, &hourlyE, &dailyC, &dailyW, &dailyN, &dailyP, &dailyE };
-                for (listOfOutputFiles, 0..) |outfilePtr, n| {
+            // Find cursor position at the start of a scene
+            const startScene = ecosysRunFileBuf.logicalPos();
+            // For each pass of the scene in a scenario
+            for (0..ndy) |nd| {
+                try ecosysRunFileBuf.seekTo(startScene);
+                // For each scene
+                for (0..nay) |ne| {
+                    if (nfx == 0 and nd == 0) {
+                        nPass = 0;
+                    } else {
+                        nPass += nd;
+                    }
+                    // Error message to be written later in the error log file if number of scenes is invalid
+                    errdefer {
+                        const err = error.InvalidNumberOfScenesInRunScript;
+                        logErr.print("error: Traceback: {s}\n", .{@errorName(err)}) catch {};
+                        logErr.flush() catch {};
+                    }
+                    // Read weather file names
                     line = try ecosysRun.takeDelimiterExclusive('\n');
                     tokens = try tokenizeLine(line, allocator);
                     if (tokens.items.len != 1) {
-                        const err = error.InvalidOutputControlFileInRunScript;
-                        try logErr.print("error: {s}: Invalid {s}\n", .{ @errorName(err), outputControlFileType[n - 20] });
+                        const err = error.InvalidWeatherFileInRunScript;
+                        try logErr.print("error: {s}\n", .{@errorName(err)});
                         try logErr.flush();
                         return err;
                     }
-                    outfilePtr.* = try allocatorLite.dupe(u8, tokens.items[0]);
-                    defer allocatorLite.free(outfilePtr.*);
-                    try logRun.print("=> {s} (scenario #{} scene #{}): {s}.\n", .{ outputControlFileType[n], nex + offset, ne + offset, outfilePtr.* });
-                    try logRun.flush();
+                    const weatherFileName = try allocatorLite.dupe(u8, tokens.items[0]);
+                    defer allocatorLite.free(weatherFileName);
+                    if (nPass == 0) {
+                        try logRun.print("=> Weather file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, weatherFileName });
+                        try logRun.flush();
+                    }
                     tokens.deinit(allocator);
+                    // Read option file names
+                    line = try ecosysRun.takeDelimiterExclusive('\n');
+                    tokens = try tokenizeLine(line, allocator);
+                    if (tokens.items.len != 1) {
+                        const err = error.InvalidOptionsFileInRunScript;
+                        try logErr.print("error: {s}\n", .{@errorName(err)});
+                        try logErr.flush();
+                        return err;
+                    }
+                    const optionFileName = try allocatorLite.dupe(u8, tokens.items[0]);
+                    defer allocatorLite.free(optionFileName);
+                    if (nPass == 0) {
+                        try logRun.print("=> Options file (scenario #{} pass #{} scene #{} pass #{}): {s}.\n", .{ nex + offset, nfx + offset, ne + offset, nd + offset, optionFileName });
+                        try logRun.flush();
+                    }
+                    tokens.deinit(allocator);
+                    // Open and read option file
+                    fba.reset();
+                    try readOptionFile(allocator, logErr, logOption, optionFileName, nPass, nex, nfx, ne, nd, &blkc, &blkmain, &files);
+                    // Open and read weather file
+                    //
+                    // Read land management file
+                    line = try ecosysRun.takeDelimiterExclusive('\n');
+                    tokens = try tokenizeLine(line, allocator);
+                    if (tokens.items.len != 1) {
+                        const err = error.InvalidLandManagementFileInRunScript;
+                        try logErr.print("error: {s}\n", .{@errorName(err)});
+                        try logErr.flush();
+                        return err;
+                    }
+                    const landMgmtFileName = try allocatorLite.dupe(u8, tokens.items[0]);
+                    defer allocatorLite.free(landMgmtFileName);
+                    if (nPass == 0) {
+                        try logRun.print("=> Land management file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, landMgmtFileName });
+                        try logRun.flush();
+                    }
+                    tokens.deinit(allocator);
+                    // Read plant management file
+                    line = try ecosysRun.takeDelimiterExclusive('\n');
+                    tokens = try tokenizeLine(line, allocator);
+                    if (tokens.items.len != 1) {
+                        const err = error.InvalidPlantManagementFileInRunScript;
+                        try logErr.print("error: {s}\n", .{@errorName(err)});
+                        try logErr.flush();
+                        return err;
+                    }
+                    const plantMgmtFileName = try allocatorLite.dupe(u8, tokens.items[0]);
+                    defer allocatorLite.free(plantMgmtFileName);
+                    if (nPass == 0) {
+                        try logRun.print("=> Plant management file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, plantMgmtFileName });
+                        try logRun.flush();
+                    }
+                    tokens.deinit(allocator);
+                    // Read output control files
+                    var hourlyC: []const u8 = undefined;
+                    var hourlyW: []const u8 = undefined;
+                    var hourlyN: []const u8 = undefined;
+                    var hourlyP: []const u8 = undefined;
+                    var hourlyE: []const u8 = undefined;
+                    var dailyC: []const u8 = undefined;
+                    var dailyW: []const u8 = undefined;
+                    var dailyN: []const u8 = undefined;
+                    var dailyP: []const u8 = undefined;
+                    var dailyE: []const u8 = undefined;
+                    const listOfOutputFiles: [10]*[]const u8 = .{ &hourlyC, &hourlyW, &hourlyN, &hourlyP, &hourlyE, &dailyC, &dailyW, &dailyN, &dailyP, &dailyE };
+                    for (listOfOutputFiles, 0..) |outfilePtr, n| {
+                        line = try ecosysRun.takeDelimiterExclusive('\n');
+                        tokens = try tokenizeLine(line, allocator);
+                        if (tokens.items.len != 1) {
+                            const err = error.InvalidOutputControlFileInRunScript;
+                            try logErr.print("error: {s}: Invalid {s}\n", .{ @errorName(err), outputControlFileType[n] });
+                            try logErr.flush();
+                            return err;
+                        }
+                        outfilePtr.* = try allocatorLite.dupe(u8, tokens.items[0]);
+                        defer allocatorLite.free(outfilePtr.*);
+                        if (nPass == 0) {
+                            try logRun.print("=> {s} (scenario #{} scene #{}): {s}.\n", .{ outputControlFileType[n], nex + offset, ne + offset, outfilePtr.* });
+                            try logRun.flush();
+                        }
+                        tokens.deinit(allocator);
+                    }
                 }
-                igo = 1;
             }
         }
     }
