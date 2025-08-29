@@ -6,7 +6,7 @@ const Blktrnsfr1 = @import("../localStructs/blktrnsfr1.zig").Blktrnsfr1;
 const Blktrnsfr3 = @import("../localStructs/blktrnsfr3.zig").Blktrnsfr3;
 
 ///Gas and solute sinks and sources in soil layers from microbial transformations in 'nitro.zig' + root exchange in 'extract.zig' + equilibria reactions in 'solute.zig' at sub‑hourly time step
-pub inline fn soilGasSoluteSourceSink(blk11a: *Blk11a, blk11b: *Blk11b, blkc: *Blkc, blktrnsfr1: *Blktrnsfr1, blktrnsfr3: *Blktrnsfr3, nhw: u32, nhe: u32, nvn: u32, nvs: u32) anyerror!void {
+pub inline fn soilGasSoluteSourceSink(blk11a: *Blk11a, blk11b: *Blk11b, blkc: *Blkc, blktrnsfr1: *Blktrnsfr1, blktrnsfr3: *Blktrnsfr3, nhw: u32, nhe: u32, nvn: u32, nvs: u32) !void {
 
     // blkc.xnph = 1 / no. of cycles h‑1 for water, heat and solute flux calculations
     // *sgl* = solute diffusivity from hour1.zig

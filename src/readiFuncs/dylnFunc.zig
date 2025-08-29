@@ -1,7 +1,7 @@
 const std = @import("std");
 const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 
-pub fn dylnFunc(blkc: *Blkc, xi: u32, nx: usize, ny: usize) anyerror!f32 {
+pub fn dylnFunc(blkc: *Blkc, xi: u32, nx: usize, ny: usize) !f32 {
     const xif32: f32 = @floatFromInt(xi);
     const decday: f32 = xif32 + 100.0;
     var dyln: f32 = 0.0;

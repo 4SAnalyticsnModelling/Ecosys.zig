@@ -7,7 +7,7 @@ const Blktrnsfr10 = @import("../localStructs/blktrnsfr10.zig").Blktrnsfr10;
 const Blktrnsfr13 = @import("../localStructs/blktrnsfr13.zig").Blktrnsfr13;
 
 /// Gas and solute fluxes at sub-hourly flux time step entered in site file.
-pub inline fn subHourlyGasAndSoluteFlux(blk8a: *Blk8a, blk15a: *Blk15a, blk22b: *Blk22b, blkc: *Blkc, blktrnsfr10: *Blktrnsfr10, blktrnsfr13: *Blktrnsfr13, nhw: u32, nhe: u32, nvn: u32, nvs: u32) anyerror!void {
+pub inline fn subHourlyGasAndSoluteFlux(blk8a: *Blk8a, blk15a: *Blk15a, blk22b: *Blk22b, blkc: *Blkc, blktrnsfr10: *Blktrnsfr10, blktrnsfr13: *Blktrnsfr13, nhw: u32, nhe: u32, nvn: u32, nvs: u32) !void {
     // xnph=1/no. of cycles h-1 for water, heat and solute flux calculations
     // r*bls, r*fl0, r*fl1, r*fl2=solute flux to snowpack, surface litter, soil surface non-band, band
     // solute code:co=co2, ch=ch4, ox=o2, ng=n2, n2=n2o, hg=h2

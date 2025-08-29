@@ -7,7 +7,7 @@ const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 const Blktrnsfr2 = @import("../localStructs/blktrnsfr2.zig").Blktrnsfr2;
 
 /// Gas and solute sinks and sources in surface residue from microbial transformations in 'nitro.zig',root exchange in 'extract.zig', and equilibrium reactions in 'solute.zig' at sub-hourly time steps.
-pub inline fn residueGasSoluteSourceSink(blk13b: *Blk13b, blk13c: *Blk13c, blk21a: *Blk21a, blk21b: *Blk21b, blkc: *Blkc, blktrnsfr2: *Blktrnsfr2, nhw: u32, nhe: u32, nvn: u32, nvs: u32) anyerror!void {
+pub inline fn residueGasSoluteSourceSink(blk13b: *Blk13b, blk13c: *Blk13c, blk21a: *Blk21a, blk21b: *Blk21b, blkc: *Blkc, blktrnsfr2: *Blktrnsfr2, nhw: u32, nhe: u32, nvn: u32, nvs: u32) !void {
     // solute code:
     // co=co2, ch=ch4, ox=o2, ng=n2, n2=n2o, hg=h2
     // oc=doc, on=don, op=dop, oa=acetate

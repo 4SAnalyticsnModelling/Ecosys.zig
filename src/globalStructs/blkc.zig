@@ -6,7 +6,7 @@ const jz = config.soillayersmax;
 const jp = config.pftmax;
 
 pub const Blkc = struct {
-    isoil: [jx][jy][jz][4]i32, // Fortran: ISOIL(4,JZ,JY,JX)
+    isoil: [jx][jy][jz][4]u32, // Fortran: ISOIL(4,JZ,JY,JX)
     lsg: [jx][jy][jz]i32, // Fortran: LSG(JZ,JY,JX)
     iflgi: [jx][jy][jp]i32, // Fortran: IFLGI(JP,JY,JX)
     iflgc: [jx][jy][jp]i32, // Fortran: IFLGC(JP,JY,JX)

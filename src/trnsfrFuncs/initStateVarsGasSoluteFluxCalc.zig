@@ -7,7 +7,7 @@ const Blktrnsfr1 = @import("../localStructs/blktrnsfr1.zig").Blktrnsfr1;
 const Blktrnsfr12 = @import("../localStructs/blktrnsfr12.zig").Blktrnsfr12;
 
 /// Initialize state variables for use in gas, solute flux calculations.
-pub inline fn initStateVarsGasSoluteFluxCalc(blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk8a: *Blk8a, blktrnsfr1: *Blktrnsfr1, blktrnsfr12: *Blktrnsfr12, nhw: u32, nhe: u32, nvn: u32, nvs: u32) anyerror!void {
+pub inline fn initStateVarsGasSoluteFluxCalc(blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk8a: *Blk8a, blktrnsfr1: *Blktrnsfr1, blktrnsfr12: *Blktrnsfr12, nhw: u32, nhe: u32, nvn: u32, nvs: u32) !void {
     // co2s,ch4s,oxys,z2gs,z2os,h2gs=aqueous co2,ch4,o2,n2,n2o,h2 content
     // oqc,oqn,oqp,oqa=doc,don,dop,acetate
     // xoqcs,xoqnz,xoqps,xoqas=net change in doc,don,dop,acetate from nitro.zig

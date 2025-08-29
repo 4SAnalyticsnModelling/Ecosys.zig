@@ -14,7 +14,7 @@ const setFlagForUnknownHydrologicProperties = @import("setFlagForUnknownHydrolog
 const calcDerivedSoilPropertiesFromInput = @import("calcDerivedSoilPropertiesFromInput.zig").calcDerivedSoilPropertiesFromInput;
 const addSoilBoundaryLayers = @import("addSoilBoundaryLayers.zig").addSoilBoundaryLayers;
 /// This function reads topography data
-pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, topographyName: []const u8, blk11a: *Blk11a, blk2a: *Blk2a, blk8a: *Blk8a, blk8b: *Blk8b, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) anyerror!void {
+pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, topographyName: []const u8, blk11a: *Blk11a, blk2a: *Blk2a, blk8a: *Blk8a, blk8b: *Blk8b, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) !void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_readTopographyFile;
@@ -37,7 +37,7 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
     var topographyFileBuf = topographyFile.reader(&inBuf);
     const topoFile = &topographyFileBuf.interface;
     // Create a log file to write topography file inputs to check if they are all appropriately read
-    var logTopoFile = try fs.createFile("outputs/checkPointLogs/topographyFileInputCheckLog", .{ .read = false });
+    var logTopoFile = try fs.createFile("outputs/checkPointLogs/topographyFileInputCheckLog", .{ .truncate = false });
     defer logTopoFile.close();
     var logTopoFileBuf = logTopoFile.writer(&outBuf);
     const logTopo = &logTopoFileBuf.interface;
@@ -84,9 +84,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
             }
         }
         // Free up memory allocated in tokenized line
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         // Read each soil file in the topography file
         line = try topoFile.takeDelimiterExclusive('\n');
@@ -97,8 +94,7 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
             try logFileWriter.flush();
             return err;
         }
-        const soilFileName = try allocator.alloc(u8, tokens.items[0].len);
-        std.mem.copyForwards(u8, soilFileName, tokens.items[0]);
+        const soilFileName = try allocator.dupe(u8, tokens.items[0]);
         defer allocator.free(soilFileName);
         const soilF = fs.openFile(soilFileName, .{}) catch {
             const err = error.SoilFileNotFoundOrFailedToOpenSoilFile;
@@ -109,9 +105,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
         defer soilF.close();
         var soilFileBuf = soilF.reader(&inBuf);
         const soilFile = &soilFileBuf.interface;
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -189,9 +182,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 gridCount += 1;
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         // Read soil physical properties
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -216,9 +206,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -241,9 +228,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         // Read hydrologic properties
@@ -269,9 +253,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -294,9 +275,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -321,9 +299,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -347,9 +322,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -372,9 +344,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         // Read physical properties
@@ -400,9 +369,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -425,9 +391,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -452,9 +415,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -477,9 +437,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         // Read chemical properties
@@ -505,9 +462,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -531,9 +485,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -556,9 +507,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         // Read organic C, N, and P concentrations
@@ -584,9 +532,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -609,9 +554,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -636,9 +578,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -661,9 +600,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         // Read inorganic N and P concentrations
@@ -689,9 +625,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -715,9 +648,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -740,9 +670,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         // Read cation and anion concentrations - soluble concentrations from saturated paste extract.
@@ -768,9 +695,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -793,9 +717,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -820,9 +741,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -845,9 +763,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -872,9 +787,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -897,9 +809,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -924,9 +833,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -949,9 +855,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         // Read precipitated mineral concentrations
@@ -977,9 +880,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1002,9 +902,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -1029,9 +926,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1054,9 +948,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -1081,9 +972,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1106,9 +994,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -1133,9 +1018,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1158,9 +1040,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         // Read gapon selectivity coefficients
@@ -1186,9 +1065,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1211,9 +1087,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -1238,9 +1111,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1263,9 +1133,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -1290,9 +1157,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1315,9 +1179,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -1342,9 +1203,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1367,9 +1225,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         // Read initial plant and animal residue C, N and P
@@ -1395,9 +1250,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1420,9 +1272,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -1447,9 +1296,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1472,9 +1318,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -1499,9 +1342,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1524,9 +1364,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -1551,9 +1388,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -1576,9 +1410,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.print(".\n", .{});
                 try logTopo.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try soilFile.takeDelimiterExclusive('\n');
@@ -1603,9 +1434,6 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
                 try logTopo.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         for (nh1..nh2) |nx| {
             for (nv1..nv2) |ny| {
@@ -1623,13 +1451,13 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
             }
         }
         for (nhw..nhe) |nx| {
-            blk8a.nl[nx][nvs + 1] = blk8a.nl[nx][nvs];
+            blk8a.nl[nx][nvs] = blk8a.nl[nx][nvs - 1];
         }
         for (nvn..nvs) |ny| {
-            blk8a.nl[nhe + 1][ny] = blk8a.nl[nhe][ny];
+            blk8a.nl[nhe][ny] = blk8a.nl[nhe - 1][ny];
         }
     }
-    blk8a.nl[nvs + 1][nhe + 1] = blk8a.nl[nvs][nhe];
+    blk8a.nl[nvs][nhe] = blk8a.nl[nvs - 1][nhe - 1];
     if (gridCount != (nhe - nhw) * (nvs - nvn)) {
         const err = error.InvalidInputForGridCellPositionsInTopographyFile;
         try logFileWriter.print("error: {s}\n", .{@errorName(err)});

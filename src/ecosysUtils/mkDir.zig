@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn mkDir(path: []const u8) anyerror!void {
+pub fn mkDir(path: []const u8) !void {
     const cwd = std.fs.cwd();
     var dir = cwd.openDir(path, .{}) catch |err| {
         if (err == error.PathNotFound) {

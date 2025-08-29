@@ -6,7 +6,7 @@ const Blktrnsfr8 = @import("../localStructs/blktrnsfr8.zig").Blktrnsfr8;
 const Blktrnsfr12 = @import("../localStructs/blktrnsfr12.zig").Blktrnsfr12;
 
 /// Sub-hourly solute fluxes from subsurface irrigation.
-pub inline fn subHourlySoluteFluxSubSurfIrrig(blk22a: *Blk22a, blk8a: *Blk8a, blkc: *Blkc, blktrnsfr8: *Blktrnsfr8, blktrnsfr12: *Blktrnsfr12, nhw: u32, nhe: u32, nvn: u32, nvs: u32) anyerror!void {
+pub inline fn subHourlySoluteFluxSubSurfIrrig(blk22a: *Blk22a, blk8a: *Blk8a, blkc: *Blkc, blktrnsfr8: *Blktrnsfr8, blktrnsfr12: *Blktrnsfr12, nhw: u32, nhe: u32, nvn: u32, nvs: u32) !void {
     // r*flz, r*fbz=subsurface solute flux in non-band,band
     // xnph=1/no. of cycles h-1 for water, heat and solute flux calculations
     for (nhw..nhe) |nx| {

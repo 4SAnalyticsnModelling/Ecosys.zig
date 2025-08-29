@@ -8,7 +8,7 @@ const dylnFunc = @import("dylnFunc.zig").dylnFunc;
 const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
 /// This function reads site data
-pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, siteName: []const u8, blk2a: *Blk2a, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) anyerror!void {
+pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, siteName: []const u8, blk2a: *Blk2a, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) !void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_readSiteFile;
@@ -22,17 +22,17 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
     var outBuf: [1024]u8 = undefined;
     // Open site file
     const fs = std.fs.cwd();
-    const sitefile = fs.openFile(siteName, .{}) catch {
+    const siteF = fs.openFile(siteName, .{}) catch {
         const err = error.SiteFileNotFoundOrFailedToOpenSiteFile;
         try logFileWriter.print("error: {s}\n", .{@errorName(err)});
         try logFileWriter.flush();
         return err;
     };
-    defer sitefile.close();
-    var siteFileBuf = sitefile.reader(&inBuf);
+    defer siteF.close();
+    var siteFileBuf = siteF.reader(&inBuf);
     const siteFile = &siteFileBuf.interface;
     // Create a log file to write site file inputs to check if they are all appropriately read
-    var logSiteFile = try fs.createFile("outputs/checkPointLogs/siteFileInputCheckLog", .{ .read = false });
+    var logSiteFile = try fs.createFile("outputs/checkPointLogs/siteFileInputCheckLog", .{ .truncate = false });
     defer logSiteFile.close();
     var logSiteFileBuf = logSiteFile.writer(&outBuf);
     const logSite = &logSiteFileBuf.interface;
@@ -67,9 +67,6 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
             return err;
         }
         // Free up memory allocated in tokenized line
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         // Read each landscape unit file within the site file
         line = try siteFile.takeDelimiterExclusive('\n');
@@ -80,8 +77,7 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
             try logFileWriter.flush();
             return err;
         }
-        const landscapeUnitFileName = try allocator.alloc(u8, tokens.items[0].len);
-        std.mem.copyForwards(u8, landscapeUnitFileName, tokens.items[0]);
+        const landscapeUnitFileName = try allocator.dupe(u8, tokens.items[0]);
         defer allocator.free(landscapeUnitFileName);
         const landUnitFile = fs.openFile(landscapeUnitFileName, .{}) catch |err| {
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
@@ -91,9 +87,6 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
         defer landUnitFile.close();
         var landUnitFileBuf = landUnitFile.reader(&inBuf);
         const landscapeUnitFile = &landUnitFileBuf.interface;
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try landscapeUnitFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -123,9 +116,6 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
                 try logSite.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try landscapeUnitFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -152,9 +142,6 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
                 try logSite.print("=> {s} line#2 inputs for atmospheric gas concentrations: grid cell position W-E: {}, N-S: {}, O2: {} ppm, N2: {} ppm, CO2: {d} ppm, CH4: {d} ppm, N2O: {d} ppm, NH3: {d} ppm.\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blk2a.oxye[nx][ny], blk2a.z2ge[nx][ny], blk2a.co2ei[nx][ny], blk2a.ch4e[nx][ny], blk2a.z2oe[nx][ny], blk2a.znh3e[nx][ny] });
                 try logSite.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         line = try landscapeUnitFile.takeDelimiterExclusive('\n');
@@ -207,9 +194,6 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
                 try logSite.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try landscapeUnitFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -242,9 +226,6 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
                 try logSite.flush();
             }
         }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
-        }
         tokens.deinit(allocator);
         line = try landscapeUnitFile.takeDelimiterExclusive('\n');
         tokens = try tokenizeLine(line, allocator);
@@ -263,9 +244,6 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
                 try logSite.print("=> {s} line#5 inputs for grid cell size: grid cell position W-E: {}, N-S: {}, W-E width: {d} m, N-S width: {d} m. [End of {s} file.]\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blk2a.dh[nx][ny], blk2a.dv[nx][ny], landscapeUnitFileName });
                 try logSite.flush();
             }
-        }
-        for (tokens.items) |tok| {
-            allocator.free(tok);
         }
         tokens.deinit(allocator);
         for (nh1..nh2) |nx| {

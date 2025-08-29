@@ -4,7 +4,7 @@ const jz = config.soillayersmax;
 const Blk8a = @import("../globalStructs/blk8a.zig").Blk8a;
 const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 /// This function calculates derived soil properties from input soil properties.
-pub fn addSoilBoundaryLayers(logFileWriter: *std.Io.Writer, blk8a: *Blk8a, blkc: *Blkc, nx: usize, ny: usize) anyerror!void {
+pub fn addSoilBoundaryLayers(logFileWriter: *std.Io.Writer, blk8a: *Blk8a, blkc: *Blkc, nx: usize, ny: usize) !void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_addSoilBoundaryLayers;

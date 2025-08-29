@@ -8,7 +8,7 @@ const Blktrnsfr3 = @import("../localStructs/blktrnsfr3.zig").Blktrnsfr3;
 const Blktrnsfr12 = @import("../localStructs/blktrnsfr12.zig").Blktrnsfr12;
 
 ///Gas and solute diffusivities at sub-hourly time step.
-pub inline fn subHourlyGasSoluteDiffusvty(blk8a: *Blk8a, blk11a: *Blk11a, blk11b: *Blk11b, blkc: *Blkc, blktrnsfr1: *Blktrnsfr1, blktrnsfr3: *Blktrnsfr3, blktrnsfr12: *Blktrnsfr12, nhw: u32, nhe: u32, nvn: u32, nvs: u32) anyerror!void {
+pub inline fn subHourlyGasSoluteDiffusvty(blk8a: *Blk8a, blk11a: *Blk11a, blk11b: *Blk11b, blkc: *Blkc, blktrnsfr1: *Blktrnsfr1, blktrnsfr3: *Blktrnsfr3, blktrnsfr12: *Blktrnsfr12, nhw: u32, nhe: u32, nvn: u32, nvs: u32) !void {
     // xnph = 1/no. of cycles h-1 for water, heat and solute flux calculations
     // xnpg = 1/number of cycles h-1 for gas flux calculations
     // *sgl* = solute diffusivity from hour1.f

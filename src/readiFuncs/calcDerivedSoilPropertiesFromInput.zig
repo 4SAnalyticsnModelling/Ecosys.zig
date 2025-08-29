@@ -3,7 +3,7 @@ const Blk8a = @import("../globalStructs/blk8a.zig").Blk8a;
 const powf = @import("../ecosysUtils/powerFunc.zig").powf;
 const offset: u32 = 1;
 /// This function calculates derived soil properties from input soil properties.
-pub fn calcDerivedSoilPropertiesFromInput(logFileWriter: *std.Io.Writer, blk8a: *Blk8a, nx: usize, ny: usize) anyerror!void {
+pub fn calcDerivedSoilPropertiesFromInput(logFileWriter: *std.Io.Writer, blk8a: *Blk8a, nx: usize, ny: usize) !void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_calcDerivedSoilPropertiesFromInput;

@@ -46,7 +46,7 @@ const subHourlySoluteFluxSubSurfIrrig = @import("trnsfrFuncs/subHourlySoluteFlux
 const subHourlyGasSoluteDiffusvty = @import("trnsfrFuncs/subHourlyGasSoluteDiffusvty.zig").subHourlyGasSoluteDiffusvty;
 const stateVarsGasSoluteTrnsfr = @import("trnsfrFuncs/stateVarsGasSoluteTrnsfr.zig").stateVarsGasSoluteTrnsfr;
 
-pub fn trnsfr(i: usize, nhw: u32, nhe: u32, nvn: u32, nvs: u32, blk10: *Blk10, blk11a: *Blk11a, blk11b: *Blk11b, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk15a: *Blk15a, blk18a: *Blk18a, blk18b: *Blk18b, blk19d: *Blk19d, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk21a: *Blk21a, blk21b: *Blk21b, blk22a: *Blk22a, blk22b: *Blk22b, blk8a: *Blk8a, blkc: *Blkc) anyerror!void {
+pub fn trnsfr(i: usize, nhw: u32, nhe: u32, nvn: u32, nvs: u32, blk10: *Blk10, blk11a: *Blk11a, blk11b: *Blk11b, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blk15a: *Blk15a, blk18a: *Blk18a, blk18b: *Blk18b, blk19d: *Blk19d, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk21a: *Blk21a, blk21b: *Blk21b, blk22a: *Blk22a, blk22b: *Blk22b, blk8a: *Blk8a, blkc: *Blkc) !void {
     // const blktrnsfrparams: Blktrnsfrparams = Blktrnsfrparams.init();
     var blktrnsfr1: Blktrnsfr1 = Blktrnsfr1.init();
     var blktrnsfr2: Blktrnsfr2 = Blktrnsfr2.init();

@@ -13,7 +13,7 @@ const Blktrnsfr2 = @import("../localStructs/blktrnsfr2.zig").Blktrnsfr2;
 const Blktrnsfr3 = @import("../localStructs/blktrnsfr3.zig").Blktrnsfr3;
 
 ///Solute fluxes from watsub.zig, nitro.zig, uptake.zig, solute.zig
-pub inline fn soluteFluxWaterNitroUptakeSolute(blk13b: *Blk13b, blk13c: *Blk13c, blk18a: *Blk18a, blk18b: *Blk18b, blk21a: *Blk21a, blk21b: *Blk21b, blk8a: *Blk8a, blkc: *Blkc, blktrnsfr1: *Blktrnsfr1, blktrnsfr2: *Blktrnsfr2, blktrnsfr3: *Blktrnsfr3, nhw: u32, nhe: u32, nvn: u32, nvs: u32) anyerror!void {
+pub inline fn soluteFluxWaterNitroUptakeSolute(blk13b: *Blk13b, blk13c: *Blk13c, blk18a: *Blk18a, blk18b: *Blk18b, blk21a: *Blk21a, blk21b: *Blk21b, blk8a: *Blk8a, blkc: *Blkc, blktrnsfr1: *Blktrnsfr1, blktrnsfr2: *Blktrnsfr2, blktrnsfr3: *Blktrnsfr3, nhw: u32, nhe: u32, nvn: u32, nvs: u32) !void {
     //     blkc.xnph=1/no. of cycles h-1 for water, heat and solute flux calculations
     //     chy0=h concentration
     //     ph=pH

@@ -5,7 +5,7 @@ const Blk2c = @import("../globalStructs/blk2c.zig").Blk2c;
 const Blk22a = @import("../globalStructs/blk22a.zig").Blk22a;
 const Blk8a = @import("../globalStructs/blk8a.zig").Blk8a;
 /// Solute fluxes from subsurface irrigation.
-pub inline fn soluteFluxSubSurfIrrig(blk13c: *Blk13c, blk2b: *Blk2b, blk2c: *Blk2c, blk22a: *Blk22a, blk8a: *Blk8a, nhw: u32, nhe: u32, nvn: u32, nvs: u32, i: u64) anyerror!void {
+pub inline fn soluteFluxSubSurfIrrig(blk13c: *Blk13c, blk2b: *Blk2b, blk2c: *Blk2c, blk22a: *Blk22a, blk8a: *Blk8a, nhw: u32, nhe: u32, nvn: u32, nvs: u32, i: u64) !void {
     // flu=subsurface water flux from watsub.zig
     // r*flu,r*fbu=subsurface solute flux in non-band,band
     // solute code:co=co2,ch=ch4,ox=o2,ng=n2,n2=n2o,hg=h2

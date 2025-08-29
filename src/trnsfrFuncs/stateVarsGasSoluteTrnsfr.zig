@@ -8,7 +8,7 @@ const Blktrnsfr7 = @import("../localStructs/blktrnsfr7.zig").Blktrnsfr7;
 const Blktrnsfr12 = @import("../localStructs/blktrnsfr12.zig").Blktrnsfr12;
 
 ///State variables for gases and solutes used in 'trnsfr' to store sub-hourly changes during flux calculations including transformations from nitro.zig, uptake.zig and solute.zig
-pub inline fn stateVarsGasSoluteTrnsfr(blk8a: *Blk8a, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blktrnsfr1: *Blktrnsfr1, blktrnsfr7: *Blktrnsfr7, blktrnsfr12: *Blktrnsfr12, nhw: u32, nhe: u32, nvn: u32, nvs: u32) anyerror!void {
+pub inline fn stateVarsGasSoluteTrnsfr(blk8a: *Blk8a, blk13a: *Blk13a, blk13b: *Blk13b, blk13c: *Blk13c, blktrnsfr1: *Blktrnsfr1, blktrnsfr7: *Blktrnsfr7, blktrnsfr12: *Blktrnsfr12, nhw: u32, nhe: u32, nvn: u32, nvs: u32) !void {
     // co2g, ch4g, oxyg, zn3g, z2gg, z2og, h2gg = gaseous co2, ch4, o2, nh3, n2, n2o, h2
     // co2s, ch4s, oxys, z2gs, z2os, h2gs = aqueous co2, ch4, o2, n2, n2o, h2 in micropores
     // oqc, oqn, oqp, oqa = doc, don, dop, acetate in micropores

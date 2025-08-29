@@ -5,7 +5,7 @@ const Blk19d = @import("../globalStructs/blk19d.zig").Blk19d;
 const Blktrnsfr1 = @import("../localStructs/blktrnsfr1.zig").Blktrnsfr1;
 
 ///Initial solutes in snowpack
-pub inline fn initSnowpackSolute(blk19d: *Blk19d, blktrnsfr1: *Blktrnsfr1, nhw: u32, nhe: u32, nvn: u32, nvs: u32) anyerror!void {
+pub inline fn initSnowpackSolute(blk19d: *Blk19d, blktrnsfr1: *Blktrnsfr1, nhw: u32, nhe: u32, nvn: u32, nvs: u32) !void {
     // co2w, ch4w, oxyw, zngw, zn2w, zn4w, zn3w, znow, z1pw, zhpw = co2, ch4, o2, n2, n2o, h2 content in snowpack
     for (nhw..nhe) |nx| {
         for (nvn..nvs) |ny| {

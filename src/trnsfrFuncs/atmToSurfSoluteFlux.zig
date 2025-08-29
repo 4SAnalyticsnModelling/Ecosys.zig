@@ -8,7 +8,7 @@ const Blk2c = @import("../globalStructs/blk2c.zig").Blk2c;
 const Blk22b = @import("../globalStructs/blk22b.zig").Blk22b;
 
 /// Hourly solute fluxes from atmosphere to soil surface in rainfall and irrigation according to concentrations entered in weather and irrigation files
-pub inline fn atmToSurfSoluteFlux(blk10: *Blk10, blk11a: *Blk11a, blk15a: *Blk15a, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk22b: *Blk22b, nhw: u32, nhe: u32, nvn: u32, nvs: u32, i: u64) anyerror!void {
+pub inline fn atmToSurfSoluteFlux(blk10: *Blk10, blk11a: *Blk11a, blk15a: *Blk15a, blk2a: *Blk2a, blk2b: *Blk2b, blk2c: *Blk2c, blk22b: *Blk22b, nhw: u32, nhe: u32, nvn: u32, nvs: u32, i: u64) !void {
     // hourly solute fluxes from atmosphere to snowpack if snowfall and irrigation is zero and snowpack is absent
 
     // precq, preci = snow + rain, irrigation
