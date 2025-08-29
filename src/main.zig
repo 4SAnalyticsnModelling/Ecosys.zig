@@ -276,7 +276,7 @@ pub fn main() !void {
                 var dailyN: []const u8 = undefined;
                 var dailyP: []const u8 = undefined;
                 var dailyE: []const u8 = undefined;
-                const listOfOutputFiles = &[_]*[]const u8{ &hourlyC, &hourlyW, &hourlyN, &hourlyP, &hourlyE, &dailyC, &dailyW, &dailyN, &dailyP, &dailyE };
+                const listOfOutputFiles: [10]*[]const u8 = .{ &hourlyC, &hourlyW, &hourlyN, &hourlyP, &hourlyE, &dailyC, &dailyW, &dailyN, &dailyP, &dailyE };
                 for (listOfOutputFiles, 0..) |outfilePtr, n| {
                     line = try ecosysRun.takeDelimiterExclusive('\n');
                     tokens = try tokenizeLine(line, allocator);
