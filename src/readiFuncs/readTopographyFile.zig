@@ -13,8 +13,8 @@ const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseT
 const setFlagForUnknownHydrologicProperties = @import("setFlagForUnknownHydrologicProperties.zig").setFlagForUnknownHydrologicProperties;
 const calcDerivedSoilPropertiesFromInput = @import("calcDerivedSoilPropertiesFromInput.zig").calcDerivedSoilPropertiesFromInput;
 const addSoilBoundaryLayers = @import("addSoilBoundaryLayers.zig").addSoilBoundaryLayers;
-/// This function reads topography data
-pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, topographyName: []const u8, blk11a: *Blk11a, blk2a: *Blk2a, blk8a: *Blk8a, blk8b: *Blk8b, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) !void {
+/// This function reads topography data.
+pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logRun: *std.Io.Writer, ecosysRun: *std.Io.Reader, blk11a: *Blk11a, blk2a: *Blk2a, blk8a: *Blk8a, blk8b: *Blk8b, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) !void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_readTopographyFile;
@@ -26,6 +26,18 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
     var inBuf: [1024]u8 = undefined;
     // Buffer for file I/O: write
     var outBuf: [1024]u8 = undefined;
+    var line = try ecosysRun.takeDelimiterExclusive('\n');
+    var tokens = try tokenizeLine(line, allocator);
+    if (tokens.items.len != 1) {
+        const err = error.InvalidTopographyFileInRunScript;
+        try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+        try logFileWriter.flush();
+        return err;
+    }
+    const topographyName: []const u8 = tokens.items[0];
+    try logRun.print("=> Topography file: {s}.\n", .{topographyName});
+    try logRun.flush();
+    tokens.deinit(allocator);
     // Open topography file
     const fs = std.fs.cwd();
     const topographyFile = fs.openFile(topographyName, .{}) catch |err| {
@@ -47,11 +59,11 @@ pub fn readTopographyFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.W
     var gridCount: u32 = 0;
     @setEvalBranchQuota(2000);
     while (true) {
-        var line = topoFile.takeDelimiterExclusive('\n') catch |err| switch (err) {
+        line = topoFile.takeDelimiterExclusive('\n') catch |err| switch (err) {
             error.EndOfStream => break,
             else => return err,
         }; // break out of the loop at the EOF.
-        var tokens = try tokenizeLine(line, allocator);
+        tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 7) {
             const err = error.InvalidInputInTopographyFileLine1;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});

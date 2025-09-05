@@ -11,7 +11,8 @@ const tokenizeLine = @import("ecosysUtils/tokenizeLine.zig").tokenizeLine;
 const readSiteFile = @import("readiFuncs/readSiteFile.zig").readSiteFile;
 const readTopographyFile = @import("readiFuncs/readTopographyFile.zig").readTopographyFile;
 const readOptionFile = @import("readsFuncs/readOptionFile.zig").readOptionFile;
-const mkDir = @import("ecosysUtils/mkDir.zig").mkDir;
+const readOutputOptionFiles = @import("readsFuncs/readOutputOptionFiles.zig").readOutputOptionFiles;
+const mkEcosysOutputDirs = @import("ecosysUtils/mkEcosysOutputDirs.zig").mkEcosysOutputDirs;
 const parseTokenToInt = @import("ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
 const elapsedTime = @import("ecosysUtils/elapsedTime.zig").elapsedTime;
@@ -42,18 +43,9 @@ pub fn main() !void {
     // Read ecosys runfile/runscript name from run submission arguments
     const runFile = try allocatorLite.dupe(u8, args[1]);
     defer allocatorLite.free(runFile);
-    // Create directory tree for saving the outputs
     const fs = std.fs.cwd();
-    // Create or overwrite the parent directory for all outputs
-    try mkDir("outputs");
-    // Create or overwrite the directory to save all error log files
-    try mkDir("outputs/errorLogs");
-    // Create or overwrite the directory to save all run progress tracker files
-    try mkDir("outputs/runStatusLogs");
-    // Create or overwrite the directory to save all model inputs and other check files
-    try mkDir("outputs/checkPointLogs");
-    // Create or overwrite the directory to save all modelled outputs for hourly and daily plant, soil, and ecosystem carbon, water, heat, nitrogen and phosphorus cycles
-    try mkDir("outputs/modelledOutputs");
+    // Create directory tree for saving the outputs
+    try mkEcosysOutputDirs();
     // Create the error log file
     const logError = try fs.createFile("outputs/errorLogs/errorLogFile", .{ .truncate = false });
     defer logError.close();
@@ -103,7 +95,6 @@ pub fn main() !void {
     var blk8b: Blk8b = Blk8b.init();
     var blkc: Blkc = Blkc.init();
     var files: Files = Files.init();
-    const outputControlFileType: [10][]const u8 = .{ "Hourly carbon output file", "Hourly water output file", "Hourly nitrogen output file", "Hourly phosphorus output file", "Hourly energy/heat output file", "Daily carbon output file", "Daily water output file", "Daily nitrogen output file", "Daily phosphorus output file", "Daily energy/heat output file" };
     // Read number of E-W and N-S grid cells
     var line = try ecosysRun.takeDelimiterExclusive('\n');
     var tokens = try tokenizeLine(line, allocator);
@@ -121,35 +112,13 @@ pub fn main() !void {
     try logRun.flush();
     // Free up memory allocated in tokenized line
     tokens.deinit(allocator);
+    // Reset to reuse memory more efficiently in fixed buffered allocator.
+    fba.reset();
     // Read site file
-    line = try ecosysRun.takeDelimiterExclusive('\n');
-    tokens = try tokenizeLine(line, allocator);
-    if (tokens.items.len != 1) {
-        const err = error.InvalidSiteFileInRunScript;
-        try logErr.print("error: {s}\n", .{@errorName(err)});
-        try logErr.flush();
-        return err;
-    }
-    const siteFileName = try allocatorLite.dupe(u8, tokens.items[0]);
-    defer allocatorLite.free(siteFileName);
-    try logRun.print("=> Site file: {s}.\n", .{siteFileName});
-    try logRun.flush();
-    try readSiteFile(allocator, logErr, siteFileName, &blk2a, &blkc, nhw, nvn, nhe, nvs);
-    tokens.deinit(allocator);
+    try readSiteFile(allocator, logErr, logRun, ecosysRun, &blk2a, &blkc, nhw, nvn, nhe, nvs);
+    fba.reset();
     // Read topography file
-    line = try ecosysRun.takeDelimiterExclusive('\n');
-    tokens = try tokenizeLine(line, allocator);
-    if (tokens.items.len != 1) {
-        const err = error.InvalidTopographyFileInRunScript;
-        try logErr.print("error: {s}\n", .{@errorName(err)});
-        try logErr.flush();
-        return err;
-    }
-    const topographyName: []const u8 = tokens.items[0];
-    try logRun.print("=> Topography file: {s}.\n", .{topographyName});
-    try logRun.flush();
-    try readTopographyFile(allocator, logErr, topographyName, &blk11a, &blk2a, &blk8a, &blk8b, &blkc, nhw, nvn, nhe, nvs);
-    tokens.deinit(allocator);
+    try readTopographyFile(allocator, logErr, logRun, ecosysRun, &blk11a, &blk2a, &blk8a, &blk8b, &blkc, nhw, nvn, nhe, nvs);
     // Read the number of the model scenarios to be executed
     line = try ecosysRun.takeDelimiterExclusive('\n');
     tokens = try tokenizeLine(line, allocator);
@@ -292,34 +261,8 @@ pub fn main() !void {
                     }
                     tokens.deinit(allocator);
                     // Read output control files
-                    var hourlyC: []const u8 = undefined;
-                    var hourlyW: []const u8 = undefined;
-                    var hourlyN: []const u8 = undefined;
-                    var hourlyP: []const u8 = undefined;
-                    var hourlyE: []const u8 = undefined;
-                    var dailyC: []const u8 = undefined;
-                    var dailyW: []const u8 = undefined;
-                    var dailyN: []const u8 = undefined;
-                    var dailyP: []const u8 = undefined;
-                    var dailyE: []const u8 = undefined;
-                    const listOfOutputFiles: [10]*[]const u8 = .{ &hourlyC, &hourlyW, &hourlyN, &hourlyP, &hourlyE, &dailyC, &dailyW, &dailyN, &dailyP, &dailyE };
-                    for (listOfOutputFiles, 0..) |outfilePtr, n| {
-                        line = try ecosysRun.takeDelimiterExclusive('\n');
-                        tokens = try tokenizeLine(line, allocator);
-                        if (tokens.items.len != 1) {
-                            const err = error.InvalidOutputControlFileInRunScript;
-                            try logErr.print("error: {s}: Invalid {s}\n", .{ @errorName(err), outputControlFileType[n] });
-                            try logErr.flush();
-                            return err;
-                        }
-                        outfilePtr.* = try allocatorLite.dupe(u8, tokens.items[0]);
-                        defer allocatorLite.free(outfilePtr.*);
-                        if (nPass == 0) {
-                            try logRun.print("=> {s} (scenario #{} scene #{}): {s}.\n", .{ outputControlFileType[n], nex + offset, ne + offset, outfilePtr.* });
-                            try logRun.flush();
-                        }
-                        tokens.deinit(allocator);
-                    }
+                    fba.reset();
+                    try readOutputOptionFiles(allocator, logErr, logRun, ecosysRun, nPass, ne, nex);
                 }
             }
         }

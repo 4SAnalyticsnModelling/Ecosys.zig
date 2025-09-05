@@ -131,11 +131,11 @@ pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Write
         blkc.dirri[n] = try parseTokenToFloat(f32, error.InvalidDataFormatForIrrigationForcingInOptionFile, tokens.items[5], logFileWriter);
         // Wind speed forcing
         blkc.dwind[n] = try parseTokenToFloat(f32, error.InvalidDataFormatForWindSpeedForcingInOptionFile, tokens.items[6], logFileWriter);
-        // CO2 concetration forcing
+        // CO2 concentration forcing
         blkc.dco2e[n] = try parseTokenToFloat(f32, error.InvalidDataFormatForCO2ConcForcingInOptionFile, tokens.items[7], logFileWriter);
-        // NH4 concetration forcing
+        // NH4 concentration forcing
         blkc.dcn4r[n] = try parseTokenToFloat(f32, error.InvalidDataFormatForNH4ConcForcingInOptionFile, tokens.items[8], logFileWriter);
-        // NO3 concetration forcing
+        // NO3 concentration forcing
         blkc.dcnor[n] = try parseTokenToFloat(f32, error.InvalidDataFormatForNO3ConcForcingInOptionFile, tokens.items[9], logFileWriter);
         if (nPass == 0) {
             try logOption.print("=> {s} line#{} inputs: climate forcing parameters for month #{}; Δ radiation: {d}, Δ max. temperature: {d},  Δ min. temperature: {d},  Δ humidity: {d},  Δ precipitation: {d},  Δ irrigation: {d},  Δ wind speed: {d},  Δ CO2 concentration: {d},  Δ NH4 concentration: {d},  Δ NO3 concentration: {d} \n", .{ optionFileName, n + 5, n + 1, blkc.drad[n], blkc.dtmpx[n], blkc.dtmpn[n], blkc.dhum[n], blkc.dprec[n], blkc.dirri[n], blkc.dwind[n], blkc.dco2e[n], blkc.dcn4r[n], blkc.dcnor[n] });

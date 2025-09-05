@@ -8,7 +8,7 @@ const dylnFunc = @import("dylnFunc.zig").dylnFunc;
 const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
 /// This function reads site data
-pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, siteName: []const u8, blk2a: *Blk2a, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) !void {
+pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logRun: *std.Io.Writer, ecosysRun: *std.Io.Reader, blk2a: *Blk2a, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32) !void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_readSiteFile;
@@ -20,9 +20,22 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
     var inBuf: [1024]u8 = undefined;
     // Buffer for file I/O: write
     var outBuf: [1024]u8 = undefined;
+    var line = try ecosysRun.takeDelimiterExclusive('\n');
+    var tokens = try tokenizeLine(line, allocator);
+    if (tokens.items.len != 1) {
+        const err = error.InvalidSiteFileInRunScript;
+        try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+        try logFileWriter.flush();
+        return err;
+    }
+    const siteFileName = try allocator.dupe(u8, tokens.items[0]);
+    defer allocator.free(siteFileName);
+    try logRun.print("=> Site file: {s}.\n", .{siteFileName});
+    try logRun.flush();
+    tokens.deinit(allocator);
     // Open site file
     const fs = std.fs.cwd();
-    const siteF = fs.openFile(siteName, .{}) catch {
+    const siteF = fs.openFile(siteFileName, .{}) catch {
         const err = error.SiteFileNotFoundOrFailedToOpenSiteFile;
         try logFileWriter.print("error: {s}\n", .{@errorName(err)});
         try logFileWriter.flush();
@@ -42,11 +55,11 @@ pub fn readSiteFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer,
     const gridconnopt: [3][]const u8 = .{ "lateral connections between grid cells (and hence lateral flux simulations)", "not a valid option", "no lateral connection/flux simulation" };
     var gridCount: u32 = 0;
     while (true) {
-        var line = siteFile.takeDelimiterExclusive('\n') catch |err| switch (err) {
+        line = siteFile.takeDelimiterExclusive('\n') catch |err| switch (err) {
             error.EndOfStream => break,
             else => return err,
         }; // break out of the loop at the EOF.
-        var tokens = try tokenizeLine(line, allocator);
+        tokens = try tokenizeLine(line, allocator);
         if (tokens.items.len != 4) {
             const err = error.InvalidInputForGridCellPositionsInSiteFile;
             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
