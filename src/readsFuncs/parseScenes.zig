@@ -22,7 +22,7 @@ pub fn parseScenes(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, 
     const nay = try parseTokenToInt(u32, error.InvalidNumberOfScenesInRunScript, tokens.items[0], logFileWriter);
     const ndy = try parseTokenToInt(u32, error.InvalidNumberOfScenesInRunScript, tokens.items[1], logFileWriter);
     if (nPass == 0) {
-        try logRun.print("=> Number of model scenes in a scenario: {} each repeated: {} times.\n", .{ nay, ndy });
+        try logRun.print("=> Number of model scenes in a scenario {}, each scene repeated for {} passes.\n", .{ nay, ndy });
         try logRun.flush();
     }
     tokens.deinit(allocator);
