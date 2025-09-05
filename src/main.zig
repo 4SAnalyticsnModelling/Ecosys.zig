@@ -8,14 +8,17 @@ const Blkc = @import("globalStructs/blkc.zig").Blkc;
 const Blkmain = @import("localStructs/blkmain.zig").Blkmain;
 const Files = @import("globalStructs/files.zig").Files;
 const tokenizeLine = @import("ecosysUtils/tokenizeLine.zig").tokenizeLine;
-const readSiteFile = @import("readiFuncs/readSiteFile.zig").readSiteFile;
-const readTopographyFile = @import("readiFuncs/readTopographyFile.zig").readTopographyFile;
-const readOptionFile = @import("readsFuncs/readOptionFile.zig").readOptionFile;
-const readOutputOptionFiles = @import("readsFuncs/readOutputOptionFiles.zig").readOutputOptionFiles;
 const mkEcosysOutputDirs = @import("ecosysUtils/mkEcosysOutputDirs.zig").mkEcosysOutputDirs;
 const parseTokenToInt = @import("ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
 const elapsedTime = @import("ecosysUtils/elapsedTime.zig").elapsedTime;
+const parseGridCells = @import("readiFuncs/parseGridCells.zig").parseGridCells;
+const readSiteFile = @import("readiFuncs/readSiteFile.zig").readSiteFile;
+const readTopographyFile = @import("readiFuncs/readTopographyFile.zig").readTopographyFile;
+const parseScenarios = @import("readsFuncs/parseScenarios.zig").parseScenarios;
+const parseScenes = @import("readsFuncs/parseScenes.zig").parseScenes;
+const readOptionFile = @import("readsFuncs/readOptionFile.zig").readOptionFile;
+const readOutputOptionFiles = @import("readsFuncs/readOutputOptionFiles.zig").readOutputOptionFiles;
 /// Ecosys main function
 pub fn main() !void {
     const startTimeUs: i64 = std.time.microTimestamp();
@@ -95,24 +98,14 @@ pub fn main() !void {
     var blk8b: Blk8b = Blk8b.init();
     var blkc: Blkc = Blkc.init();
     var files: Files = Files.init();
-    // Read number of E-W and N-S grid cells
-    var line = try ecosysRun.takeDelimiterExclusive('\n');
-    var tokens = try tokenizeLine(line, allocator);
-    if (tokens.items.len != 4) {
-        const err = error.InvalidInputForGridCellNumberInRunScript;
-        try logErr.print("error: {s}\n", .{@errorName(err)});
-        try logErr.flush();
-        return err;
-    }
-    const nhw = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_W, tokens.items[0], logErr) - offset;
-    const nvn = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_N, tokens.items[1], logErr) - offset;
-    const nhe = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_E, tokens.items[2], logErr);
-    const nvs = try parseTokenToInt(u32, error.InvalidNumberOfGridCellsInRunScript_S, tokens.items[3], logErr);
-    try logRun.print("=> Grid cell positions: W: {}; E: {}; N: {}; S: {}.\n", .{ nhw + offset, nhe, nvn + offset, nvs });
-    try logRun.flush();
-    // Free up memory allocated in tokenized line
-    tokens.deinit(allocator);
     // Reset to reuse memory more efficiently in fixed buffered allocator.
+    fba.reset();
+    // Read number of E-W and N-S grid cells
+    const gridCells = try parseGridCells(allocator, logErr, logRun, ecosysRun);
+    const nhw = gridCells.nhw;
+    const nvn = gridCells.nvn;
+    const nhe = gridCells.nhe;
+    const nvs = gridCells.nvs;
     fba.reset();
     // Read site file
     try readSiteFile(allocator, logErr, logRun, ecosysRun, &blk2a, &blkc, nhw, nvn, nhe, nvs);
@@ -120,19 +113,9 @@ pub fn main() !void {
     // Read topography file
     try readTopographyFile(allocator, logErr, logRun, ecosysRun, &blk11a, &blk2a, &blk8a, &blk8b, &blkc, nhw, nvn, nhe, nvs);
     // Read the number of the model scenarios to be executed
-    line = try ecosysRun.takeDelimiterExclusive('\n');
-    tokens = try tokenizeLine(line, allocator);
-    if (tokens.items.len != 2) {
-        const err = error.InvalidNumberOfModelScenariosInRunScript;
-        try logErr.print("error: {s}\n", .{@errorName(err)});
-        try logErr.flush();
-        return err;
-    }
-    const nax = try parseTokenToInt(u32, error.InvalidNumberOfModelScenariosInRunScript, tokens.items[0], logErr);
-    const ndx = try parseTokenToInt(u32, error.InvalidNumberOfModelScenariosInRunScript, tokens.items[1], logErr);
-    try logRun.print("=> Number of model scenarios: {} each repeated: {} times.\n", .{ nax, ndx });
-    try logRun.flush();
-    tokens.deinit(allocator);
+    const ecosysScenarios = try parseScenarios(allocator, logErr, logRun, ecosysRun);
+    const nax = ecosysScenarios.nax;
+    const ndx = ecosysScenarios.ndx;
     var nPass: usize = 0; // This flag prevents repeated writing out of inputs for repeating cycles of scenarios and scenes.
     // Create a log file to write option file inputs to check if they are all appropriately read
     var logOptionFile = try fs.createFile("outputs/checkPointLogs/optionFileInputCheckLog", .{ .truncate = false });
@@ -158,21 +141,10 @@ pub fn main() !void {
                 logErr.print("error: Traceback: {s}\n", .{@errorName(err)}) catch {};
                 logErr.flush() catch {};
             }
-            line = try ecosysRun.takeDelimiterExclusive('\n');
-            tokens = try tokenizeLine(line, allocator);
-            if (tokens.items.len != 2) {
-                const err = error.InvalidNumberOfScenesInRunScript;
-                try logErr.print("error: {s}\n", .{@errorName(err)});
-                try logErr.flush();
-                return err;
-            }
-            const nay = try parseTokenToInt(u32, error.InvalidNumberOfScenesInRunScript, tokens.items[0], logErr);
-            const ndy = try parseTokenToInt(u32, error.InvalidNumberOfScenesInRunScript, tokens.items[1], logErr);
-            if (nPass == 0) {
-                try logRun.print("=> Number of model scenes in a scenario: {} each repeated: {} times.\n", .{ nay, ndy });
-                try logRun.flush();
-            }
-            tokens.deinit(allocator);
+            // Read number of scenes in each scenario
+            const ecosysScenes = try parseScenes(allocator, logErr, logRun, ecosysRun, nPass);
+            const nay = ecosysScenes.nay;
+            const ndy = ecosysScenes.ndy;
             // Find cursor position at the start of a scene
             const startScene = ecosysRunFileBuf.logicalPos();
             // For each pass of the scene in a scenario
@@ -192,8 +164,8 @@ pub fn main() !void {
                         logErr.flush() catch {};
                     }
                     // Read weather file names
-                    line = try ecosysRun.takeDelimiterExclusive('\n');
-                    tokens = try tokenizeLine(line, allocator);
+                    var line = try ecosysRun.takeDelimiterExclusive('\n');
+                    var tokens = try tokenizeLine(line, allocator);
                     if (tokens.items.len != 1) {
                         const err = error.InvalidWeatherFileInRunScript;
                         try logErr.print("error: {s}\n", .{@errorName(err)});
