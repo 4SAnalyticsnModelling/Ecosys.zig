@@ -1,5 +1,6 @@
 const std = @import("std");
 const offset: u32 = 1;
+const setDateIncrement = @import("setDateIncrement.zig").setDateIncrement;
 const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 const Blkmain = @import("../localStructs/blkmain.zig").Blkmain;
 const Files = @import("../globalStructs/files.zig").Files;
@@ -8,7 +9,7 @@ const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseToken
 const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
 const toLowerCase = @import("../ecosysUtils/toLowerCase.zig").toLowerCase;
 /// This function reads weather options
-pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logOption: *std.Io.Writer, optionFileName: []const u8, nPass: usize, nex: usize, nfx: usize, ne: usize, nd: usize, blkc: *Blkc, blkmain: *Blkmain, files: *Files) !void {
+pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logOption: *std.Io.Writer, optionFileName: []const u8, nPass: usize, nex: usize, ntx: usize, ne: usize, nt: usize, nay: u32, nScenario: u32, blkc: *Blkc, blkmain: *Blkmain, files: *Files) !void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_readOptionFile;
@@ -44,7 +45,7 @@ pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Write
     files.idata[1] = try parseTokenToInt(u32, error.InvalidScenarioStartDate_MM_InOptionFile, tokens.items[0][2..4], logFileWriter);
     files.idata[2] = try parseTokenToInt(u32, error.InvalidScenarioStartDate_YYYY_InOptionFile, tokens.items[0][4..8], logFileWriter);
     if (nPass == 0) {
-        try logOption.print("=> [Start of {s} file.] {s} line#1 inputs: scenario start date (day/month/year) {d}/{d}/{d}; scenario #{} pass #{}, scene #{} pass #{}\n", .{ optionFileName, optionFileName, files.idata[0], files.idata[1], files.idata[2], nex + offset, nfx + offset, ne + offset, nd + offset });
+        try logOption.print("=> [Start of {s} file.] {s} line#1 inputs: scenario start date (day/month/year) {d}/{d}/{d}; scenario #{} pass #{}, scene #{} pass #{}\n", .{ optionFileName, optionFileName, files.idata[0], files.idata[1], files.idata[2], nex + offset, ntx + offset, ne + offset, nt + offset });
         try logOption.flush();
     }
     tokens.deinit(allocator);
@@ -138,7 +139,7 @@ pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Write
         // NO3 concentration forcing
         blkc.dcnor[n] = try parseTokenToFloat(f32, error.InvalidDataFormatForNO3ConcForcingInOptionFile, tokens.items[9], logFileWriter);
         if (nPass == 0) {
-            try logOption.print("=> {s} line#{} inputs: climate forcing parameters for month #{}; Δ radiation: {d}, Δ max. temperature: {d},  Δ min. temperature: {d},  Δ humidity: {d},  Δ precipitation: {d},  Δ irrigation: {d},  Δ wind speed: {d},  Δ CO2 concentration: {d},  Δ NH4 concentration: {d},  Δ NO3 concentration: {d} \n", .{ optionFileName, n + 5, n + 1, blkc.drad[n], blkc.dtmpx[n], blkc.dtmpn[n], blkc.dhum[n], blkc.dprec[n], blkc.dirri[n], blkc.dwind[n], blkc.dco2e[n], blkc.dcn4r[n], blkc.dcnor[n] });
+            try logOption.print("=> {s} line#{} inputs: climate forcing parameters for {s}; Δ radiation: {d}, Δ max. temperature: {d},  Δ min. temperature: {d},  Δ humidity: {d},  Δ precipitation: {d},  Δ irrigation: {d},  Δ wind speed: {d},  Δ CO2 concentration: {d},  Δ NH4 concentration: {d},  Δ NO3 concentration: {d} \n", .{ optionFileName, n + 5, blkmain.months[n], blkc.drad[n], blkc.dtmpx[n], blkc.dtmpn[n], blkc.dhum[n], blkc.dprec[n], blkc.dirri[n], blkc.dwind[n], blkc.dco2e[n], blkc.dcn4r[n], blkc.dcnor[n] });
             try logOption.flush();
         }
         tokens.deinit(allocator);
@@ -169,4 +170,5 @@ pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Write
         try logOption.flush();
     }
     tokens.deinit(allocator);
+    try setDateIncrement(blkc, files, nay, nScenario);
 }

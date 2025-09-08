@@ -116,6 +116,7 @@ pub fn main() !void {
     const ecosysScenarios = try parseScenarios(allocator, logErr, logRun, ecosysRun);
     const nax = ecosysScenarios.nax;
     const ndx = ecosysScenarios.ndx;
+    var nScenario: u32 = 0;
     var nPass: usize = 0; // This flag prevents repeated writing out of inputs for repeating cycles of scenarios and scenes.
     // Create a log file to write option file inputs to check if they are all appropriately read
     var logOptionFile = try fs.createFile("outputs/checkPointLogs/optionFileInputCheckLog", .{ .truncate = false });
@@ -125,15 +126,15 @@ pub fn main() !void {
     // Find cursor position at the start of the scenario
     const startScenario = ecosysRunFileBuf.logicalPos();
     // For each pass in scenarios
-    for (0..ndx) |nfx| {
+    for (0..ndx) |ntx| {
         fba.reset();
         try ecosysRunFileBuf.seekTo(startScenario);
         // For each scenario
         for (0..nax) |nex| {
-            if (nfx == 0) {
+            if (ntx == 0) {
                 nPass = 0;
             } else {
-                nPass += nfx;
+                nPass += ntx;
             }
             // Error message to be written later in the error log file if number of model scenarios is invalid
             errdefer {
@@ -148,14 +149,14 @@ pub fn main() !void {
             // Find cursor position at the start of a scene
             const startScene = ecosysRunFileBuf.logicalPos();
             // For each pass of the scene in a scenario
-            for (0..ndy) |nd| {
+            for (0..ndy) |nt| {
                 try ecosysRunFileBuf.seekTo(startScene);
                 // For each scene
                 for (0..nay) |ne| {
-                    if (nfx == 0 and nd == 0) {
+                    if (ntx == 0 and nt == 0) {
                         nPass = 0;
                     } else {
-                        nPass += nd;
+                        nPass += nt;
                     }
                     // Error message to be written later in the error log file if number of scenes is invalid
                     errdefer {
@@ -191,13 +192,13 @@ pub fn main() !void {
                     const optionFileName = try allocatorLite.dupe(u8, tokens.items[0]);
                     defer allocatorLite.free(optionFileName);
                     if (nPass == 0) {
-                        try logRun.print("=> Options file (scenario #{} pass #{} scene #{} pass #{}): {s}.\n", .{ nex + offset, nfx + offset, ne + offset, nd + offset, optionFileName });
+                        try logRun.print("=> Options file (scenario #{} pass #{} scene #{} pass #{}): {s}.\n", .{ nex + offset, ntx + offset, ne + offset, nt + offset, optionFileName });
                         try logRun.flush();
                     }
                     tokens.deinit(allocator);
                     // Open and read option file
                     fba.reset();
-                    try readOptionFile(allocator, logErr, logOption, optionFileName, nPass, nex, nfx, ne, nd, &blkc, &blkmain, &files);
+                    try readOptionFile(allocator, logErr, logOption, optionFileName, nPass, nex, ntx, ne, nt, nay, nScenario, &blkc, &blkmain, &files);
                     // Open and read weather file
                     //
                     // Read land management file
@@ -236,6 +237,7 @@ pub fn main() !void {
                     fba.reset();
                     try readOutputOptionFiles(allocator, logErr, logRun, ecosysRun, nPass, ne, nex);
                 }
+                nScenario += 1;
             }
         }
     }
