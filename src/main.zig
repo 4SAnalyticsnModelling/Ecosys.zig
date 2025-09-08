@@ -1,6 +1,7 @@
 const std = @import("std");
 const offset: u32 = 1;
 const Blk11a = @import("globalStructs/blk11a.zig").Blk11a;
+const Blk17 = @import("globalStructs/blk17.zig").Blk17;
 const Blk8a = @import("globalStructs/blk8a.zig").Blk8a;
 const Blk8b = @import("globalStructs/blk8b.zig").Blk8b;
 const Blk2a = @import("globalStructs/blk2a.zig").Blk2a;
@@ -93,6 +94,7 @@ pub fn main() !void {
     const logRun = &logRunfileBuf.interface;
     var blkmain: Blkmain = Blkmain.init();
     var blk11a: Blk11a = Blk11a.init();
+    var blk17: Blk17 = Blk17.init();
     var blk2a: Blk2a = Blk2a.init();
     var blk8a: Blk8a = Blk8a.init();
     var blk8b: Blk8b = Blk8b.init();
@@ -198,7 +200,7 @@ pub fn main() !void {
                     tokens.deinit(allocator);
                     // Open and read option file
                     fba.reset();
-                    try readOptionFile(allocator, logErr, logOption, optionFileName, nPass, nex, ntx, ne, nt, nay, nScenario, &blkc, &blkmain, &files);
+                    try readOptionFile(allocator, logErr, logOption, optionFileName, nPass, nex, ntx, ne, nt, nay, nScenario, &blk17, &blkc, &blkmain, &files);
                     // Open and read weather file
                     //
                     // Read land management file

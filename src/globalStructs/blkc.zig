@@ -71,6 +71,7 @@ pub const Blkc = struct {
     idayr: u32, // Fortran: IDAYR
     iyrc: u32, // Fortran: IYRC
     iyrr: u32, // Fortran: IYRR
+    lpy: i32,
     nyr: u32, // Fortran: NYR
     iterm: u32, // Fortran: ITERM
     ifin: u32, // Fortran: IFIN

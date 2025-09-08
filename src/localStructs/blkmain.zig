@@ -6,6 +6,7 @@ pub const Blkmain = struct {
     iflgy: u32 = 0,
     iyrx: u32 = 0,
     iyrd: u32 = 0,
+    nscene: usize = 0,
     tlw: u32 = 0,
     tlh: u32 = 0,
     tlo: u32 = 0,

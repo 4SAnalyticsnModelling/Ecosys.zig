@@ -1,15 +1,18 @@
 const std = @import("std");
 const offset: u32 = 1;
 const setDateIncrement = @import("setDateIncrement.zig").setDateIncrement;
+const calcJulianStartEndDates = @import("calcJulianStartEndDates.zig").calcJulianStartEndDates;
 const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 const Blkmain = @import("../localStructs/blkmain.zig").Blkmain;
+const Blk17 = @import("../globalStructs/blk17.zig").Blk17;
 const Files = @import("../globalStructs/files.zig").Files;
 const tokenizeLine = @import("../ecosysUtils/tokenizeLine.zig").tokenizeLine;
 const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
 const toLowerCase = @import("../ecosysUtils/toLowerCase.zig").toLowerCase;
+
 /// This function reads weather options
-pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logOption: *std.Io.Writer, optionFileName: []const u8, nPass: usize, nex: usize, ntx: usize, ne: usize, nt: usize, nay: u32, nScenario: u32, blkc: *Blkc, blkmain: *Blkmain, files: *Files) !void {
+pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logOption: *std.Io.Writer, optionFileName: []const u8, nPass: usize, nex: usize, ntx: usize, ne: usize, nt: usize, nay: u32, nScenario: u32, blk17: *Blk17, blkc: *Blkc, blkmain: *Blkmain, files: *Files) !void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_readOptionFile;
@@ -171,4 +174,5 @@ pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Write
     }
     tokens.deinit(allocator);
     try setDateIncrement(blkc, files, nay, nScenario);
+    try calcJulianStartEndDates(blk17, blkc, blkmain, files, nScenario);
 }
