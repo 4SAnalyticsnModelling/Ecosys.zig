@@ -12,7 +12,7 @@ const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseT
 const toLowerCase = @import("../ecosysUtils/toLowerCase.zig").toLowerCase;
 
 /// This function reads weather options
-pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logOption: *std.Io.Writer, optionFileName: []const u8, nPass: usize, nex: usize, ntx: usize, ne: usize, nt: usize, nay: u32, nScenario: u32, blk17: *Blk17, blkc: *Blkc, blkmain: *Blkmain, files: *Files) !void {
+pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logOption: *std.Io.Writer, logRun: *std.Io.Writer, ecosysRun: *std.Io.Reader, nPass: usize, nex: usize, ntx: usize, ne: usize, nt: usize, nay: u32, nScenario: u32, blk17: *Blk17, blkc: *Blkc, blkmain: *Blkmain, files: *Files) !void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_readOptionFile;
@@ -23,7 +23,23 @@ pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Write
     // Buffer for file I/O: read
     var inBuf: [1024]u8 = undefined;
     const iclmflag: [3][]const u8 = .{ "none", "stepwise", "transient/gradual" };
-    // Open site file
+
+    var line = try ecosysRun.takeDelimiterExclusive('\n');
+    var tokens = try tokenizeLine(line, allocator);
+    if (tokens.items.len != 1) {
+        const err = error.InvalidOptionsFileInRunScript;
+        try logFileWriter.print("error: {s}\n", .{@errorName(err)});
+        try logFileWriter.flush();
+        return err;
+    }
+    const optionFileName = try allocator.dupe(u8, tokens.items[0]);
+    defer allocator.free(optionFileName);
+    if (nPass == 0) {
+        try logRun.print("=> Options file (scenario #{} pass #{} scene #{} pass #{}): {s}.\n", .{ nex + offset, ntx + offset, ne + offset, nt + offset, optionFileName });
+        try logRun.flush();
+    }
+    tokens.deinit(allocator);
+    // Open option file
     const fs = std.fs.cwd();
     const optionF = fs.openFile(optionFileName, .{}) catch {
         const err = error.OptionFileNotFoundOrFailedToOpenOptionFile;
@@ -36,8 +52,8 @@ pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Write
     const optionFile = &optionFileBuf.interface;
     // Read option file line by line
     // Read scenario start date in DDMMYYY format
-    var line = try optionFile.takeDelimiterExclusive('\n');
-    var tokens = try tokenizeLine(line, allocator);
+    line = try optionFile.takeDelimiterExclusive('\n');
+    tokens = try tokenizeLine(line, allocator);
     if (tokens.items.len != 1) {
         const err = error.InvalidInputForScenarioStartDateInOptionFile;
         try logFileWriter.print("error: {s}\n", .{@errorName(err)});

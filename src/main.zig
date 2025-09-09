@@ -20,6 +20,7 @@ const parseScenarios = @import("readsFuncs/parseScenarios.zig").parseScenarios;
 const parseScenes = @import("readsFuncs/parseScenes.zig").parseScenes;
 const readOptionFile = @import("readsFuncs/readOptionFile.zig").readOptionFile;
 const readOutputOptionFiles = @import("readsFuncs/readOutputOptionFiles.zig").readOutputOptionFiles;
+const readWeatherFile = @import("readsFuncs/readWeatherFile.zig").readWeatherFile;
 /// Ecosys main function
 pub fn main() !void {
     const startTimeUs: i64 = std.time.microTimestamp();
@@ -125,11 +126,15 @@ pub fn main() !void {
     defer logOptionFile.close();
     var logOptionFileBuf = logOptionFile.writer(&outBuf);
     const logOption = &logOptionFileBuf.interface;
+    // Create a log file to write weather file inputs to check if they are all appropriately read
+    var logWeatherFile = try fs.createFile("outputs/checkPointLogs/weatherFileInputCheckLog", .{ .truncate = false });
+    defer logWeatherFile.close();
+    var logWeatherFileBuf = logWeatherFile.writer(&outBuf);
+    const logWeather = &logWeatherFileBuf.interface;
     // Find cursor position at the start of the scenario
     const startScenario = ecosysRunFileBuf.logicalPos();
     // For each pass in scenarios
     for (0..ndx) |ntx| {
-        fba.reset();
         try ecosysRunFileBuf.seekTo(startScenario);
         // For each scenario
         for (0..nax) |nex| {
@@ -166,46 +171,15 @@ pub fn main() !void {
                         logErr.print("error: Traceback: {s}\n", .{@errorName(err)}) catch {};
                         logErr.flush() catch {};
                     }
-                    // Read weather file names
+                    // Read option file
+                    fba.reset();
+                    try readOptionFile(allocator, logErr, logOption, logRun, ecosysRun, nPass, nex, ntx, ne, nt, nay, nScenario, &blk17, &blkc, &blkmain, &files);
+                    // Read weather file
+                    fba.reset();
+                    try readWeatherFile(allocator, logErr, logWeather, logRun, ecosysRun, nhw, nvn, nhe, nvs, nPass, nex, ne);
+                    // Read land management file
                     var line = try ecosysRun.takeDelimiterExclusive('\n');
                     var tokens = try tokenizeLine(line, allocator);
-                    if (tokens.items.len != 1) {
-                        const err = error.InvalidWeatherFileInRunScript;
-                        try logErr.print("error: {s}\n", .{@errorName(err)});
-                        try logErr.flush();
-                        return err;
-                    }
-                    const weatherFileName = try allocatorLite.dupe(u8, tokens.items[0]);
-                    defer allocatorLite.free(weatherFileName);
-                    if (nPass == 0) {
-                        try logRun.print("=> Weather file (scenario #{} scene #{}): {s}.\n", .{ nex + offset, ne + offset, weatherFileName });
-                        try logRun.flush();
-                    }
-                    tokens.deinit(allocator);
-                    // Read option file names
-                    line = try ecosysRun.takeDelimiterExclusive('\n');
-                    tokens = try tokenizeLine(line, allocator);
-                    if (tokens.items.len != 1) {
-                        const err = error.InvalidOptionsFileInRunScript;
-                        try logErr.print("error: {s}\n", .{@errorName(err)});
-                        try logErr.flush();
-                        return err;
-                    }
-                    const optionFileName = try allocatorLite.dupe(u8, tokens.items[0]);
-                    defer allocatorLite.free(optionFileName);
-                    if (nPass == 0) {
-                        try logRun.print("=> Options file (scenario #{} pass #{} scene #{} pass #{}): {s}.\n", .{ nex + offset, ntx + offset, ne + offset, nt + offset, optionFileName });
-                        try logRun.flush();
-                    }
-                    tokens.deinit(allocator);
-                    // Open and read option file
-                    fba.reset();
-                    try readOptionFile(allocator, logErr, logOption, optionFileName, nPass, nex, ntx, ne, nt, nay, nScenario, &blk17, &blkc, &blkmain, &files);
-                    // Open and read weather file
-                    //
-                    // Read land management file
-                    line = try ecosysRun.takeDelimiterExclusive('\n');
-                    tokens = try tokenizeLine(line, allocator);
                     if (tokens.items.len != 1) {
                         const err = error.InvalidLandManagementFileInRunScript;
                         try logErr.print("error: {s}\n", .{@errorName(err)});
