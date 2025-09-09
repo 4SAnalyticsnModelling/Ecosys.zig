@@ -108,6 +108,14 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
                 blkwthr.ni[nx][ny] = try parseTokenToInt(u32, error.InvalidNumberOfDateVariables, tokens.items[0][2..4], logFileWriter);
                 // Read number of weather variables.
                 blkwthr.nn[nx][ny] = try parseTokenToInt(u32, error.InvalidNumberOfWeatherVariables, tokens.items[0][4..6], logFileWriter);
+                // Read date variable names (in short forms, e.g., D = day, H = hour etc.).
+                for (6..6 + blkwthr.ni[nx][ny]) |k| {
+                    blkwthr.ivars[nx][ny][k - 6] = tokens.items[0][k];
+                }
+                // Read weather variable names (in short forms, e.g., M = max. temperature, N = min. temperature, H = humidity etc.).
+                for (6 + blkwthr.ni[nx][ny]..6 + blkwthr.ni[nx][ny] + blkwthr.nn[nx][ny]) |k| {
+                    blkwthr.vars[nx][ny][k - blkwthr.ni[nx][ny] - 6] = tokens.items[0][k];
+                }
                 if (nPass == 0) {
                     try logWeather.print("=> [Start of {s} file.] {s} line#1 inputs: grid cell position W-E: {}, N-S: {}, time step: {s}, date format: {s}, number of date variables to read: {d}, number of weather variables to read: {d}.\n", .{ weatherUnitFileName, weatherUnitFileName, nx + offset, ny + offset, try timeFrequency(blkwthr.ttype[nx][ny]), try calendarType(blkwthr.ctype[nx][ny]), blkwthr.ni[nx][ny], blkwthr.nn[nx][ny] });
                     try logWeather.flush();
