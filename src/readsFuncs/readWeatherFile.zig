@@ -7,6 +7,7 @@ const Blkwthr = @import("../localStructs/blkwthr.zig").Blkwthr;
 const tokenizeLine = @import("../ecosysUtils/tokenizeLine.zig").tokenizeLine;
 const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseTokenToInt;
 const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
+const toLowerCase = @import("../ecosysUtils/toLowerCase.zig").toLowerCase;
 /// This function reads weather data
 pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logWeather: *std.Io.Writer, logRun: *std.Io.Writer, ecosysRun: *std.Io.Reader, nhw: u32, nvn: u32, nhe: u32, nvs: u32, nPass: usize, nex: usize, ne: usize) !void {
     // Log error message if this function fails
@@ -96,23 +97,25 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
         const wthrUnitFile = &wthrUnitFileBuf.interface;
         tokens.deinit(allocator);
         line = try wthrUnitFile.takeDelimiterExclusive('\n');
-        tokens = try tokenizeLine(line, allocator);
+        const lineLower = try toLowerCase(allocator, line);
+        defer allocator.free(lineLower);
+        tokens = try tokenizeLine(lineLower, allocator);
         for (nh1..nh2) |nx| {
             for (nv1..nv2) |ny| {
                 // Read weather file headers
-                // Read time step: H = hourly, D = Daily, 3 = 3-hourly.
+                // Read time step: H, h = hourly, D, d = Daily, 3 = 3-hourly.
                 blkwthr.ttype[nx][ny] = tokens.items[0][0];
-                // Read calendar format: J = Julian day, Orlese calendar date.
+                // Read calendar format: J, j = Julian day, Orlese calendar date.
                 blkwthr.ctype[nx][ny] = tokens.items[0][1];
                 // Read number of date variables.
                 blkwthr.ni[nx][ny] = try parseTokenToInt(u32, error.InvalidNumberOfDateVariables, tokens.items[0][2..4], logFileWriter);
                 // Read number of weather variables.
                 blkwthr.nn[nx][ny] = try parseTokenToInt(u32, error.InvalidNumberOfWeatherVariables, tokens.items[0][4..6], logFileWriter);
-                // Read date variable names (in short forms, e.g., D = day, H = hour etc.).
+                // Read date variable names (in short forms, e.g., D, d = day, M, m = month, H, d = hour etc.).
                 for (6..6 + blkwthr.ni[nx][ny]) |k| {
                     blkwthr.ivars[nx][ny][k - 6] = tokens.items[0][k];
                 }
-                // Read weather variable names (in short forms, e.g., M = max. temperature, N = min. temperature, H = humidity etc.).
+                // Read weather variable names (in short forms, e.g., M, m = max. temperature, N, n = min. temperature, H, h = humidity etc.).
                 for (6 + blkwthr.ni[nx][ny]..6 + blkwthr.ni[nx][ny] + blkwthr.nn[nx][ny]) |k| {
                     blkwthr.vars[nx][ny][k - blkwthr.ni[nx][ny] - 6] = tokens.items[0][k];
                 }
@@ -121,6 +124,20 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
                     try logWeather.flush();
                 }
             }
+        }
+        tokens.deinit(allocator);
+        var wthrLineCount: u32 = 0;
+        while (true) {
+            wthrLineCount += 1;
+            line = wthrUnitFile.takeDelimiterExclusive('\n') catch |err| switch (err) {
+                error.EndOfStream => break,
+                else => return err,
+            }; // break out of the loop at the EOF.
+            tokens = try tokenizeLine(line, allocator);
+            if (nPass == 0 and wthrLineCount < 25) {
+                std.debug.print("lineTest: {s}, nhw: {}, nvs: {}\n", .{ line, nhw, nvs });
+            }
+            tokens.deinit(allocator);
         }
         //         // Read altitude
         //         blk2a.alti[nx][ny] = try parseTokenToFloat(f32, error.InvalidElevation, tokens.items[1], logFileWriter);
@@ -306,5 +323,90 @@ pub fn calendarType(ctype: u8) ![]const u8 {
     return switch (ctype) {
         'J', 'j' => "julian date",
         else => "calendar date",
+    };
+}
+
+/// This function returns full names of the weather variables from character symbols.
+pub fn weatherVars(c: u8) ![]const u8 {
+    return switch (c) {
+        'M', 'm' => "max. daily temperature",
+        'N', 'n' => "min. daily temperature",
+        'T', 't' => "hourly temperature",
+        'W', 'w' => "wind speed",
+        'H', 'h' => "humidity",
+        'R', 'r' => "shortwave radiation",
+        'P', 'p' => "precipitation",
+        'L', 'l' => "longwave radiation",
+    };
+}
+
+/// This function returns temperature units.
+pub fn tempUnits(c: u8) ![]const u8 {
+    return switch (c) {
+        'F', 'f' => "⁰F",
+        'K', 'k' => "K",
+        else => "°C",
+    };
+}
+
+/// This function returns shortwave radiation units.
+pub fn radiationUnits(c: u8, timeFlag: []const u8) ![]const u8 {
+    return switch (c) {
+        'L', 'l', 'P', 'p' => "PAR in μmol photons m⁻² s⁻¹",
+        'J' => if (std.mem.eql(u8, timeFlag, "daily"))
+            "J cm⁻² d⁻¹"
+        else
+            "J cm⁻² s⁻¹",
+        'W', 'w' => "W m⁻²",
+        'K', 'k' => "kJ m⁻² s⁻¹",
+        else => if (std.mem.eql(u8, timeFlag, "daily"))
+            "MJ m⁻² d⁻¹"
+        else
+            "MJ m⁻² h⁻¹",
+    };
+}
+
+/// This function returns wind speed units.
+pub fn windspeedUnits(c: u8) ![]const u8 {
+    return switch (c) {
+        'S' => "m s⁻¹",
+        'H' => "km h⁻¹",
+        'D' => "km d⁻¹",
+        'M' => "mile h⁻¹",
+        else => "m h⁻¹",
+    };
+}
+
+/// This function returns precipitation units.
+pub fn precipitationUnits(c: u8, timeFlag: []const u8) ![]const u8 {
+    return switch (c) {
+        'M', 'm' => if (std.mem.eql(u8, timeFlag, "daily"))
+            "m d⁻¹"
+        else
+            "m h⁻¹",
+        'C', 'c' => if (std.mem.eql(u8, timeFlag, "daily"))
+            "cm d⁻¹"
+        else
+            "cm h⁻¹",
+        'I', 'i' => if (std.mem.eql(u8, timeFlag, "daily"))
+            "inches d⁻¹"
+        else
+            "inches h⁻¹",
+        'S', 's' => "mm min⁻¹",
+        else => "mm h⁻¹",
+    };
+}
+
+/// This function returns humidity units.
+pub fn humidityUnits(c: u8) ![]const u8 {
+    return switch (c) {
+        'D', 'd' => "dew point (°C)",
+        'F', 'f' => "dew point (⁰F)",
+        'H', 'h' => "relative humidity (fraction 0–1)",
+        'R', 'r' => "relative humidity (%)",
+        'S', 's' => "specific humidity (kg kg⁻¹)",
+        'G', 'g' => "mixing ratio (g kg⁻¹)",
+        'M', 'm' => "vapor pressure (hpa or mb)",
+        else => "vapor pressure (kpa)",
     };
 }
