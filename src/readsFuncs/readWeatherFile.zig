@@ -96,13 +96,13 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
         var wthrUnitFileBuf = weatherUnitFile.reader(&inBuf);
         const wthrUnitFile = &wthrUnitFileBuf.interface;
         tokens.deinit(allocator);
+        // Read weather file headers
         line = try wthrUnitFile.takeDelimiterExclusive('\n');
-        const lineLower = try toLowerCase(allocator, line);
-        defer allocator.free(lineLower);
-        tokens = try tokenizeLine(lineLower, allocator);
+        const wthrHeadersLower = try toLowerCase(allocator, line);
+        defer allocator.free(wthrHeadersLower);
+        tokens = try tokenizeLine(wthrHeadersLower, allocator);
         for (nh1..nh2) |nx| {
             for (nv1..nv2) |ny| {
-                // Read weather file headers
                 // Read time step: H, h = hourly, D, d = Daily, 3 = 3-hourly.
                 blkwthr.ttype[nx][ny] = tokens.items[0][0];
                 // Read calendar format: J, j = Julian day, Orlese calendar date.
@@ -111,18 +111,65 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
                 blkwthr.ni[nx][ny] = try parseTokenToInt(u32, error.InvalidNumberOfDateVariables, tokens.items[0][2..4], logFileWriter);
                 // Read number of weather variables.
                 blkwthr.nn[nx][ny] = try parseTokenToInt(u32, error.InvalidNumberOfWeatherVariables, tokens.items[0][4..6], logFileWriter);
+                if (nPass == 0) {
+                    try logWeather.print("=> [Start of {s} file.] {s} line#1 inputs: time step: {s}, date format: {s}, number of date variables to read: {d}, number of weather variables to read: {d}. Date variables: ", .{ weatherUnitFileName, weatherUnitFileName, try timeFrequency(blkwthr.ttype[nx][ny]), try calendarType(blkwthr.ctype[nx][ny]), blkwthr.ni[nx][ny], blkwthr.nn[nx][ny] });
+                    try logWeather.flush();
+                }
                 // Read date variable names (in short forms, e.g., D, d = day, M, m = month, H, d = hour etc.).
                 for (6..6 + blkwthr.ni[nx][ny]) |k| {
                     blkwthr.ivars[nx][ny][k - 6] = tokens.items[0][k];
+                    if (nPass == 0) {
+                        try logWeather.print("{s}, ", .{try dateVars(blkwthr.ivars[nx][ny][k - 6])});
+                        try logWeather.flush();
+                    }
+                }
+                if (nPass == 0) {
+                    try logWeather.print("Weather variables: ", .{});
+                    try logWeather.flush();
                 }
                 // Read weather variable names (in short forms, e.g., M, m = max. temperature, N, n = min. temperature, H, h = humidity etc.).
                 for (6 + blkwthr.ni[nx][ny]..6 + blkwthr.ni[nx][ny] + blkwthr.nn[nx][ny]) |k| {
                     blkwthr.vars[nx][ny][k - blkwthr.ni[nx][ny] - 6] = tokens.items[0][k];
                 }
+            }
+        }
+        tokens.deinit(allocator);
+        // Read units of weather variables.
+        line = try wthrUnitFile.takeDelimiterExclusive('\n');
+        const wthrUnitLower = try toLowerCase(allocator, line);
+        defer allocator.free(wthrUnitLower);
+        tokens = try tokenizeLine(wthrUnitLower, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                // Read weather variable units (in short forms).
+                for (0..blkwthr.nn[nx][ny]) |k| {
+                    blkwthr.typ[nx][ny][k] = tokens.items[0][k];
+                    const timeStep = try timeFrequency(blkwthr.ttype[nx][ny]);
+                    const wthrVar = blkwthr.vars[nx][ny][k];
+                    const wthrVarFull = try weatherVars(wthrVar);
+                    if (nPass == 0) {
+                        const weatherUnit = switch (wthrVar) {
+                            'R', 'r' => try radiationUnits(wthrVar, timeStep),
+                            'H', 'h' => try humidityUnits(wthrVar),
+                            'P', 'p' => try precipitationUnits(wthrVar, timeStep),
+                            'W', 'w' => try windspeedUnits(wthrVar),
+                            'M', 'm', 'N', 'n', 'T', 't' => try tempUnits(wthrVar),
+                            else => "n/a",
+                        };
+                        if (!(std.mem.eql(u8, weatherUnit, "n/a"))) {
+                            try logWeather.print("{s} ({s}), ", .{ wthrVarFull, weatherUnit });
+                            try logWeather.flush();
+                        }
+                    }
+                }
                 if (nPass == 0) {
-                    try logWeather.print("=> [Start of {s} file.] {s} line#1 inputs: grid cell position W-E: {}, N-S: {}, time step: {s}, date format: {s}, number of date variables to read: {d}, number of weather variables to read: {d}.\n", .{ weatherUnitFileName, weatherUnitFileName, nx + offset, ny + offset, try timeFrequency(blkwthr.ttype[nx][ny]), try calendarType(blkwthr.ctype[nx][ny]), blkwthr.ni[nx][ny], blkwthr.nn[nx][ny] });
+                    try logWeather.print("\n", .{});
                     try logWeather.flush();
                 }
+                // if (nPass == 0) {
+                //     try logWeather.print("=> {s} line#2 inputs: .\n", .{ weatherUnitFileName, weatherUnitFileName, nx + offset, ny + offset, try timeFrequency(blkwthr.ttype[nx][ny]), try calendarType(blkwthr.ctype[nx][ny]), blkwthr.ni[nx][ny], blkwthr.nn[nx][ny] });
+                //     try logWeather.flush();
+                // }
             }
         }
         tokens.deinit(allocator);
@@ -134,9 +181,9 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
                 else => return err,
             }; // break out of the loop at the EOF.
             tokens = try tokenizeLine(line, allocator);
-            if (nPass == 0 and wthrLineCount < 25) {
-                std.debug.print("lineTest: {s}, nhw: {}, nvs: {}\n", .{ line, nhw, nvs });
-            }
+            // if (nPass == 0 and wthrLineCount < 25) {
+            //     std.debug.print("lineTest: {s}, nhw: {}, nvs: {}\n", .{ line, nhw, nvs });
+            // }
             tokens.deinit(allocator);
         }
         //         // Read altitude
@@ -318,6 +365,17 @@ pub fn timeFrequency(ttype: u8) anyerror![]const u8 {
     };
 }
 
+/// This function returns date variables.
+pub fn dateVars(ttype: u8) anyerror![]const u8 {
+    return switch (ttype) {
+        'H', 'h' => "hour",
+        'D', 'd' => "day",
+        'M', 'm' => "month",
+        'Y', 'y' => "year",
+        else => "n/a",
+    };
+}
+
 /// This function returns date format details.
 pub fn calendarType(ctype: u8) ![]const u8 {
     return switch (ctype) {
@@ -337,6 +395,7 @@ pub fn weatherVars(c: u8) ![]const u8 {
         'R', 'r' => "shortwave radiation",
         'P', 'p' => "precipitation",
         'L', 'l' => "longwave radiation",
+        else => "n/a",
     };
 }
 
