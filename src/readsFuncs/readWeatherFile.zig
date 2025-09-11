@@ -1,6 +1,7 @@
 const std = @import("std");
 const offset: u32 = 1;
 const Blk2a = @import("../globalStructs/blk2a.zig").Blk2a;
+const Blk2b = @import("../globalStructs/blk2b.zig").Blk2b;
 const Blkc = @import("../globalStructs/blkc.zig").Blkc;
 const Blkmain = @import("../localStructs/blkmain.zig").Blkmain;
 const Blkwthr = @import("../localStructs/blkwthr.zig").Blkwthr;
@@ -9,7 +10,7 @@ const parseTokenToInt = @import("../ecosysUtils/parseTokenToInt.zig").parseToken
 const parseTokenToFloat = @import("../ecosysUtils/parseTokenToFloat.zig").parseTokenToFloat;
 const toLowerCase = @import("../ecosysUtils/toLowerCase.zig").toLowerCase;
 /// This function reads weather data
-pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logWeather: *std.Io.Writer, logRun: *std.Io.Writer, ecosysRun: *std.Io.Reader, nhw: u32, nvn: u32, nhe: u32, nvs: u32, nPass: usize, nex: usize, ne: usize) !void {
+pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writer, logWeather: *std.Io.Writer, logRun: *std.Io.Writer, ecosysRun: *std.Io.Reader, blk2a: *Blk2a, blk2b: *Blk2b, blkc: *Blkc, nhw: u32, nvn: u32, nhe: u32, nvs: u32, nPass: usize, nex: usize, ne: usize) !void {
     // Log error message if this function fails
     errdefer {
         const err = error.FunctionFailed_readWeatherFile;
@@ -17,6 +18,8 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
         logFileWriter.flush() catch {};
         std.debug.print("error: {s}\n", .{@errorName(err)});
     }
+    // Wind speed measurement flag.
+    const windSpeedFlag: [2][]const u8 = .{ "soil", "canopy" };
     // Buffer for file I/O: read
     var inBuf: [1024]u8 = undefined;
     var blkwthr: Blkwthr = Blkwthr.init();
@@ -111,21 +114,9 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
                 blkwthr.ni[nx][ny] = try parseTokenToInt(u32, error.InvalidNumberOfDateVariables, tokens.items[0][2..4], logFileWriter);
                 // Read number of weather variables.
                 blkwthr.nn[nx][ny] = try parseTokenToInt(u32, error.InvalidNumberOfWeatherVariables, tokens.items[0][4..6], logFileWriter);
-                if (nPass == 0) {
-                    try logWeather.print("=> [Start of {s} file.] {s} line#1 inputs: time step: {s}, date format: {s}, number of date variables to read: {d}, number of weather variables to read: {d}. Date variables: ", .{ weatherUnitFileName, weatherUnitFileName, try timeFrequency(blkwthr.ttype[nx][ny]), try calendarType(blkwthr.ctype[nx][ny]), blkwthr.ni[nx][ny], blkwthr.nn[nx][ny] });
-                    try logWeather.flush();
-                }
                 // Read date variable names (in short forms, e.g., D, d = day, M, m = month, H, d = hour etc.).
                 for (6..6 + blkwthr.ni[nx][ny]) |k| {
                     blkwthr.ivars[nx][ny][k - 6] = tokens.items[0][k];
-                    if (nPass == 0) {
-                        try logWeather.print("{s}, ", .{try dateVars(blkwthr.ivars[nx][ny][k - 6])});
-                        try logWeather.flush();
-                    }
-                }
-                if (nPass == 0) {
-                    try logWeather.print("Weather variables: ", .{});
-                    try logWeather.flush();
                 }
                 // Read weather variable names (in short forms, e.g., M, m = max. temperature, N, n = min. temperature, H, h = humidity etc.).
                 for (6 + blkwthr.ni[nx][ny]..6 + blkwthr.ni[nx][ny] + blkwthr.nn[nx][ny]) |k| {
@@ -141,23 +132,18 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
         tokens = try tokenizeLine(wthrUnitLower, allocator);
         for (nh1..nh2) |nx| {
             for (nv1..nv2) |ny| {
+                if (nPass == 0) {
+                    try logWeather.print("=> [Start of {s} file.] {s} line#1&2 inputs: time step: {s}, date format: {s}, number of date variables to read: {d}, number of weather variables to read: {d}. Date variables: ", .{ weatherUnitFileName, weatherUnitFileName, try timeFrequency(blkwthr.ttype[nx][ny]), try calendarType(blkwthr.ctype[nx][ny]), blkwthr.ni[nx][ny], blkwthr.nn[nx][ny] });
+                    try logWeather.flush();
+                }
                 // Read weather variable units (in short forms).
                 for (0..blkwthr.nn[nx][ny]) |k| {
                     blkwthr.typ[nx][ny][k] = tokens.items[0][k];
-                    const timeStep = try timeFrequency(blkwthr.ttype[nx][ny]);
-                    const wthrVar = blkwthr.vars[nx][ny][k];
-                    const wthrVarFull = try weatherVars(wthrVar);
+                    const wthrVarName = try weatherVars(blkwthr.vars[nx][ny][k]);
                     if (nPass == 0) {
-                        const weatherUnit = switch (wthrVar) {
-                            'R', 'r' => try radiationUnits(wthrVar, timeStep),
-                            'H', 'h' => try humidityUnits(wthrVar),
-                            'P', 'p' => try precipitationUnits(wthrVar, timeStep),
-                            'W', 'w' => try windspeedUnits(wthrVar),
-                            'M', 'm', 'N', 'n', 'T', 't' => try tempUnits(wthrVar),
-                            else => "n/a",
-                        };
+                        const weatherUnit = try wthrUnits(blkwthr.vars[nx][ny][k], blkwthr.ttype[nx][ny]);
                         if (!(std.mem.eql(u8, weatherUnit, "n/a"))) {
-                            try logWeather.print("{s} ({s}), ", .{ wthrVarFull, weatherUnit });
+                            try logWeather.print("{s} ({s}), ", .{ wthrVarName, weatherUnit });
                             try logWeather.flush();
                         }
                     }
@@ -166,10 +152,60 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
                     try logWeather.print("\n", .{});
                     try logWeather.flush();
                 }
-                // if (nPass == 0) {
-                //     try logWeather.print("=> {s} line#2 inputs: .\n", .{ weatherUnitFileName, weatherUnitFileName, nx + offset, ny + offset, try timeFrequency(blkwthr.ttype[nx][ny]), try calendarType(blkwthr.ctype[nx][ny]), blkwthr.ni[nx][ny], blkwthr.nn[nx][ny] });
-                //     try logWeather.flush();
-                // }
+            }
+        }
+        tokens.deinit(allocator);
+        // Read wind speed measurement height and solar noon.
+        line = try wthrUnitFile.takeDelimiterExclusive('\n');
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                // Read windspeed measurement height.
+                blk2a.z0[nx][ny] = try parseTokenToFloat(f32, error.WindSpeedMeasurementHeightNotValidInWeatherFile, tokens.items[0], logFileWriter);
+                // Read flag for raising windspeed measurement height over vegetation.
+                blkc.iflgw[nx][ny] = try parseTokenToInt(u32, error.WindSpeedMeasurementFlagNotValidInWeatherFile, tokens.items[1], logFileWriter);
+                // Read solar noon.
+                blk2a.znoon[nx][ny] = try parseTokenToFloat(f32, error.SolarNoonNotValidInWeatherFile, tokens.items[2], logFileWriter);
+                if (nPass == 0) {
+                    try logWeather.print("=> {s} line#3 inputs: wind speed measured at {d} m above {s} surface, solar noon: {d}.\n", .{ weatherUnitFileName, blk2a.z0[nx][ny], windSpeedFlag[blkc.iflgw[nx][ny]], blk2a.znoon[nx][ny] });
+                    try logWeather.flush();
+                }
+            }
+        }
+        tokens.deinit(allocator);
+        // Read chemical concentrations in precipitation water.
+        line = try wthrUnitFile.takeDelimiterExclusive('\n');
+        tokens = try tokenizeLine(line, allocator);
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                // Read pH of precipitation water.
+                blk2b.phr[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterpHNotValidInWeatherFile, tokens.items[0], logFileWriter);
+                // Read NH₄ concentration of precipitation water.
+                blk2b.cn4r[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterNH4ConcNotValidInWeatherFile, tokens.items[1], logFileWriter);
+                // Read NO₃ concentration of precipitation water.
+                blk2b.cnor[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterNO3ConcNotValidInWeatherFile, tokens.items[2], logFileWriter);
+                // Read H₂PO₄ concentration of precipitation water.
+                blk2b.cpor[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterH2PO4ConcNotValidInWeatherFile, tokens.items[3], logFileWriter);
+                // Read Al concentration of precipitation water.
+                blk2b.calr[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterAlConcNotValidInWeatherFile, tokens.items[4], logFileWriter);
+                // Read Fe concentration of precipitation water.
+                blk2b.cfer[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterFeConcNotValidInWeatherFile, tokens.items[5], logFileWriter);
+                // Read Ca concentration of precipitation water.
+                blk2b.ccar[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterCaConcNotValidInWeatherFile, tokens.items[6], logFileWriter);
+                // Read Mg concentration of precipitation water.
+                blk2b.cmgr[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterMgConcNotValidInWeatherFile, tokens.items[7], logFileWriter);
+                // Read Na concentration of precipitation water.
+                blk2b.cnar[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterNaConcNotValidInWeatherFile, tokens.items[8], logFileWriter);
+                // Read K concentration of precipitation water.
+                blk2b.ckar[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterKConcNotValidInWeatherFile, tokens.items[9], logFileWriter);
+                // Read SO₄ concentration of precipitation water.
+                blk2b.csor[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterSO4ConcNotValidInWeatherFile, tokens.items[10], logFileWriter);
+                // Read Cl concentration of precipitation water.
+                blk2b.cclr[nx][ny] = try parseTokenToFloat(f32, error.PrecipitationWaterClConcNotValidInWeatherFile, tokens.items[11], logFileWriter);
+                if (nPass == 0) {
+                    try logWeather.print("=> {s} line#4 inputs: chemical concentrations in precipitation water: pH => {d} ppm, NH₄ => {d} ppm, NO₃ => {d} ppm, H₂PO₄ => {d} ppm, Al => {d} ppm, Fe => {d} ppm, Ca => {d} ppm, Mg => {d} ppm, Na => {d} ppm, K => {d} ppm, SO₄ => {d} ppm, Cl => {d} ppm.\n", .{ weatherUnitFileName, blk2b.phr[nx][ny], blk2b.cn4r[nx][ny], blk2b.cnor[nx][ny], blk2b.cpor[nx][ny], blk2b.calr[nx][ny], blk2b.cfer[nx][ny], blk2b.ccar[nx][ny], blk2b.cmgr[nx][ny], blk2b.cnar[nx][ny], blk2b.ckar[nx][ny], blk2b.csor[nx][ny], blk2b.cclr[nx][ny] });
+                    try logWeather.flush();
+                }
             }
         }
         tokens.deinit(allocator);
@@ -181,168 +217,10 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
                 else => return err,
             }; // break out of the loop at the EOF.
             tokens = try tokenizeLine(line, allocator);
-            // if (nPass == 0 and wthrLineCount < 25) {
-            //     std.debug.print("lineTest: {s}, nhw: {}, nvs: {}\n", .{ line, nhw, nvs });
-            // }
             tokens.deinit(allocator);
         }
-        //         // Read altitude
-        //         blk2a.alti[nx][ny] = try parseTokenToFloat(f32, error.InvalidElevation, tokens.items[1], logFileWriter);
-        //         // Read mean annual temperature (MAT) (deg C) to be used as lower boundary initial temperature
-        //         blk2a.atcai[nx][ny] = try parseTokenToFloat(f32, error.InvalidMeanAnnualTemperature, tokens.items[2], logFileWriter);
-        //         // Read water table flag; 0 = none; 1,2 = natural stationary, mobile; 3,4 = artificial stationary, mobile
-        //         blk2a.idtbl[nx][ny] = try parseTokenToInt(u32, error.InvalidWaterTableFlag, tokens.items[3], logFileWriter);
-        //         if (blk2a.idtbl[nx][ny] > 4) {
-        //             const err = error.InvalidWaterTableFlag;
-        //             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
-        //             try logFileWriter.flush();
-        //             return err;
-        //         }
-        //         try logSite.print("=> [Start of {s} file.] {s} line#1 inputs: grid cell position W-E: {}, N-S: {}, latitude: {d} degree, elevation: {d} m, MAT: {d} degree C, water table simulation: {s}.\n", .{ landscapeUnitFileName, landscapeUnitFileName, nx + offset, ny + offset, blkc.alat[nx][ny], blk2a.alti[nx][ny], blk2a.atcai[nx][ny], wtflag[blk2a.idtbl[nx][ny]] });
-        //         try logSite.flush();
-        //     }
-        // }
-        // tokens.deinit(allocator);
-        // line = try landscapeUnitFile.takeDelimiterExclusive('\n');
-        // tokens = try tokenizeLine(line, allocator);
-        // if (tokens.items.len != 6) {
-        //     const err = error.InvalidInputLandscapeUnitFileLine2;
-        //     try logFileWriter.print("error: {s}\n", .{@errorName(err)});
-        //     try logFileWriter.flush();
-        //     return err;
-        // }
-        // for (nh1..nh2) |nx| {
-        //     for (nv1..nv2) |ny| {
-        //         // Read atmospheric O2 concentration (ppm)
-        //         blk2a.oxye[nx][ny] = try parseTokenToFloat(f32, error.InvalidAtmO2Concentration, tokens.items[0], logFileWriter);
-        //         // Read atmospheric N2 concentration (ppm)
-        //         blk2a.z2ge[nx][ny] = try parseTokenToFloat(f32, error.InvalidAtmN2Concentration, tokens.items[1], logFileWriter);
-        //         // Read atmospheric CO2 concentration (ppm)
-        //         blk2a.co2ei[nx][ny] = try parseTokenToFloat(f32, error.InvalidAtmCO2Concentration, tokens.items[2], logFileWriter);
-        //         // Read atmospheric CH4 concentration (ppm)
-        //         blk2a.ch4e[nx][ny] = try parseTokenToFloat(f32, error.InvalidAtmCH4Concentration, tokens.items[3], logFileWriter);
-        //         // Read atmospheric N2O concentration (ppm)
-        //         blk2a.z2oe[nx][ny] = try parseTokenToFloat(f32, error.InvalidAtmN2OConcentration, tokens.items[4], logFileWriter);
-        //         // Read atmospheric NH3 concentration (ppm)
-        //         blk2a.znh3e[nx][ny] = try parseTokenToFloat(f32, error.InvalidAtmNH3Concentration, tokens.items[5], logFileWriter);
-        //         try logSite.print("=> {s} line#2 inputs for atmospheric gas concentrations: grid cell position W-E: {}, N-S: {}, O2: {} ppm, N2: {} ppm, CO2: {d} ppm, CH4: {d} ppm, N2O: {d} ppm, NH3: {d} ppm.\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blk2a.oxye[nx][ny], blk2a.z2ge[nx][ny], blk2a.co2ei[nx][ny], blk2a.ch4e[nx][ny], blk2a.z2oe[nx][ny], blk2a.znh3e[nx][ny] });
-        //         try logSite.flush();
-        //     }
-        // }
-        // tokens.deinit(allocator);
-        // line = try landscapeUnitFile.takeDelimiterExclusive('\n');
-        // tokens = try tokenizeLine(line, allocator);
-        // if (tokens.items.len != 7) {
-        //     const err = error.InvalidInputLandscapeUnitFileLine3;
-        //     try logFileWriter.print("error: {s}\n", .{@errorName(err)});
-        //     try logFileWriter.flush();
-        //     return err;
-        // }
-        // for (nh1..nh2) |nx| {
-        //     for (nv1..nv2) |ny| {
-        //         // Read Koppen climate zone
-        //         blkc.ietyp[nx][ny] = try parseTokenToInt(u32, error.InvalidKoppenClimateZone, tokens.items[0], logFileWriter);
-        //         // Read salt options; 0 = no salinity simulation; 1 = salinity simulation
-        //         blkc.isalt[nx][ny] = try parseTokenToInt(u32, error.InvalidSaltOption, tokens.items[1], logFileWriter);
-        //         if (blkc.isalt[nx][ny] > 1) {
-        //             const err = error.InvalidSaltOption;
-        //             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
-        //             try logFileWriter.flush();
-        //             return err;
-        //         }
-        //         // Read erosion options; 0 = allow freeze-thaw to change elevation; 1 = allow freeze-thaw plus erosion to change elevation; 2 = allow freeze-thaw plus soc accumulation to change elevation; 3 = allow freeze-thaw plus soc accumulation plus erosion to change elevation, -1 = no change in elevation
-        //         blkc.iersn[nx][ny] = try parseTokenToInt(i32, error.InvalidErosionOption, tokens.items[2], logFileWriter);
-        //         if (blkc.iersn[nx][ny] > 3 or blkc.iersn[nx][ny] < -1) {
-        //             const err = error.InvalidErosionOption;
-        //             try logFileWriter.print("error: {s}\n", .{@errorName(err)});
-        //             try logFileWriter.flush();
-        //             return err;
-        //         }
-        //         // Read lateral mass and energy transport options; 1 = lateral connections between grid cells (and hence lateral flux simulations); 3 = no lateral connection/flux simulation
-        //         blkc.ncn[nx][ny] = try parseTokenToInt(u32, error.InvalidLateralFluxOption, tokens.items[3], logFileWriter);
-        //         if (blkc.ncn[nx][ny] != 1) {
-        //             if (blkc.ncn[nx][ny] != 3) {
-        //                 const err = error.InvalidLateralFluxOption;
-        //                 try logFileWriter.print("error: {s}\n", .{@errorName(err)});
-        //                 try logFileWriter.flush();
-        //                 return err;
-        //             }
-        //         }
-        //         // Read the depth of natural external water table (m)
-        //         blk2a.dtbli[nx][ny] = try parseTokenToFloat(f32, error.InvalidExtWTD, tokens.items[4], logFileWriter);
-        //         // Read the depth of artificial water table to simulate artificial drainage (m)
-        //         blk2a.dtbldi[nx][ny] = try parseTokenToFloat(f32, error.InvalidArtificialWTD, tokens.items[5], logFileWriter);
-        //         // Slope of natural water table relative to landscape surface
-        //         blk2a.dtblg[nx][ny] = try parseTokenToFloat(f32, error.InvalidWTDSlope, tokens.items[6], logFileWriter);
-        //         const iersngforopt: u32 = @max(0, @min(4, blkc.iersn[nx][ny] + 1));
-        //         const ncngforopt: u32 = blkc.ncn[nx][ny] - 1;
-        //         try logSite.print("=> {s} line#3 inputs: grid cell position W-E: {}, N-S: {}, Koppen climate zone: {}, salinity simulation: {s}, erosion/surface change simulation: {s}, grid cell connectivity: {s}, external WTD: {d} m, artificial WTD: {d} m, slope of WT relative to landscape surface: {d}. Note: WTD will be simulated only if water table option in line#1 is chosen AND external WTD in line#3 < depth of the lowest soil layer in soil file. Artificial drainage will be simulated only if artificial water table option in line#1 is chosen AND artificial WTD in line#3 < external WTD in line#3.\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blkc.ietyp[nx][ny], saltopt[blkc.isalt[nx][ny]], erosionopt[iersngforopt], gridconnopt[ncngforopt], blk2a.dtbli[nx][ny], blk2a.dtbldi[nx][ny], blk2a.dtblg[nx][ny] });
-        //         try logSite.flush();
-        //     }
-        // }
-        // tokens.deinit(allocator);
-        // line = try landscapeUnitFile.takeDelimiterExclusive('\n');
-        // tokens = try tokenizeLine(line, allocator);
-        // if (tokens.items.len != 13) {
-        //     const err = error.InvalidInputLandscapeFileLine4;
-        //     try logFileWriter.print("error: {s}\n", .{@errorName(err)});
-        //     try logFileWriter.flush();
-        //     return err;
-        // }
-        // for (nh1..nh2) |nx| {
-        //     for (nv1..nv2) |ny| {
-        //         // Read surface boundary conditions for run-off simulation through N, E, S, and W boundary
-        //         blk2a.rchqn[nx][ny] = try parseTokenToFloat(f32, error.InvalidSurfBoundCond_N, tokens.items[0], logFileWriter);
-        //         blk2a.rchqe[nx][ny] = try parseTokenToFloat(f32, error.InvalidSurfBoundCond_E, tokens.items[1], logFileWriter);
-        //         blk2a.rchqs[nx][ny] = try parseTokenToFloat(f32, error.InvalidSurfBoundCond_S, tokens.items[2], logFileWriter);
-        //         blk2a.rchqw[nx][ny] = try parseTokenToFloat(f32, error.InvalidSurfBoundCond_W, tokens.items[3], logFileWriter);
-        //         // Read sub-surface boundary conditions for sub-surface lateral flux simulations through N, E, S, and W boundary
-        //         blk2a.rchgnu[nx][ny] = try parseTokenToFloat(f32, error.InvalidSubSurfBoundCond_N, tokens.items[4], logFileWriter);
-        //         blk2a.rchgeu[nx][ny] = try parseTokenToFloat(f32, error.InvalidSubSurfBoundCond_E, tokens.items[5], logFileWriter);
-        //         blk2a.rchgsu[nx][ny] = try parseTokenToFloat(f32, error.InvalidSubSurfBoundCond_S, tokens.items[6], logFileWriter);
-        //         blk2a.rchgwu[nx][ny] = try parseTokenToFloat(f32, error.InvalidSubSurfBoundCond_W, tokens.items[7], logFileWriter);
-        //         // Read lateral distance to external water table (natural or artificial) to the N, E, S, and W
-        //         blk2a.rchgnt[nx][ny] = try parseTokenToFloat(f32, error.InvalidDistToExtWT_N, tokens.items[8], logFileWriter);
-        //         blk2a.rchget[nx][ny] = try parseTokenToFloat(f32, error.InvalidDistToExtWT_E, tokens.items[9], logFileWriter);
-        //         blk2a.rchgst[nx][ny] = try parseTokenToFloat(f32, error.InvalidDistToExtWT_S, tokens.items[10], logFileWriter);
-        //         blk2a.rchgwt[nx][ny] = try parseTokenToFloat(f32, error.InvalidDistToExtWT_W, tokens.items[11], logFileWriter);
-        //         // Read lower boundary conditions for water flux simulations through lower boundary
-        //         blk2a.rchgd[nx][ny] = try parseTokenToFloat(f32, error.InvalidLowerBoundCond, tokens.items[12], logFileWriter);
-        //         try logSite.print("=> {s} line#4 inputs for model boundary conditions: grid cell position W-E: {}, N-S: {}, multiplier for surface run-off/run-on simulation through N: {d}, E: {d}, S: {d}, and W: {d} boundary. Multiplier for sub-surface discharge/recharge simulation through N: {d}, E: {d}, S: {d}, and W: {d} boundary. Lateral distance to external WT (natural or artificial) to the N: {d} m, E: {d} m, S: {d} m, and W: {d} m direction. Multiplier for water flux simulation (e.g. deep percolation, capillary-rise) through lower boundary: {d}.\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blk2a.rchqn[nx][ny], blk2a.rchqe[nx][ny], blk2a.rchqs[nx][ny], blk2a.rchqw[nx][ny], blk2a.rchgnu[nx][ny], blk2a.rchgeu[nx][ny], blk2a.rchgsu[nx][ny], blk2a.rchgwu[nx][ny], blk2a.rchgnt[nx][ny], blk2a.rchget[nx][ny], blk2a.rchgst[nx][ny], blk2a.rchgwt[nx][ny], blk2a.rchgd[nx][ny] });
-        //         try logSite.flush();
-        //     }
-        // }
-        // tokens.deinit(allocator);
-        // line = try landscapeUnitFile.takeDelimiterExclusive('\n');
-        // tokens = try tokenizeLine(line, allocator);
-        // if (tokens.items.len != 2) {
-        //     const err = error.InvalidInputLandscapeFileLine5;
-        //     try logFileWriter.print("error: {s}\n", .{@errorName(err)});
-        //     try logFileWriter.flush();
-        //     return err;
-        // }
-        // for (nh1..nh2) |nx| {
-        //     for (nv1..nv2) |ny| {
-        //         // Read width of the W-E landscape (m)
-        //         blk2a.dh[nx][ny] = try parseTokenToFloat(f32, error.InvalidGridWidthInLandscapeFile_WE, tokens.items[0], logFileWriter);
-        //         // Read width of the N-S landscape (m)
-        //         blk2a.dv[nx][ny] = try parseTokenToFloat(f32, error.InvalidGridWidthInLandscapeFile_NS, tokens.items[1], logFileWriter);
-        //         try logSite.print("=> {s} line#5 inputs for grid cell size: grid cell position W-E: {}, N-S: {}, W-E width: {d} m, N-S width: {d} m. [End of {s} file.]\n", .{ landscapeUnitFileName, nx + offset, ny + offset, blk2a.dh[nx][ny], blk2a.dv[nx][ny], landscapeUnitFileName });
-        //         try logSite.flush();
-        //     }
-        // }
-        // tokens.deinit(allocator);
         for (nh1..nh2) |_| {
             for (nv1..nv2) |_| {
-                // blk2a.co2e[nx][ny] = blk2a.co2ei[nx][ny];
-                // blk2a.h2ge[nx][ny] = 1.0e-03;
-                // // Calculate maximum daylength for plant phenology
-                // // dylm = maximum daylength (h)
-                // if (blkc.alat[nx][ny] > 0.0) {
-                //     blkc.dylm[nx][ny] = try dylnFunc(blkc, 173, nx, ny);
-                // } else {
-                //     blkc.dylm[nx][ny] = try dylnFunc(blkc, 356, nx, ny);
-                // }
                 gridCount += 1;
             }
         }
@@ -358,6 +236,7 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
 /// This function returns time step or frequency details.
 pub fn timeFrequency(ttype: u8) anyerror![]const u8 {
     return switch (ttype) {
+        'S', 's' => "half-hourly",
         'H', 'h' => "hourly",
         'D', 'd' => "daily",
         '3' => "3-hourly",
@@ -409,16 +288,16 @@ pub fn tempUnits(c: u8) ![]const u8 {
 }
 
 /// This function returns shortwave radiation units.
-pub fn radiationUnits(c: u8, timeFlag: []const u8) ![]const u8 {
+pub fn radiationUnits(c: u8, timeFlag: u8) ![]const u8 {
     return switch (c) {
         'L', 'l', 'P', 'p' => "PAR in μmol photons m⁻² s⁻¹",
-        'J' => if (std.mem.eql(u8, timeFlag, "daily"))
+        'J' => if (timeFlag == 'd')
             "J cm⁻² d⁻¹"
         else
             "J cm⁻² s⁻¹",
         'W', 'w' => "W m⁻²",
         'K', 'k' => "kJ m⁻² s⁻¹",
-        else => if (std.mem.eql(u8, timeFlag, "daily"))
+        else => if (timeFlag == 'd')
             "MJ m⁻² d⁻¹"
         else
             "MJ m⁻² h⁻¹",
@@ -437,17 +316,17 @@ pub fn windspeedUnits(c: u8) ![]const u8 {
 }
 
 /// This function returns precipitation units.
-pub fn precipitationUnits(c: u8, timeFlag: []const u8) ![]const u8 {
+pub fn precipitationUnits(c: u8, timeFlag: u8) ![]const u8 {
     return switch (c) {
-        'M', 'm' => if (std.mem.eql(u8, timeFlag, "daily"))
+        'M', 'm' => if (timeFlag == 'd')
             "m d⁻¹"
         else
             "m h⁻¹",
-        'C', 'c' => if (std.mem.eql(u8, timeFlag, "daily"))
+        'C', 'c' => if (timeFlag == 'd')
             "cm d⁻¹"
         else
             "cm h⁻¹",
-        'I', 'i' => if (std.mem.eql(u8, timeFlag, "daily"))
+        'I', 'i' => if (timeFlag == 'd')
             "inches d⁻¹"
         else
             "inches h⁻¹",
@@ -467,5 +346,17 @@ pub fn humidityUnits(c: u8) ![]const u8 {
         'G', 'g' => "mixing ratio (g kg⁻¹)",
         'M', 'm' => "vapor pressure (hpa or mb)",
         else => "vapor pressure (kpa)",
+    };
+}
+
+/// This function returns weather units based on weather variables.
+pub fn wthrUnits(wthrVar: u8, timeStep: u8) ![]const u8 {
+    return switch (wthrVar) {
+        'R', 'r' => try radiationUnits(wthrVar, timeStep),
+        'H', 'h' => try humidityUnits(wthrVar),
+        'P', 'p' => try precipitationUnits(wthrVar, timeStep),
+        'W', 'w' => try windspeedUnits(wthrVar),
+        'M', 'm', 'N', 'n', 'T', 't' => try tempUnits(wthrVar),
+        else => "n/a",
     };
 }

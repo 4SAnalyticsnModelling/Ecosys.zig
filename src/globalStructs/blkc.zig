@@ -39,6 +39,7 @@ pub const Blkc = struct {
     iersn: [jx][jy]i32, // Fortran: IERSNG
     ietyp: [jx][jy]u32, // Fortran: IETYP(JY,JX)
     isalt: [jx][jy]u32, // Fortran: ISALTG
+    iflgw: [jx][jy]u32, // Fortran: IFLGW
     drad: [12]f32, // Fortran: DRAD(12)
     dtmpx: [12]f32, // Fortran: DTMPX(12)
     dtmpn: [12]f32, // Fortran: DTMPN(12)
@@ -82,7 +83,6 @@ pub const Blkc = struct {
     npg: u32, // Fortran: NPG
     iclm: u32, // Fortran: ICLM
     imng: u32, // Fortran: IMNG
-    iflgw: u32, // Fortran: IFLGW
     npr: u32, // Fortran: NPR
     nps: u32, // Fortran: NPS
     jout: u32, // Fortran: JOUT

@@ -5,6 +5,7 @@ const Blk17 = @import("globalStructs/blk17.zig").Blk17;
 const Blk8a = @import("globalStructs/blk8a.zig").Blk8a;
 const Blk8b = @import("globalStructs/blk8b.zig").Blk8b;
 const Blk2a = @import("globalStructs/blk2a.zig").Blk2a;
+const Blk2b = @import("globalStructs/blk2b.zig").Blk2b;
 const Blkc = @import("globalStructs/blkc.zig").Blkc;
 const Blkmain = @import("localStructs/blkmain.zig").Blkmain;
 const Files = @import("globalStructs/files.zig").Files;
@@ -97,6 +98,7 @@ pub fn main() !void {
     var blk11a: Blk11a = Blk11a.init();
     var blk17: Blk17 = Blk17.init();
     var blk2a: Blk2a = Blk2a.init();
+    var blk2b: Blk2b = Blk2b.init();
     var blk8a: Blk8a = Blk8a.init();
     var blk8b: Blk8b = Blk8b.init();
     var blkc: Blkc = Blkc.init();
@@ -176,7 +178,7 @@ pub fn main() !void {
                     try readOptionFile(allocator, logErr, logOption, logRun, ecosysRun, nPass, nex, ntx, ne, nt, nay, nScenario, &blk17, &blkc, &blkmain, &files);
                     // Read weather file
                     fba.reset();
-                    try readWeatherFile(allocator, logErr, logWeather, logRun, ecosysRun, nhw, nvn, nhe, nvs, nPass, nex, ne);
+                    try readWeatherFile(allocator, logErr, logWeather, logRun, ecosysRun, &blk2a, &blk2b, &blkc, nhw, nvn, nhe, nvs, nPass, nex, ne);
                     // Read land management file
                     var line = try ecosysRun.takeDelimiterExclusive('\n');
                     var tokens = try tokenizeLine(line, allocator);
