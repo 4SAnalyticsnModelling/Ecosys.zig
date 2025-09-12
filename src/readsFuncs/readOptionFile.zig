@@ -173,17 +173,17 @@ pub fn readOptionFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Write
         return err;
     }
     // Maximum number of cycles per hour for water, heat, and solute flux calculations.
-    blkc.npx = try parseTokenToInt(u32, error.InvalidDataFormatForNumberOfSubHourlyWaterCycles, tokens.items[0], logFileWriter);
+    blkc.npx = try parseTokenToInt(u32, error.InvalidNumberOfSubHourlyWaterCyclesInOptionFile, tokens.items[0], logFileWriter);
     // Maximum number of cycles per npx for gas flux calculations
-    blkc.npy = try parseTokenToInt(u32, error.InvalidDataFormatForNumberOfSubHourlyWaterCycles, tokens.items[1], logFileWriter);
+    blkc.npy = try parseTokenToInt(u32, error.InvalidNumberOfSubHourlyGasCyclesInOptionFile, tokens.items[1], logFileWriter);
     // Output frequency for hourly data
-    blkc.jout = try parseTokenToInt(u32, error.InvalidDataFormatForNumberOfSubHourlyWaterCycles, tokens.items[2], logFileWriter);
+    blkc.jout = try parseTokenToInt(u32, error.InvalidHourlyOutputFrequencyInOptionFile, tokens.items[2], logFileWriter);
     // Output frequency for daily data
-    blkc.iout = try parseTokenToInt(u32, error.InvalidDataFormatForNumberOfSubHourlyWaterCycles, tokens.items[3], logFileWriter);
+    blkc.iout = try parseTokenToInt(u32, error.InvalidDailyOutputFrequencyInOptionFile, tokens.items[3], logFileWriter);
     // Output frequency for checkpoint data
-    blkc.kout = try parseTokenToInt(u32, error.InvalidDataFormatForNumberOfSubHourlyWaterCycles, tokens.items[4], logFileWriter);
+    blkc.kout = try parseTokenToInt(u32, error.InvalidOutputFrequencyForCheckpointDataInOptionFile, tokens.items[4], logFileWriter);
     // Climate forcing type (0=none, 1=step, 2=transient)
-    blkc.iclm = try parseTokenToInt(u32, error.InvalidDataFormatForNumberOfSubHourlyWaterCycles, tokens.items[5], logFileWriter);
+    blkc.iclm = try parseTokenToInt(u32, error.InvalidClimateForcingTypeInOptionFile, tokens.items[5], logFileWriter);
     if (nPass == 0) {
         try logOption.print("=> {s} line#17 inputs: max. sub-hourly water flux cycles #{d}, max. gas flux cycles within sub-hourly water flux cycle #{d}, output frequencies for: hourly outputs {d}, daily outputs {d}, and checkpoint data {d}, climate forcing type: {s}. [End of {s} file.]\n", .{ optionFileName, blkc.npx, blkc.npy, blkc.jout, blkc.iout, blkc.kout, iclmflag[blkc.iclm], optionFileName });
         try logOption.flush();

@@ -57,17 +57,27 @@ pub fn main() !void {
     defer logError.close();
     var logErrBuf = logError.writer(&outBuf);
     var logErr = &logErrBuf.interface;
-    var runOK: bool = false;
+    // Unroll model variables.
+    var blkmain: Blkmain = Blkmain.init();
+    var blk11a: Blk11a = Blk11a.init();
+    var blk17: Blk17 = Blk17.init();
+    var blk2a: Blk2a = Blk2a.init();
+    var blk2b: Blk2b = Blk2b.init();
+    var blk8a: Blk8a = Blk8a.init();
+    var blk8b: Blk8b = Blk8b.init();
+    var blkc: Blkc = Blkc.init();
+    var files: Files = Files.init();
     // Successful compeletion confirmation to be printed at the end of the model run if runOK is true
+    var runOK: bool = false;
     defer {
         if (runOK) {
             const endTimeUs: i64 = std.time.microTimestamp();
             const timeElapsedWithUnit = elapsedTime(startTimeUs, endTimeUs);
             const timeElapsed: f64 = timeElapsedWithUnit.value;
             const timeElapsedUnit: []const u8 = timeElapsedWithUnit.unit;
-            logErr.print("success: Ecosys model run in {s} successfully completed in {d} {s}!\n", .{ runFile, timeElapsed, timeElapsedUnit }) catch {};
+            logErr.print("success: Ecosys model run in {s} successfully completed in {d} {s}, ending at year {d}!\n", .{ runFile, timeElapsed, timeElapsedUnit, blkc.iyrc }) catch {};
             logErr.flush() catch {};
-            std.debug.print("success: Ecosys model run in {s} successfully completed in {d} {s}!\n", .{ runFile, timeElapsed, timeElapsedUnit });
+            std.debug.print("\x1b[1;32msuccess: Ecosys model run in {s} successfully completed in {d} {s}, ending at year {d}!\x1b[0m\n", .{ runFile, timeElapsed, timeElapsedUnit, blkc.iyrc });
         }
     }
     // Run failure notice to be printed if runOK is false due to any error
@@ -76,9 +86,9 @@ pub fn main() !void {
         const timeElapsedWithUnit = elapsedTime(startTimeUs, endTimeUs);
         const timeElapsed: f64 = timeElapsedWithUnit.value;
         const timeElapsedUnit: []const u8 = timeElapsedWithUnit.unit;
-        logErr.print("error: Ecosys model run in {s} stopped unexpectedly in {d} {s} due to some error(s)! Please fix the error(s) and try again.\n", .{ runFile, timeElapsed, timeElapsedUnit }) catch {};
+        logErr.print("error: Ecosys model run in {s} stopped unexpectedly in {d} {s} due to some error(s) at year {d}! Please fix the error(s) and try again.\n", .{ runFile, timeElapsed, timeElapsedUnit, blkc.iyrc }) catch {};
         logErr.flush() catch {};
-        std.debug.print("error: Ecosys model run in {s} stopped unexpectedly in {d} {s} due to some error(s)! Please fix the error(s) and try again.\n", .{ runFile, timeElapsed, timeElapsedUnit });
+        std.debug.print("\x1b[1;31merror: Ecosys model run in {s} stopped unexpectedly in {d} {s} due to some error(s) at year {d}! Please fix the error(s) and try again.\x1b[0m\n", .{ runFile, timeElapsed, timeElapsedUnit, blkc.iyrc });
     }
     const ecosysRunFile = fs.openFile(runFile, .{}) catch {
         const err = error.RunFileNotFoundOrFailedToOpenRunFile;
@@ -94,15 +104,6 @@ pub fn main() !void {
     defer logRunfile.close();
     var logRunfileBuf = logRunfile.writer(&outBuf);
     const logRun = &logRunfileBuf.interface;
-    var blkmain: Blkmain = Blkmain.init();
-    var blk11a: Blk11a = Blk11a.init();
-    var blk17: Blk17 = Blk17.init();
-    var blk2a: Blk2a = Blk2a.init();
-    var blk2b: Blk2b = Blk2b.init();
-    var blk8a: Blk8a = Blk8a.init();
-    var blk8b: Blk8b = Blk8b.init();
-    var blkc: Blkc = Blkc.init();
-    var files: Files = Files.init();
     // Reset to reuse memory more efficiently in fixed buffered allocator.
     fba.reset();
     // Read number of E-W and N-S grid cells

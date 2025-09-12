@@ -1,5 +1,15 @@
 const std = @import("std");
 const offset: u32 = 1;
+const timeFrequency = @import("timeFrequency.zig").timeFrequency;
+const dateVars = @import("dateVars.zig").dateVars;
+const calendarType = @import("calendarType.zig").calendarType;
+const weatherVars = @import("weatherVars.zig").weatherVars;
+const tempUnits = @import("tempUnits.zig").tempUnits;
+const radiationUnits = @import("radiationUnits.zig").radiationUnits;
+const windspeedUnits = @import("windspeedUnits.zig").windspeedUnits;
+const precipitationUnits = @import("precipitationUnits.zig").precipitationUnits;
+const humidityUnits = @import("humidityUnits.zig").humidityUnits;
+const wthrUnits = @import("wthrUnits.zig").wthrUnits;
 const Blk2a = @import("../globalStructs/blk2a.zig").Blk2a;
 const Blk2b = @import("../globalStructs/blk2b.zig").Blk2b;
 const Blkc = @import("../globalStructs/blkc.zig").Blkc;
@@ -231,132 +241,4 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
         try logFileWriter.flush();
         return err;
     }
-}
-
-/// This function returns time step or frequency details.
-pub fn timeFrequency(ttype: u8) anyerror![]const u8 {
-    return switch (ttype) {
-        'S', 's' => "half-hourly",
-        'H', 'h' => "hourly",
-        'D', 'd' => "daily",
-        '3' => "3-hourly",
-        else => error.InvalidDateFormatInWeatherUnitFileHeader,
-    };
-}
-
-/// This function returns date variables.
-pub fn dateVars(ttype: u8) anyerror![]const u8 {
-    return switch (ttype) {
-        'H', 'h' => "hour",
-        'D', 'd' => "day",
-        'M', 'm' => "month",
-        'Y', 'y' => "year",
-        else => "n/a",
-    };
-}
-
-/// This function returns date format details.
-pub fn calendarType(ctype: u8) ![]const u8 {
-    return switch (ctype) {
-        'J', 'j' => "julian date",
-        else => "calendar date",
-    };
-}
-
-/// This function returns full names of the weather variables from character symbols.
-pub fn weatherVars(c: u8) ![]const u8 {
-    return switch (c) {
-        'M', 'm' => "max. daily temperature",
-        'N', 'n' => "min. daily temperature",
-        'T', 't' => "hourly temperature",
-        'W', 'w' => "wind speed",
-        'H', 'h' => "humidity",
-        'R', 'r' => "shortwave radiation",
-        'P', 'p' => "precipitation",
-        'L', 'l' => "longwave radiation",
-        else => "n/a",
-    };
-}
-
-/// This function returns temperature units.
-pub fn tempUnits(c: u8) ![]const u8 {
-    return switch (c) {
-        'F', 'f' => "⁰F",
-        'K', 'k' => "K",
-        else => "°C",
-    };
-}
-
-/// This function returns shortwave radiation units.
-pub fn radiationUnits(c: u8, timeFlag: u8) ![]const u8 {
-    return switch (c) {
-        'L', 'l', 'P', 'p' => "PAR in μmol photons m⁻² s⁻¹",
-        'J' => if (timeFlag == 'd')
-            "J cm⁻² d⁻¹"
-        else
-            "J cm⁻² s⁻¹",
-        'W', 'w' => "W m⁻²",
-        'K', 'k' => "kJ m⁻² s⁻¹",
-        else => if (timeFlag == 'd')
-            "MJ m⁻² d⁻¹"
-        else
-            "MJ m⁻² h⁻¹",
-    };
-}
-
-/// This function returns wind speed units.
-pub fn windspeedUnits(c: u8) ![]const u8 {
-    return switch (c) {
-        'S' => "m s⁻¹",
-        'H' => "km h⁻¹",
-        'D' => "km d⁻¹",
-        'M' => "mile h⁻¹",
-        else => "m h⁻¹",
-    };
-}
-
-/// This function returns precipitation units.
-pub fn precipitationUnits(c: u8, timeFlag: u8) ![]const u8 {
-    return switch (c) {
-        'M', 'm' => if (timeFlag == 'd')
-            "m d⁻¹"
-        else
-            "m h⁻¹",
-        'C', 'c' => if (timeFlag == 'd')
-            "cm d⁻¹"
-        else
-            "cm h⁻¹",
-        'I', 'i' => if (timeFlag == 'd')
-            "inches d⁻¹"
-        else
-            "inches h⁻¹",
-        'S', 's' => "mm min⁻¹",
-        else => "mm h⁻¹",
-    };
-}
-
-/// This function returns humidity units.
-pub fn humidityUnits(c: u8) ![]const u8 {
-    return switch (c) {
-        'D', 'd' => "dew point (°C)",
-        'F', 'f' => "dew point (⁰F)",
-        'H', 'h' => "relative humidity (fraction 0–1)",
-        'R', 'r' => "relative humidity (%)",
-        'S', 's' => "specific humidity (kg kg⁻¹)",
-        'G', 'g' => "mixing ratio (g kg⁻¹)",
-        'M', 'm' => "vapor pressure (hpa or mb)",
-        else => "vapor pressure (kpa)",
-    };
-}
-
-/// This function returns weather units based on weather variables.
-pub fn wthrUnits(wthrVar: u8, timeStep: u8) ![]const u8 {
-    return switch (wthrVar) {
-        'R', 'r' => try radiationUnits(wthrVar, timeStep),
-        'H', 'h' => try humidityUnits(wthrVar),
-        'P', 'p' => try precipitationUnits(wthrVar, timeStep),
-        'W', 'w' => try windspeedUnits(wthrVar),
-        'M', 'm', 'N', 'n', 'T', 't' => try tempUnits(wthrVar),
-        else => "n/a",
-    };
 }
