@@ -143,15 +143,24 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
         for (nh1..nh2) |nx| {
             for (nv1..nv2) |ny| {
                 if (nPass == 0) {
-                    try logWeather.print("=> [Start of {s} file.] {s} line#1&2 inputs: time step: {s}, date format: {s}, number of date variables to read: {d}, number of weather variables to read: {d}. Date variables: ", .{ weatherUnitFileName, weatherUnitFileName, try timeFrequency(blkwthr.ttype[nx][ny]), try calendarType(blkwthr.ctype[nx][ny]), blkwthr.ni[nx][ny], blkwthr.nn[nx][ny] });
+                    try logWeather.print("=> [Start of {s} file.] {s} line#1&2 inputs: time step: {s}, date format: {s}, number of date variables to read: {d}, number of weather variables to read: {d}. Variables used in the model: ", .{ weatherUnitFileName, weatherUnitFileName, try timeFrequency(blkwthr.ttype[nx][ny]), try calendarType(blkwthr.ctype[nx][ny]), blkwthr.ni[nx][ny], blkwthr.nn[nx][ny] });
                     try logWeather.flush();
+                }
+                for (0..blkwthr.ni[nx][ny]) |k| {
+                    const wthrVarName = try dateVars(blkwthr.vars[nx][ny][k]);
+                    if (nPass == 0) {
+                        if (!(std.mem.eql(u8, wthrVarName, "n/a"))) {
+                            try logWeather.print("{s}, ", .{wthrVarName});
+                            try logWeather.flush();
+                        }
+                    }
                 }
                 // Read weather variable units (in short forms).
                 for (0..blkwthr.nn[nx][ny]) |k| {
                     blkwthr.typ[nx][ny][k] = tokens.items[0][k];
                     const wthrVarName = try weatherVars(blkwthr.vars[nx][ny][k]);
                     if (nPass == 0) {
-                        const weatherUnit = try wthrUnits(blkwthr.vars[nx][ny][k], blkwthr.ttype[nx][ny]);
+                        const weatherUnit = try wthrUnits(blkwthr.vars[nx][ny][k], blkwthr.typ[nx][ny][k], blkwthr.ttype[nx][ny]);
                         if (!(std.mem.eql(u8, weatherUnit, "n/a"))) {
                             try logWeather.print("{s} ({s}), ", .{ wthrVarName, weatherUnit });
                             try logWeather.flush();
@@ -219,14 +228,62 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
             }
         }
         tokens.deinit(allocator);
-        var wthrLineCount: u32 = 0;
+        var hasDoy366: bool = false;
+        var day: usize = 0;
+        var hour: usize = 0;
         while (true) {
-            wthrLineCount += 1;
             line = wthrUnitFile.takeDelimiterExclusive('\n') catch |err| switch (err) {
                 error.EndOfStream => break,
                 else => return err,
             }; // break out of the loop at the EOF.
             tokens = try tokenizeLine(line, allocator);
+            for (nh1..nh2) |nx| {
+                for (nv1..nv2) |ny| {
+                    if (blkwthr.ttype[nx][ny] == 'h') {
+                        if (blkwthr.ctype[nx][ny] == 'j') {
+                            for (0..blkwthr.ni[nx][ny]) |k| {
+                                if (blkwthr.ivars[nx][ny][k] == 'd') {
+                                    day = try parseTokenToInt(usize, error.InvalidDayInWeatherFile, tokens.items[k], logFileWriter);
+                                    day = day - 1; // for 0 indexing used later.
+                                }
+                                if (blkwthr.ivars[nx][ny][k] == 'h') {
+                                    hour = try parseTokenToInt(usize, error.InvalidHourInWeatherFile, tokens.items[k], logFileWriter);
+                                    hour = ((hour % 24) + 24) % 24; // normalize hours from 0 to 23;
+                                }
+                            }
+                            for (blkwthr.ni[nx][ny]..blkwthr.ni[nx][ny] + blkwthr.nn[nx][ny]) |k0| {
+                                const k = k0 - @as(usize, blkwthr.ni[nx][ny]);
+                                if (blkwthr.vars[nx][ny][k] == 't') {
+                                    blk2a.tmph[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidHourlyTemperatureInWeatherFile, tokens.items[k0], logFileWriter);
+                                }
+                                if (blkwthr.vars[nx][ny][k] == 'r') {
+                                    blk2a.sradh[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidHourlyShortwaveRadiationInWeatherFile, tokens.items[k0], logFileWriter);
+                                }
+                                if (blkwthr.vars[nx][ny][k] == 'p') {
+                                    blk2a.rainh[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidHourlyPrecipitationInWeatherFile, tokens.items[k0], logFileWriter);
+                                }
+                                if (blkwthr.vars[nx][ny][k] == 'h') {
+                                    blk2a.dwpht[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidHumidityInWeatherFile, tokens.items[k0], logFileWriter);
+                                }
+                                if (blkwthr.vars[nx][ny][k] == 'w') {
+                                    blk2a.windh[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidWindSpeedInWeatherFile, tokens.items[k0], logFileWriter);
+                                }
+                            }
+                            // Fill in for leap years.
+                            if (day == 365) {
+                                hasDoy366 = true;
+                            }
+                            if (blkc.iyrc % 4 == 0 and hasDoy366 == false) {
+                                std.debug.print("{d} test flag for leap year!!\n", .{blkc.iyrc});
+                            }
+                            if (nPass == 0 and (day < 1 or day > 363)) {
+                                try logWeather.print("{s}, year: {d}, doy: {d}, hour: {d}, temperature: {d}, shortwave radiation: {d}, precipitation: {d}, humidity: {d}, and wind speed: {d}.\n", .{ weatherFileName, blkc.iyrc, day + 1, hour + 1, blk2a.tmph[nx][ny][day][hour], blk2a.sradh[nx][ny][day][hour], blk2a.rainh[nx][ny][day][hour], blk2a.dwpht[nx][ny][day][hour], blk2a.windh[nx][ny][day][hour] });
+                                try logWeather.flush();
+                            }
+                        }
+                    }
+                }
+            }
             tokens.deinit(allocator);
         }
         for (nh1..nh2) |_| {
