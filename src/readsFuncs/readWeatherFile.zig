@@ -237,6 +237,8 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
                 else => return err,
             }; // break out of the loop at the EOF.
             tokens = try tokenizeLine(line, allocator);
+            const prevHour: usize = hour;
+            var nSubHour: usize = 1;
             for (nh1..nh2) |nx| {
                 for (nv1..nv2) |ny| {
                     if (blkwthr.ttype[nx][ny] == 'h') {
@@ -244,47 +246,89 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
                             for (0..blkwthr.ni[nx][ny]) |k| {
                                 if (blkwthr.ivars[nx][ny][k] == 'd') {
                                     day = try parseTokenToInt(usize, error.InvalidDayInWeatherFile, tokens.items[k], logFileWriter);
-                                    day = day - 1; // for 0 indexing used later.
+                                    day = day - 1; // for 0 indexing.
                                 }
                                 if (blkwthr.ivars[nx][ny][k] == 'h') {
                                     hour = try parseTokenToInt(usize, error.InvalidHourInWeatherFile, tokens.items[k], logFileWriter);
+                                    if (hour > 24) hour = (hour + 100 / 2) / 100;
                                     hour = ((hour % 24) + 24) % 24; // normalize hours from 0 to 23;
+                                    if (hour == prevHour) nSubHour += 1;
                                 }
                             }
                             for (blkwthr.ni[nx][ny]..blkwthr.ni[nx][ny] + blkwthr.nn[nx][ny]) |k0| {
                                 const k = k0 - @as(usize, blkwthr.ni[nx][ny]);
                                 if (blkwthr.vars[nx][ny][k] == 't') {
                                     blk2a.tmph[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidHourlyTemperatureInWeatherFile, tokens.items[k0], logFileWriter);
+                                    if (hour == prevHour) {
+                                        blk2a.tmph[nx][ny][day][hour] += blk2a.tmph[nx][ny][day][hour];
+                                        blk2a.tmph[nx][ny][day][hour] = blk2a.tmph[nx][ny][day][hour] / @as(f32, @floatFromInt(nSubHour));
+                                    }
                                 }
                                 if (blkwthr.vars[nx][ny][k] == 'r') {
                                     blk2a.sradh[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidHourlyShortwaveRadiationInWeatherFile, tokens.items[k0], logFileWriter);
+                                    if (hour == prevHour) {
+                                        blk2a.sradh[nx][ny][day][hour] += blk2a.sradh[nx][ny][day][hour];
+                                        blk2a.sradh[nx][ny][day][hour] = blk2a.sradh[nx][ny][day][hour] / @as(f32, @floatFromInt(nSubHour));
+                                    }
                                 }
                                 if (blkwthr.vars[nx][ny][k] == 'p') {
                                     blk2a.rainh[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidHourlyPrecipitationInWeatherFile, tokens.items[k0], logFileWriter);
+                                    if (hour == prevHour) {
+                                        blk2a.rainh[nx][ny][day][hour] += blk2a.rainh[nx][ny][day][hour];
+                                        blk2a.rainh[nx][ny][day][hour] = blk2a.rainh[nx][ny][day][hour] / @as(f32, @floatFromInt(nSubHour));
+                                    }
                                 }
                                 if (blkwthr.vars[nx][ny][k] == 'h') {
                                     blk2a.dwpht[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidHumidityInWeatherFile, tokens.items[k0], logFileWriter);
+                                    if (hour == prevHour) {
+                                        blk2a.dwpht[nx][ny][day][hour] += blk2a.dwpht[nx][ny][day][hour];
+                                        blk2a.dwpht[nx][ny][day][hour] = blk2a.dwpht[nx][ny][day][hour] / @as(f32, @floatFromInt(nSubHour));
+                                    }
                                 }
                                 if (blkwthr.vars[nx][ny][k] == 'w') {
                                     blk2a.windh[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidWindSpeedInWeatherFile, tokens.items[k0], logFileWriter);
+                                    if (hour == prevHour) {
+                                        blk2a.windh[nx][ny][day][hour] += blk2a.windh[nx][ny][day][hour];
+                                        blk2a.windh[nx][ny][day][hour] = blk2a.windh[nx][ny][day][hour] / @as(f32, @floatFromInt(nSubHour));
+                                    }
                                 }
                             }
                             // Fill in for leap years.
                             if (day == 365) {
                                 hasDoy366 = true;
                             }
-                            if (blkc.iyrc % 4 == 0 and hasDoy366 == false) {
-                                std.debug.print("{d} test flag for leap year!!\n", .{blkc.iyrc});
-                            }
-                            if (nPass == 0 and (day < 1 or day > 363)) {
-                                try logWeather.print("{s}, year: {d}, doy: {d}, hour: {d}, temperature: {d}, shortwave radiation: {d}, precipitation: {d}, humidity: {d}, and wind speed: {d}.\n", .{ weatherFileName, blkc.iyrc, day + 1, hour + 1, blk2a.tmph[nx][ny][day][hour], blk2a.sradh[nx][ny][day][hour], blk2a.rainh[nx][ny][day][hour], blk2a.dwpht[nx][ny][day][hour], blk2a.windh[nx][ny][day][hour] });
-                                try logWeather.flush();
-                            }
                         }
                     }
                 }
             }
             tokens.deinit(allocator);
+            // Fill the weather data for the extra day in a leap year
+            if (blkc.iyrc % 4 == 0 and hasDoy366 == false) {
+                for (nh1..nh2) |nx| {
+                    for (nv1..nv2) |ny| {
+                        for (0..23) |hourLeapyear| {
+                            blk2a.tmph[nx][ny][365][hourLeapyear] = blk2a.tmph[nx][ny][364][hourLeapyear];
+                            blk2a.sradh[nx][ny][365][hourLeapyear] = blk2a.sradh[nx][ny][364][hourLeapyear];
+                            blk2a.rainh[nx][ny][365][hourLeapyear] = blk2a.rainh[nx][ny][364][hourLeapyear];
+                            blk2a.dwpht[nx][ny][365][hourLeapyear] = blk2a.dwpht[nx][ny][364][hourLeapyear];
+                            blk2a.windh[nx][ny][365][hourLeapyear] = blk2a.windh[nx][ny][364][hourLeapyear];
+                        }
+                    }
+                }
+            }
+        }
+        const daysPrint: [3]u32 = .{ 0, 364, 365 };
+        for (nh1..nh2) |nx| {
+            for (nv1..nv2) |ny| {
+                for (daysPrint) |dayPrint| {
+                    for (0..23) |hourPrint| {
+                        if (nPass == 0 and ((blkc.iyrc % 4 == 0 and (dayPrint == 0 or dayPrint == 365)) or (blkc.iyrc % 4 != 0 and (dayPrint == 0 or dayPrint == 364)))) {
+                            try logWeather.print("{s}, year: {d}, doy: {d}, hour: {d}, temperature: {d}, shortwave radiation: {d}, precipitation: {d}, humidity: {d}, and wind speed: {d}.\n", .{ weatherFileName, blkc.iyrc, dayPrint + 1, hourPrint + 1, blk2a.tmph[nx][ny][dayPrint][hourPrint], blk2a.sradh[nx][ny][dayPrint][hourPrint], blk2a.rainh[nx][ny][dayPrint][hourPrint], blk2a.dwpht[nx][ny][dayPrint][hourPrint], blk2a.windh[nx][ny][dayPrint][hourPrint] });
+                            try logWeather.flush();
+                        }
+                    }
+                }
+            }
         }
         for (nh1..nh2) |_| {
             for (nv1..nv2) |_| {
