@@ -275,7 +275,6 @@ pub fn readWeatherFile(allocator: std.mem.Allocator, logFileWriter: *std.Io.Writ
                                     blk2a.rainh[nx][ny][day][hour] = try parseTokenToFloat(f32, error.InvalidHourlyPrecipitationInWeatherFile, tokens.items[k0], logFileWriter);
                                     if (hour == prevHour) {
                                         blk2a.rainh[nx][ny][day][hour] += blk2a.rainh[nx][ny][day][hour];
-                                        blk2a.rainh[nx][ny][day][hour] = blk2a.rainh[nx][ny][day][hour] / @as(f32, @floatFromInt(nSubHour));
                                     }
                                 }
                                 if (blkwthr.vars[nx][ny][k] == 'h') {

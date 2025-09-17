@@ -7,11 +7,11 @@ const tempUnits = @import("tempUnits.zig").tempUnits;
 /// This function returns weather units based on weather variables.
 pub fn wthrUnits(wthrVar: u8, wthrVarUnit: u8, timeStep: u8) ![]const u8 {
     return switch (wthrVar) {
-        'R', 'r' => try radiationUnits(wthrVarUnit, timeStep),
-        'H', 'h' => try humidityUnits(wthrVarUnit),
-        'P', 'p' => try precipitationUnits(wthrVarUnit, timeStep),
-        'W', 'w' => try windspeedUnits(wthrVarUnit),
-        'M', 'm', 'N', 'n', 'T', 't' => try tempUnits(wthrVarUnit),
+        'r' => try radiationUnits(wthrVarUnit, timeStep),
+        'h' => try humidityUnits(wthrVarUnit),
+        'p' => try precipitationUnits(wthrVarUnit, timeStep),
+        'w' => try windspeedUnits(wthrVarUnit),
+        'm', 'n', 't' => try tempUnits(wthrVarUnit),
         else => "n/a",
     };
 }
