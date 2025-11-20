@@ -1,6 +1,6 @@
 # Ecosys.zig
 
-`Ecosys.zig` is the Zig-based modernization of the legacy **Fortran77** codebase of the **ECOSYS** model that was originally developed by **Professor Dr. Robert Grant** at the **University of Alberta**. Compared to the original **ECOSYS** model, `Ecosys.zig` is significantly more modular. The names of the variables and constants are also expanded to make them more instantly readable. As a result, the design, look, and structure of `Ecosys.zig` differ substantially from the original **ECOSYS** model. However, the core algorithms remains mostly the same.
+`Ecosys.zig` is the Zig-based modernization of the legacy **Fortran77** codebase of the **ECOSYS** model that was originally developed by **Professor Dr. Robert Grant** at the **University of Alberta**. Compared to the original **ECOSYS** model, `Ecosys.zig` is significantly more modular. The names of the variables and constants are also expanded to make them more instantly readable. As a result, the design, look, and structure of `Ecosys.zig` differ substantially from the original **ECOSYS** model. However, the core algorithms remain mostly the same.
 
 ℹ️ **Note:**
 - Zig uses **row-major** array ordering, whereas Fortran uses **column-major**. Therefore, all array dimensions in `Ecosys.zig` are reversed relative to those in the original **ECOSYS**.
