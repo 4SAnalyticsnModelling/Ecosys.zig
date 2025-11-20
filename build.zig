@@ -1,25 +1,31 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    const exe = b.addExecutable(.{ .name = "ecosys", .root_source_file = b.path("src/main.zig"), .target = b.graph.host, .optimize = b.standardOptimizeOption(.{}) });
+    const target = b.graph.host;
+    const optimize = b.standardOptimizeOption(.{});
+    const exe = b.addExecutable(.{ .name = "ecosys", .root_module = b.createModule(.{ .root_source_file = b.path("src/ecosys.zig"), .target = target, .optimize = optimize }) });
 
-    const ewgridsmax = b.option(u32, "ewgridsmax", "Maximum number of E-W grid cells") orelse 10;
-    const nsgridsmax = b.option(u32, "nsgridsmax", "Maximum number of N-S grid cells") orelse 10;
-    const soillayersmax = b.option(u32, "soillayersmax", "Maximum number of vertical soil layers") orelse 20;
-    const snowlayersmax = b.option(u32, "snowlayersmax", "Maximum number of layers in the snowpack") orelse 5;
-    const pftmax = b.option(u32, "pftmax", "Maximum number of plant functional types") orelse 5;
-    const canopymax = b.option(u32, "canopymax", "Maximum number of canopy layers") orelse 10;
-    const subhrwtrcymax = b.option(u32, "subhrwtrcymax", "Maximum number of sub-hourly water cycle") orelse 60;
+    const nwex = b.option(usize, "nwex", "Maximum number of W-E grid cells") orelse 10;
+    const nnsx = b.option(usize, "nnsx", "Maximum number of N-S grid cells") orelse 10;
+    const nsoilx = b.option(usize, "nsoilx", "Maximum number of vertical soil layers") orelse 20;
+    const nresx = b.option(usize, "nresx", "Maximum number of surface residue layers") orelse 1;
+    const nsnowx = b.option(usize, "nsnowx", "Maximum number of layers in the snowpack") orelse 5;
+    const nplantx = b.option(usize, "nplantx", "Maximum number of plant functional types") orelse 5;
+    const ncanopyx = b.option(usize, "ncanopyx", "Maximum number of canopy layers") orelse 10;
+    const nscenariox = b.option(usize, "nscenariox", "Maximum number of scenarios") orelse 10;
+    const nscenex = b.option(usize, "nscenex", "Maximum number of scenes in each scenario") orelse 20;
 
     const options = b.addOptions();
 
-    options.addOption(u32, "ewgridsmax", ewgridsmax);
-    options.addOption(u32, "nsgridsmax", nsgridsmax);
-    options.addOption(u32, "soillayersmax", soillayersmax);
-    options.addOption(u32, "snowlayersmax", snowlayersmax);
-    options.addOption(u32, "pftmax", pftmax);
-    options.addOption(u32, "canopymax", canopymax);
-    options.addOption(u32, "subhrwtrcymax", subhrwtrcymax);
+    options.addOption(usize, "nwex", nwex);
+    options.addOption(usize, "nnsx", nnsx);
+    options.addOption(usize, "nsoilx", nsoilx);
+    options.addOption(usize, "nresx", nresx);
+    options.addOption(usize, "nsnowx", nsnowx);
+    options.addOption(usize, "nplantx", nplantx);
+    options.addOption(usize, "ncanopyx", ncanopyx);
+    options.addOption(usize, "nscenariox", nscenariox);
+    options.addOption(usize, "nscenex", nscenex);
 
     exe.root_module.addOptions("config", options);
 

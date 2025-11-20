@@ -1,0 +1,16 @@
+Ecosys.zig/
+	|-build.zig
+	|-src/
+	|	|-ecosys.zig (ecosys main function that executes all ecosys functions)
+	|	|-io (this module contains input/output data structures and functions)/
+	|	|	|-
+	|	|-mod (this module contains simulation data structures and functions)/
+	|	|	|-
+	|	|-util (this module contains utility and helper structs and functions)/
+	|	|	|-
+	|-examples (contains example ecosys run libraries)/
+	|	|-dryland_maize
+	|-docs/
+	|	|-ecosys_directory_tree.txt
+	|-LICENSE
+	|-README.md
