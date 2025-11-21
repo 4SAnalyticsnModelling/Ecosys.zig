@@ -1,10 +1,7 @@
 const std = @import("std");
-const offset: u32 = 1;
 const CompletionTime = @import("util/errors.zig").CompletionTime;
 const RunArg = @import("util/buffers.zig").RunArg;
 const IOFiles = @import("io/iofiles.zig").IOFiles;
-const FileReader = @import("util/buffers.zig").FileReader;
-const FileWriter = @import("util/buffers.zig").FileWriter;
 const Tokens = @import("util/buffers.zig").Tokens;
 const OutDir = @import("util/helpers.zig").OutDir;
 const LogFile = @import("util/helpers.zig").LogFile;
@@ -18,26 +15,24 @@ pub fn main() !void {
     try run.getRunfile();
     // Open runfile to read.
     try run.open();
+    // Close the runfile later before the functoin returns.
     defer run.close();
-    // Create directory tree for saving the outputs
+    try run.reader();
+    // Create directory tree for saving the outputs.
     var out: OutDir = OutDir{};
     try out.mkOutDirs();
-    // Create the error and run status log files
+    // Create the error and run status log files in the outputs folder.
     var logfile: LogFile = LogFile{};
     try logfile.create(out);
     defer logfile.close();
-    // Create error log file writer
-    var log_err_writer = FileWriter{};
-    const err_log = log_err_writer.writer(logfile.err_log);
+    try logfile.writer();
     // Initialize model runtime and completion tracking
-    var runtime = CompletionTime.init(start_time_us, run.run, err_log);
+    var runtime = CompletionTime.init(start_time_us, run.run, logfile.buffered_err_log_writer);
     // Generate run failure message, if the run fails before completion.
     errdefer runtime.fail();
-    // Unroll model variables.
-    var run_reader = FileReader{};
-    const runscript = run_reader.reader(run.runfile);
+    // Read all input output file names in the runscript.
     var io_files = IOFiles{};
-    try io_files.getAllIOFiles(runscript, err_log);
+    try io_files.getAllIOFiles(run.buffered_reader, logfile.buffered_err_log_writer);
     std.debug.print("test io files {s}\n", .{io_files.daily_heat_out[0][5]});
     // Generate a success message with run completing runtime, if the run completes with no error.
     try runtime.success();

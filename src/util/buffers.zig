@@ -1,9 +1,12 @@
 const std = @import("std");
 ///This struct helps check ecosys run submission arguments and read the runfile name.
 pub const RunArg = struct {
-    buf: [1024]u8 = undefined,
+    run_buf: [1024]u8 = undefined,
+    read_buf: [1024]u8 = undefined,
     run: []const u8 = undefined,
     runfile: std.fs.File = undefined,
+    buf_reader: std.fs.File.Reader = undefined,
+    buffered_reader: *std.Io.Reader = undefined,
 
     pub fn getRunfile(self: *RunArg) !void {
         const fba = std.heap.FixedBufferAllocator;
@@ -14,16 +17,16 @@ pub const RunArg = struct {
         defer std.process.argsFree(allocator_args, args);
         if (args.len < 2) {
             std.debug.print(
-                "error -> Missing Arguments. Ecosys job submission format should be: {s} <runFile>\n",
+                "\x1b[1;31merror -> Missing Arguments. Ecosys job submission format should be: {s} <runfile>\x1b[0m\n",
                 .{args[0]},
             );
             return error.MissingArguments;
         }
         const src: []const u8 = args[1];
-        if (src.len > self.buf.len) {
+        if (src.len > self.run_buf.len) {
             return error.RunfileNameTooLong;
         }
-        const dst = self.buf[0..src.len];
+        const dst = self.run_buf[0..src.len];
         @memcpy(dst, src);
         self.run = dst;
     }
@@ -35,7 +38,13 @@ pub const RunArg = struct {
     pub fn close(self: *RunArg) void {
         self.runfile.close();
     }
+
+    pub fn reader(self: *RunArg) !void {
+        self.buf_reader = self.runfile.reader(&self.read_buf);
+        self.buffered_reader = &self.buf_reader.interface;
+    }
 };
+
 ///This is a helper struct for file read.
 pub const FileReader = struct {
     buf: [1024]u8 = undefined,

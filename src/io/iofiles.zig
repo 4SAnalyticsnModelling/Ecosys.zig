@@ -74,6 +74,7 @@ pub const IOFiles = struct {
                 try getSceneIOFiles(self, reader, err_log, scenario_id, scene_id);
             }
         }
+        try err_log.flush();
     }
 
     fn getGridNums(self: *IOFiles, reader: *std.Io.Reader, err_log: *std.Io.Writer) !void {
@@ -83,7 +84,6 @@ pub const IOFiles = struct {
         for (self.tokens.items[0..fields.len], 0..) |tok, i| {
             fields[i].* = std.fmt.parseInt(usize, tok, 10) catch |err| {
                 try err_log.print("error: {s} while parsing grid numbers in runfile\n", .{@errorName(err)});
-                try err_log.flush();
                 std.debug.print("\x1b[1;31merror: {s} while parsing grid numbers in runfile\x1b[0m\n", .{@errorName(err)});
                 return err;
             };
@@ -91,7 +91,6 @@ pub const IOFiles = struct {
         if (self.grid_num.west < 0 or self.grid_num.west > self.grid_num.east or self.grid_num.east > nwe or self.grid_num.north < 0 or self.grid_num.north > self.grid_num.south or self.grid_num.south > nns) {
             const err = error.GridOutOfBounds;
             try err_log.print("error: {s} while reading grid numbers in runfile\n", .{@errorName(err)});
-            try err_log.flush();
             std.debug.print("\x1b[1;31merror: {s} while reading grid numbers in runfile\x1b[0m\n", .{@errorName(err)});
             return err;
         }
@@ -103,7 +102,6 @@ pub const IOFiles = struct {
         if (self.tokens.len != 1) {
             const err = error.InvalidTokens;
             try err_log.print("error: {s} while reading site file name in runfile\n", .{@errorName(err)});
-            try err_log.flush();
             std.debug.print("\x1b[1;31merror: {s} while reading site file name in runfile\x1b[0m\n", .{@errorName(err)});
             return err;
         }
@@ -116,13 +114,11 @@ pub const IOFiles = struct {
         if (self.tokens.len != 1) {
             const err = error.InvalidTokens;
             try err_log.print("error: {s} while reading start year in runfile\n", .{@errorName(err)});
-            try err_log.flush();
             std.debug.print("\x1b[1;31merror: {s} while reading start year in runfile\x1b[0m\n", .{@errorName(err)});
             return err;
         }
         self.start_yr = std.fmt.parseInt(u32, self.tokens.items[0], 10) catch |err| {
             try err_log.print("error: {s} while parsing start year in runfile\n", .{@errorName(err)});
-            try err_log.flush();
             std.debug.print("\x1b[1;31merror: {s} while parsing start year in runfile\x1b[0m\n", .{@errorName(err)});
             return err;
         };
@@ -131,28 +127,50 @@ pub const IOFiles = struct {
     fn getScenario(self: *IOFiles, reader: *std.Io.Reader, err_log: *std.Io.Writer) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         try self.tokens.tokenizeLine(line);
+        if (self.tokens.len != 2) {
+            const err = error.InvalidTokens;
+            try err_log.print("error: {s} while reading number of scenarios and times to repeat each scenario in runfile\n", .{@errorName(err)});
+            std.debug.print("\x1b[1;31merror: {s} while number of scenarios and times to repeat each scenario in runfile\x1b[0m\n", .{@errorName(err)});
+            return err;
+        }
         const fields: [2]*usize = .{ &self.scenario.num, &self.scenario.repeat };
         for (self.tokens.items[0..fields.len], 0..) |tok, i| {
             fields[i].* = std.fmt.parseInt(usize, tok, 10) catch |err| {
-                try err_log.print("error: {s} while parsing number of scenarios and times to repeat each scenarios in runfile\n", .{@errorName(err)});
-                try err_log.flush();
-                std.debug.print("\x1b[1;31merror: {s} while parsing number of scenarios and times to repeat each scenarios in runfile\x1b[0m\n", .{@errorName(err)});
+                try err_log.print("error: {s} while parsing number of scenarios and times to repeat each scenario in runfile\n", .{@errorName(err)});
+                std.debug.print("\x1b[1;31merror: {s} while parsing number of scenarios and times to repeat each scenario in runfile\x1b[0m\n", .{@errorName(err)});
                 return err;
             };
+        }
+        if (self.scenario.num > nscenario) {
+            const err = error.ScenarioOutOfBounds;
+            try err_log.print("error: {s} while reading number of scenarios in runfile\n", .{@errorName(err)});
+            std.debug.print("\x1b[1;31merror: {s} while reading number of scenarios in runfile\x1b[0m\n", .{@errorName(err)});
+            return err;
         }
     }
 
     fn getScene(self: *IOFiles, reader: *std.Io.Reader, err_log: *std.Io.Writer) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         try self.tokens.tokenizeLine(line);
+        if (self.tokens.len != 2) {
+            const err = error.InvalidTokens;
+            try err_log.print("error: {s} while reading number of scenes and times to repeat each scene in runfile\n", .{@errorName(err)});
+            std.debug.print("\x1b[1;31merror: {s} while number of scenes and times to repeat each scene in runfile\x1b[0m\n", .{@errorName(err)});
+            return err;
+        }
         const fields: [2]*usize = .{ &self.scene.num, &self.scene.repeat };
         for (self.tokens.items[0..fields.len], 0..) |tok, i| {
             fields[i].* = std.fmt.parseInt(usize, tok, 10) catch |err| {
                 try err_log.print("error: {s} while parsing number of scenes and times to repeat each scene in runfile\n", .{@errorName(err)});
-                try err_log.flush();
                 std.debug.print("\x1b[1;31merror: {s} while parsing number of scenes and times to repeat each scene in runfile\x1b[0m\n", .{@errorName(err)});
                 return err;
             };
+        }
+        if (self.scene.num > nscene) {
+            const err = error.SceneOutOfBounds;
+            try err_log.print("error: {s} while reading number of scenes in runfile\n", .{@errorName(err)});
+            std.debug.print("\x1b[1;31merror: {s} while reading number of scenes in runfile\x1b[0m\n", .{@errorName(err)});
+            return err;
         }
     }
 
@@ -164,7 +182,6 @@ pub const IOFiles = struct {
             if (self.tokens.len != 1) {
                 const err = error.InvalidTokens;
                 try err_log.print("error: {s} while reading scene io files in runfile\n", .{@errorName(err)});
-                try err_log.flush();
                 std.debug.print("\x1b[1;31merror: {s} while reading scene io files in runfile\x1b[0m\n", .{@errorName(err)});
                 return err;
             }
@@ -179,7 +196,6 @@ pub const IOFiles = struct {
         for (self.tokens.items[0..fields.len], 0..) |tok, i| {
             fields[i].* = std.fmt.parseInt(usize, tok, 10) catch |err| {
                 try err_log.print("error: {s} while parsing grid positions in {s}\n", .{ @errorName(err), file });
-                try err_log.flush();
                 std.debug.print("\x1b[1;31merror: {s} while parsing grid positions in {s}\x1b[0m\n", .{ @errorName(err), file });
                 return err;
             };
@@ -193,7 +209,6 @@ pub const IOFiles = struct {
         for (self.tokens.items[0..fields.len], 0..) |tok, i| {
             fields[i].* = std.fmt.parseInt(usize, tok, 10) catch |err| {
                 try err_log.print("error: {s} while parsing grid positions and plant ids in {s}\n", .{ @errorName(err), file });
-                try err_log.flush();
                 std.debug.print("\x1b[1;31merror: {s} while parsing grid positions and plant ids in {s}\x1b[0m\n", .{ @errorName(err), file });
                 return err;
             };
