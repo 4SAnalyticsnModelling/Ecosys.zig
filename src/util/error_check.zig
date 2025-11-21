@@ -4,7 +4,7 @@ pub const CompletionTime = struct {
     start_time_us: i64,
     runfile: []const u8,
     err_log: *std.Io.Writer,
-
+    ///This method initalize the CompletionTime struct.
     pub fn init(start_time_us: i64, runfile: []const u8, err_log: *std.Io.Writer) CompletionTime {
         return .{
             .start_time_us = start_time_us,
@@ -12,7 +12,7 @@ pub const CompletionTime = struct {
             .err_log = err_log,
         };
     }
-
+    ///This method confirms successful completion of a model run with time required to complete the run.
     pub fn success(self: *CompletionTime) !void {
         const end = std.time.microTimestamp();
         const elapsed = self.elapsedTime(end);
@@ -28,7 +28,7 @@ pub const CompletionTime = struct {
             .{ self.runfile, elapsed.value, elapsed.unit },
         );
     }
-
+    ///This method releases model failure errors.
     pub fn fail(self: *CompletionTime) void {
         std.debug.print(
             "\x1b[1;31merror: Ecosys model run in {s} failed!\x1b[0m\n",
@@ -37,7 +37,7 @@ pub const CompletionTime = struct {
         self.err_log.print("error: Ecosys model run in {s} failed!\n", .{self.runfile}) catch {};
         self.err_log.flush() catch {};
     }
-
+    ///This method calculates elapsed time from start to finish of a model run.
     fn elapsedTime(self: *CompletionTime, end_time_us: i64) struct { value: f64, unit: []const u8 } {
         const stdt = std.time;
 

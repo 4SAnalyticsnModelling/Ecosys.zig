@@ -1,5 +1,5 @@
 const std = @import("std");
-///This struct helps check ecosys run submission arguments and read the runfile name.
+///This struct helps check ecosys run submission arguments and parse the runfile name.
 pub const RunArg = struct {
     run_buf: [1024]u8 = undefined,
     read_buf: [1024]u8 = undefined,
@@ -7,7 +7,7 @@ pub const RunArg = struct {
     runfile: std.fs.File = undefined,
     buf_reader: std.fs.File.Reader = undefined,
     buffered_reader: *std.Io.Reader = undefined,
-
+    ///This method gets the runfile name from run submission args.
     pub fn getRunfile(self: *RunArg) !void {
         const fba = std.heap.FixedBufferAllocator;
         var args_buf: [1024]u8 = undefined;
@@ -30,50 +30,30 @@ pub const RunArg = struct {
         @memcpy(dst, src);
         self.run = dst;
     }
-
+    ///This method opens the runfile.
     pub fn open(self: *RunArg) !void {
         self.runfile = try std.fs.cwd().openFile(self.run, .{});
     }
-
+    ///This method closes the runfile.
     pub fn close(self: *RunArg) void {
         self.runfile.close();
     }
-
+    ///This method sets up a buffered reader interface for reading the runfile.
     pub fn reader(self: *RunArg) !void {
         self.buf_reader = self.runfile.reader(&self.read_buf);
         self.buffered_reader = &self.buf_reader.interface;
-    }
-};
-
-///This is a helper struct for file read.
-pub const FileReader = struct {
-    buf: [1024]u8 = undefined,
-    buf_reader: std.fs.File.Reader = undefined,
-
-    pub fn reader(self: *FileReader, file: std.fs.File) *std.Io.Reader {
-        self.buf_reader = file.reader(&self.buf);
-        return &self.buf_reader.interface;
-    }
-};
-///This is a helper struct for file write.
-pub const FileWriter = struct {
-    buf: [1024]u8 = undefined,
-    buf_writer: std.fs.File.Writer = undefined,
-
-    pub fn writer(self: *FileWriter, file: std.fs.File) *std.Io.Writer {
-        self.buf_writer = file.writer(&self.buf);
-        return &self.buf_writer.interface;
     }
 };
 ///This is a helper struct to tokenize items in a read line.
 pub const Tokens = struct {
     items: [128][]const u8 = undefined,
     len: usize = 0,
-
+    ///This method resets tokens.
     pub fn reset(self: *Tokens) void {
         self.len = 0;
         self.items = undefined;
     }
+    ///This method parses a line into a list of numbers/strings (called tokens hereafter) by eliminating spaces, tabs, or commas between tokens.
     pub fn tokenizeLine(self: *Tokens, line: []const u8) !void {
         self.reset();
         var it = std.mem.tokenizeAny(u8, line, " \r\n");
