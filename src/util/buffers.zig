@@ -2,7 +2,8 @@ const std = @import("std");
 ///This struct helps check ecosys run submission arguments and read the runfile name.
 pub const RunArg = struct {
     buf: [1024]u8 = undefined,
-    runfile: []const u8 = undefined,
+    run: []const u8 = undefined,
+    runfile: std.fs.File = undefined,
 
     pub fn getRunfile(self: *RunArg) !void {
         const fba = std.heap.FixedBufferAllocator;
@@ -24,7 +25,15 @@ pub const RunArg = struct {
         }
         const dst = self.buf[0..src.len];
         @memcpy(dst, src);
-        self.runfile = dst;
+        self.run = dst;
+    }
+
+    pub fn open(self: *RunArg) !void {
+        self.runfile = try std.fs.cwd().openFile(self.run, .{});
+    }
+
+    pub fn close(self: *RunArg) void {
+        self.runfile.close();
     }
 };
 ///This is a helper struct for file read.

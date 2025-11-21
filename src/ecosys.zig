@@ -7,8 +7,7 @@ const FileReader = @import("util/buffers.zig").FileReader;
 const FileWriter = @import("util/buffers.zig").FileWriter;
 const Tokens = @import("util/buffers.zig").Tokens;
 const OutDir = @import("util/helpers.zig").OutDir;
-const OutFile = @import("util/helpers.zig").OutFile;
-const open = @import("util/open.zig").open;
+const LogFile = @import("util/helpers.zig").LogFile;
 
 /// Ecosys main function
 pub fn main() !void {
@@ -17,31 +16,26 @@ pub fn main() !void {
     var run: RunArg = RunArg{};
     // Read and check ecosys run submission arguments and read ecosys runfile/runscript name from run submission arguments.
     try run.getRunfile();
+    // Open runfile to read.
+    try run.open();
+    defer run.close();
     // Create directory tree for saving the outputs
     var out: OutDir = OutDir{};
     try out.mkOutDirs();
-    var outfile: OutFile = OutFile{};
-    try outfile.mkOutFiles(out);
-    // Create the error log file
-    const log_err = outfile.err_log;
-    defer log_err.close();
+    // Create the error and run status log files
+    var logfile: LogFile = LogFile{};
+    try logfile.create(out);
+    defer logfile.close();
+    // Create error log file writer
     var log_err_writer = FileWriter{};
-    const err_log = log_err_writer.writer(log_err);
+    const err_log = log_err_writer.writer(logfile.err_log);
     // Initialize model runtime and completion tracking
-    var runtime = CompletionTime.init(start_time_us, run.runfile, err_log);
+    var runtime = CompletionTime.init(start_time_us, run.run, err_log);
     // Generate run failure message, if the run fails before completion.
     errdefer runtime.fail();
     // Unroll model variables.
-    const run_script = try open(run.runfile, err_log);
-    defer run_script.close();
     var run_reader = FileReader{};
-    const runscript = run_reader.reader(run_script);
-    // Create the runscript input check log file
-    var log_run = outfile.run_log;
-    defer log_run.close();
-    var log_run_writer = FileWriter{};
-    const run_log = log_run_writer.writer(log_run);
-    _ = run_log;
+    const runscript = run_reader.reader(run.runfile);
     var io_files = IOFiles{};
     try io_files.getAllIOFiles(runscript, err_log);
     std.debug.print("test io files {s}\n", .{io_files.daily_heat_out[0][5]});
