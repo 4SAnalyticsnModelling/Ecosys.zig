@@ -37,6 +37,87 @@ const SiteFile = struct {
     land_unit: [nwe][nns][]const u8 = undefined, //landscape unit within a site
     soil: [nwe][nns][]const u8 = undefined, //soil file for each landscape unit
     site: []const u8 = undefined,
+    grid_pos: GridPos = GridPos{},
+    site_buf: [256]u8 = undefined,
+    site_file: std.fs.File = undefined,
+    site_file_reader: std.fs.File.Reader = undefined,
+    buf_site_file_reader: *std.Io.Reader = undefined,
+    tokens: Tokens = Tokens{},
+
+    ///Get data within the site file.
+    fn getSiteFileData(self: *SiteFile, io_files: *IOFiles, err_log: *std.Io.Writer) !void {
+        try self.open(err_log);
+        defer self.close();
+        self.reader();
+        while (true) {
+            var line = self.buf_site_file_reader.takeDelimiterInclusive('\n') catch |err| switch (err) {
+                error.EndOfStream => break,
+                else => return err,
+            };
+            try self.getGridPos(line, io_files, err_log);
+            line = try self.buf_site_file_reader.takeDelimiterInclusive('\n');
+            for (self.grid_pos.west..self.grid_pos.east) |grid_pos_we| {
+                for (self.grid_pos.north..self.grid_pos.south) |grid_pos_ns| {
+                    try self.getSiteFiles(line, err_log, grid_pos_we, grid_pos_ns);
+                }
+            }
+        }
+    }
+    ///Opens site file for read.
+    fn open(self: *SiteFile, err_log: *std.Io.Writer) !void {
+        self.site_file = std.fs.cwd().openFile(self.site, .{}) catch |err| {
+            try err_log.print("error: {s} while reading {s}\n", .{ @errorName(err), self.site });
+            std.debug.print("\x1b[1;31merror: {s} while reading {s}\x1b[0m\n", .{ @errorName(err), self.site });
+            return err;
+        };
+    }
+    ///Closes site file once done reading.
+    fn close(self: *SiteFile) void {
+        self.site_file.close();
+    }
+    ///Site file reader.
+    fn reader(self: *SiteFile) void {
+        self.site_file_reader = self.site_file.reader(&self.site_buf);
+        self.buf_site_file_reader = &self.site_file_reader.interface;
+    }
+    ///This method gets grid positions in four directions.
+    fn getGridPos(self: *SiteFile, line: []const u8, io_files: *IOFiles, err_log: *std.Io.Writer) !void {
+        try self.tokens.tokenizeLine(line);
+        if (self.tokens.len != 4) {
+            const err = error.InvalidTokens;
+            try err_log.print("error: {s} while reading grid positions in {s}\n", .{ @errorName(err), self.site });
+            std.debug.print("\x1b[1;31merror: {s} while reading grid positions in {s}\x1b[0m\n", .{ @errorName(err), self.site });
+            return err;
+        }
+        const fields: [4]*usize = .{ &self.grid_pos.west, &self.grid_pos.north, &self.grid_pos.east, &self.grid_pos.south };
+        for (self.tokens.items[0..fields.len], 0..) |tok, i| {
+            fields[i].* = std.fmt.parseInt(usize, tok, 10) catch |err| {
+                try err_log.print("error: {s} while parsing grid positions in {s}\n", .{ @errorName(err), self.site });
+                std.debug.print("\x1b[1;31merror: {s} while parsing grid positions in {s}\x1b[0m\n", .{ @errorName(err), self.site });
+                return err;
+            };
+        }
+        if (self.grid_pos.west < io_files.grid_num.west or self.grid_pos.west > self.grid_pos.east or self.grid_pos.east > io_files.grid_num.east or self.grid_pos.north < io_files.grid_num.north or self.grid_pos.north > self.grid_pos.south or self.grid_pos.south > io_files.grid_num.south) {
+            const err = error.GridOutOfBounds;
+            try err_log.print("error: {s} while reading grid positions in {s}\n", .{ @errorName(err), self.site });
+            std.debug.print("\x1b[1;31merror: {s} while reading grid positions in {s}\x1b[0m\n", .{ @errorName(err), self.site });
+            return err;
+        }
+    }
+    ///This method gets all I/O file names within a scene.
+    fn getSiteFiles(self: *SiteFile, line: []const u8, err_log: *std.Io.Writer, grid_pos_we: usize, grid_pos_ns: usize) !void {
+        try self.tokens.tokenizeLine(line);
+        if (self.tokens.len != 2) {
+            const err = error.InvalidTokens;
+            try err_log.print("error: {s} while reading land unit and soil file names in {s}\n", .{ @errorName(err), self.site });
+            std.debug.print("\x1b[1;31merror: {s} while reading land unit and soil file names in {s}\x1b[0m\n", .{ @errorName(err), self.site });
+            return err;
+        }
+        const fields: [2]*[nwe][nns][]const u8 = .{ &self.land_unit, &self.soil };
+        for (self.tokens.items[0..fields.len], 0..) |tok, i| {
+            fields[i].*[grid_pos_we][grid_pos_ns] = tok;
+        }
+    }
 };
 ///Weather file names.
 const WthrFile = struct {
@@ -91,6 +172,7 @@ pub const IOFiles = struct {
     pub fn getAllIOFiles(self: *IOFiles, reader: *std.Io.Reader, run: *const RunArg, err_log: *std.Io.Writer) !void {
         try self.getGridNums(reader, run, err_log);
         try self.getSite(reader, run, err_log);
+        try self.site_file.getSiteFileData(self, err_log);
         try self.getStartYear(reader, run, err_log);
         try self.getScenario(reader, run, err_log);
         for (0..self.scenario.num) |scenario_id| {
@@ -105,6 +187,12 @@ pub const IOFiles = struct {
     fn getGridNums(self: *IOFiles, reader: *std.Io.Reader, run: *const RunArg, err_log: *std.Io.Writer) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         try self.tokens.tokenizeLine(line);
+        if (self.tokens.len != 4) {
+            const err = error.InvalidTokens;
+            try err_log.print("error: {s} while reading grid numbers in {s}\n", .{ @errorName(err), run.run });
+            std.debug.print("\x1b[1;31merror: {s} while reading grid numbers in {s}\x1b[0m\n", .{ @errorName(err), run.run });
+            return err;
+        }
         const fields: [4]*usize = .{ &self.grid_num.west, &self.grid_num.north, &self.grid_num.east, &self.grid_num.south };
         for (self.tokens.items[0..fields.len], 0..) |tok, i| {
             fields[i].* = std.fmt.parseInt(usize, tok, 10) catch |err| {

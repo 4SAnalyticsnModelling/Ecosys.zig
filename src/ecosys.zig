@@ -33,6 +33,7 @@ pub fn main() !void {
     // Read all input output file names in the runscript.
     var io_files = IOFiles{};
     try io_files.getAllIOFiles(run.buffered_reader, &run, logfile.err_log.buf_writer);
+    std.debug.print("test io land unit files {s}\n", .{io_files.site_file.land_unit[1][1]});
     std.debug.print("test io files {s}\n", .{io_files.daily_out_file.heat[0][5]});
     // Generate a success message with run completing runtime, if the run completes with no error.
     try runtime.success();
