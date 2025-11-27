@@ -5,7 +5,7 @@ const utils = @import("util/utils.zig");
 const iofiles = @import("io/iofiles.zig");
 const CompletionTime = error_check.CompletionTime;
 const RunArg = input_parser.RunArg;
-const IOFiles = iofiles.IOFiles;
+const IoFiles = iofiles.IoFiles;
 const Tokens = input_parser.Tokens;
 const OutDir = utils.OutDir;
 const ErrorLog = utils.ErrorLog;
@@ -38,7 +38,7 @@ pub fn main() !void {
     // Generate run failure message, if the run fails before completion.
     errdefer runtime.fail();
     // Read all input output file names in the runscript.
-    var io_files = IOFiles{};
+    var io_files = IoFiles{};
     try io_files.getParentIoFiles(run.file_reader.buf_reader, runfile, err_log.file_writer.buf_writer);
     try io_files.getChildIoFiles(err_log.file_writer.buf_writer);
     std.debug.print("test start year {d}\n", .{io_files.start_yr});
