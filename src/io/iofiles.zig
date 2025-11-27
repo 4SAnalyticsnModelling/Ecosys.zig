@@ -463,7 +463,7 @@ pub const IOFiles = struct {
     tokens: Tokens = Tokens{},
 
     ///This method gets all parent I/O file names in the runscript/runfile.
-    pub fn getParentIOFiles(self: *IOFiles, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
+    pub fn getParentIoFiles(self: *IOFiles, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
         try self.grid_num.getGridNums(reader, runfile_name, err_log);
         try self.getSite(reader, runfile_name, err_log);
         try self.getStartYear(reader, runfile_name, err_log);
@@ -478,7 +478,7 @@ pub const IOFiles = struct {
     }
 
     ///This method gets all child I/O file names (e.g. weather, soil, tillage, fertilizer, irrigation, plants etc.) wherever applicable.
-    pub fn getChildIOFiles(self: *IOFiles, err_log: *std.Io.Writer) !void {
+    pub fn getChildIoFiles(self: *IOFiles, err_log: *std.Io.Writer) !void {
         try self.site_file.getSiteFileData(self, err_log);
         for (0..self.scenario.num) |scenario_id| {
             for (0..self.scene.num[scenario_id]) |scene_id| {

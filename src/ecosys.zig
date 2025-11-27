@@ -39,8 +39,8 @@ pub fn main() !void {
     errdefer runtime.fail();
     // Read all input output file names in the runscript.
     var io_files = IOFiles{};
-    try io_files.getParentIOFiles(run.file_reader.buf_reader, runfile, err_log.file_writer.buf_writer);
-    try io_files.getChildIOFiles(err_log.file_writer.buf_writer);
+    try io_files.getParentIoFiles(run.file_reader.buf_reader, runfile, err_log.file_writer.buf_writer);
+    try io_files.getChildIoFiles(err_log.file_writer.buf_writer);
     std.debug.print("test start year {d}\n", .{io_files.start_yr});
     std.debug.print("test scenario number {d}\n", .{io_files.scenario.num});
     std.debug.print("test site file {s}\n", .{io_files.site_file.site.name[0..io_files.site_file.site.len]});
