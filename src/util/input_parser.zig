@@ -1,19 +1,23 @@
 const std = @import("std");
+const config = @import("config");
+const utils = @import("utils.zig");
+const max_path_len = config.filepathx;
+const max_io_buf = 1024;
+const max_tok_num = 256;
+const FileReader = utils.FileReader;
+
 ///This struct helps check ecosys run submission arguments and parse the runfile name.
 pub const RunArg = struct {
-    run_buf: [1024]u8 = undefined,
-    read_buf: [1024]u8 = undefined,
-    run: []const u8 = undefined,
-    runfile: std.fs.File = undefined,
-    buf_reader: std.fs.File.Reader = undefined,
-    buffered_reader: *std.Io.Reader = undefined,
+    runfile_name: [max_path_len]u8 = undefined,
+    file_reader: FileReader = FileReader{},
+
     ///This method gets the runfile name from run submission args.
-    pub fn getRunfile(self: *RunArg) !void {
+    pub fn getRunfile(self: *RunArg) ![]const u8 {
         const fba = std.heap.FixedBufferAllocator;
-        var args_buf: [1024]u8 = undefined;
+        var args_buf: [max_io_buf]u8 = undefined;
         var fba_args = fba.init(&args_buf);
         const allocator_args = fba_args.allocator();
-        const args = try std.process.argsAlloc(allocator_args);
+        const args = try std.process.argsAlloc(allocator_args); // use of allocator is required for windows os. So allocator less option is not feasible in this case.
         defer std.process.argsFree(allocator_args, args);
         if (args.len < 2) {
             std.debug.print(
@@ -22,31 +26,16 @@ pub const RunArg = struct {
             );
             return error.MissingArguments;
         }
-        const src: []const u8 = args[1];
-        if (src.len > self.run_buf.len) {
-            return error.RunfileNameTooLong;
+        if (args[1].len >= self.runfile_name.len) {
+            return error.RunfilePathTooLong;
         }
-        const dst = self.run_buf[0..src.len];
-        @memcpy(dst, src);
-        self.run = dst;
-    }
-    ///This method opens the runfile.
-    pub fn open(self: *RunArg) !void {
-        self.runfile = try std.fs.cwd().openFile(self.run, .{});
-    }
-    ///This method closes the runfile.
-    pub fn close(self: *RunArg) void {
-        self.runfile.close();
-    }
-    ///This method sets up a buffered reader interface for reading the runfile.
-    pub fn reader(self: *RunArg) !void {
-        self.buf_reader = self.runfile.reader(&self.read_buf);
-        self.buffered_reader = &self.buf_reader.interface;
+        @memcpy(self.runfile_name[0..args[1].len], args[1]);
+        return self.runfile_name[0..args[1].len];
     }
 };
 ///This is a helper struct to tokenize items in a read line.
 pub const Tokens = struct {
-    items: [128][]const u8 = undefined,
+    items: [max_tok_num][]const u8 = undefined, //using []const u8 since it's a pointer to actual line, not a storage, short-lived but memory efficient.
     len: usize = 0,
     ///This method resets tokens.
     pub fn reset(self: *Tokens) void {
@@ -58,7 +47,7 @@ pub const Tokens = struct {
         self.reset();
         var it = std.mem.tokenizeAny(u8, line, " \r\n");
         while (it.next()) |tok| {
-            if (self.len > self.items.len) {
+            if (self.len >= self.items.len) {
                 return error.TooManyTokens;
             }
             self.items[self.len] = tok;

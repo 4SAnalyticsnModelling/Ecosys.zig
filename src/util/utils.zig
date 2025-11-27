@@ -1,4 +1,8 @@
 const std = @import("std");
+const config = @import("config");
+const max_path_len = config.filepathx;
+const max_io_buf = 1024;
+
 /// This struct helps create ecosys output directory tree.
 pub const OutDir = struct {
     par_dir: []const u8 = "outputs",
@@ -21,50 +25,79 @@ pub const OutDir = struct {
         try createDir(self.outs);
     }
 };
-///Error log struct.
-const ErrorLog = struct {
-    fmt_buf: [256]u8 = undefined,
-    log_buf: [1024]u8 = undefined,
+///File reader.
+pub const FileReader = struct {
+    read_buf: [max_io_buf]u8 = undefined,
+    file: std.fs.File = undefined,
+    file_reader: std.fs.File.Reader = undefined,
+    buf_reader: *std.Io.Reader = undefined,
+
+    ///Opens file to read.
+    pub fn open(self: *FileReader, err_log: *std.Io.Writer, file_to_open: []const u8) !void {
+        self.file = std.fs.cwd().openFile(file_to_open, .{}) catch |err| {
+            try err_log.print("error: {s} while opening {s} in read mode\n", .{ @errorName(err), file_to_open });
+            std.debug.print("\x1b[1;31merror: {s} while opening {s} in read mode\x1b[0m\n", .{ @errorName(err), file_to_open });
+            return err;
+        };
+    }
+    ///Closes file once done reading.
+    pub fn close(self: *FileReader) void {
+        self.file.close();
+    }
+    ///Buffered file reader.
+    pub fn reader(self: *FileReader) void {
+        self.file_reader = self.file.reader(&self.read_buf);
+        self.buf_reader = &self.file_reader.interface;
+    }
+};
+///File writer.
+pub const FileWriter = struct {
+    write_buf: [max_io_buf]u8 = undefined,
     file: std.fs.File = undefined,
     file_writer: std.fs.File.Writer = undefined,
     buf_writer: *std.Io.Writer = undefined,
+    err_log: *std.Io.Writer = undefined,
+    is_err_log: bool = true,
+
+    ///Opens file to write.
+    pub fn create(self: *FileWriter, file_to_open: []const u8) !void {
+        self.file = std.fs.cwd().createFile(file_to_open, .{}) catch |err| {
+            if (self.is_err_log == false) {
+                try self.err_log.print("error: {s} while creating {s} in write mode\n", .{ @errorName(err), file_to_open });
+            }
+            std.debug.print("\x1b[1;31merror: {s} while creating {s} in write mode\x1b[0m\n", .{ @errorName(err), file_to_open });
+            return err;
+        };
+    }
+    ///Closes file once done writing.
+    pub fn close(self: *FileWriter) void {
+        self.file.close();
+    }
+    ///Buffered file writer.
+    pub fn writer(self: *FileWriter) void {
+        self.file_writer = self.file.writer(&self.write_buf);
+        self.buf_writer = &self.file_writer.interface;
+    }
 };
 ///Error log struct.
-const RunStatLog = struct {
-    fmt_buf: [256]u8 = undefined,
-    log_buf: [1024]u8 = undefined,
-    file: std.fs.File = undefined,
-    file_writer: std.fs.File.Writer = undefined,
-    buf_writer: *std.Io.Writer = undefined,
+pub const ErrorLog = struct {
+    fmt_buf: [max_path_len]u8 = undefined,
+    file_writer: FileWriter = FileWriter{},
+
+    ///Initialize error_log;
+    pub fn init(self: *ErrorLog, outdir: *OutDir) !void {
+        const err_log_name = try std.fmt.bufPrint(&self.fmt_buf, "{s}{c}{s}", .{ outdir.err_dir, std.fs.path.sep, "err_log.txt" });
+        try self.file_writer.create(err_log_name);
+    }
 };
-///This struct helps writing out error and run status logfiles.
-pub const LogFile = struct {
-    err_log: ErrorLog = ErrorLog{},
-    runstat_log: RunStatLog = RunStatLog{},
-
-    ///This method creates log files.
-    pub fn create(self: *LogFile, outdir: *const OutDir) !void {
-        const fs = std.fs.cwd();
-        const fmt = std.fmt;
-
-        const err_log_name = try fmt.bufPrint(&self.err_log.fmt_buf, "{s}{c}{s}", .{ outdir.err_dir, std.fs.path.sep, "err_log.txt" });
-        self.err_log.file = try fs.createFile(err_log_name, .{});
-
-        const runstat_log_name = try fmt.bufPrint(&self.runstat_log.fmt_buf, "{s}{c}{s}", .{ outdir.run_trck, std.fs.path.sep, "run_status.txt" });
-        self.runstat_log.file = try fs.createFile(runstat_log_name, .{});
-    }
-    ///This method close log files.
-    pub fn close(self: *LogFile) void {
-        self.err_log.file.close();
-        self.runstat_log.file.close();
-    }
-    ///This method creates buffered writers for the log files.
-    pub fn writer(self: *LogFile) !void {
-        self.err_log.file_writer = self.err_log.file.writer(&self.err_log.log_buf);
-        self.err_log.buf_writer = &self.err_log.file_writer.interface;
-
-        self.runstat_log.file_writer = self.runstat_log.file.writer(&self.runstat_log.log_buf);
-        self.runstat_log.buf_writer = &self.runstat_log.file_writer.interface;
+///Run status tracker log struct.
+pub const RunStatLog = struct {
+    fmt_buf: [max_path_len]u8 = undefined,
+    file_writer: FileWriter = FileWriter{},
+    ///Initialize error_log;
+    pub fn init(self: *ErrorLog, outdir: *OutDir) !void {
+        const runstat_log_name = try std.fmt.bufPrint(&self.fmt_buf, "{s}{c}{s}", .{ outdir.run_trck, std.fs.path.sep, "run_status.txt" });
+        try self.file_writer.create(runstat_log_name);
     }
 };
 ///This is a custom power function for floating point numbers only.

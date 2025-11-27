@@ -14,6 +14,7 @@ pub fn build(b: *std.Build) void {
     const ncanopyx = b.option(usize, "ncanopyx", "Maximum number of canopy layers") orelse 10;
     const nscenariox = b.option(usize, "nscenariox", "Maximum number of scenarios") orelse 10;
     const nscenex = b.option(usize, "nscenex", "Maximum number of scenes in each scenario") orelse 20;
+    const filepathx = b.option(usize, "filepathx", "Maximum length of file paths in bytes") orelse 256;
 
     const options = b.addOptions();
 
@@ -26,6 +27,7 @@ pub fn build(b: *std.Build) void {
     options.addOption(usize, "ncanopyx", ncanopyx);
     options.addOption(usize, "nscenariox", nscenariox);
     options.addOption(usize, "nscenex", nscenex);
+    options.addOption(usize, "filepathx", filepathx);
 
     exe.root_module.addOptions("config", options);
 
