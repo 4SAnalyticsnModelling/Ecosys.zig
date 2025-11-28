@@ -35,9 +35,9 @@ pub const FileReader = struct {
 
     ///Opens file to read
     pub fn open(self: *FileReader, err_log: *std.Io.Writer, file_to_open: []const u8) !void {
-        self.file = std.fs.cwd().openFile(file_to_open, .{}) catch |err| {
-            try err_log.print("error: {s} while opening {s} in read mode\n", .{ @errorName(err), file_to_open });
-            std.debug.print("\x1b[1;31merror: {s} while opening {s} in read mode\x1b[0m\n", .{ @errorName(err), file_to_open });
+        self.file = std.fs.cwd().openFile(file_to_open, .{ .mode = .read_only }) catch |err| {
+            try err_log.print("error: {s} while opening {s} in read only mode\n", .{ @errorName(err), file_to_open });
+            std.debug.print("\x1b[1;31merror: {s} while opening {s} in read only mode\x1b[0m\n", .{ @errorName(err), file_to_open });
             return err;
         };
     }

@@ -11,7 +11,8 @@ const OutDir = utils.OutDir;
 const ErrorLog = utils.ErrorLog;
 const RunStatLog = utils.RunStatLog;
 const LandUnit = @import("io/land_unit.zig").LandUnit;
-
+const LandUnitChk = @import("io/iochecks.zig").LandUnitChk;
+const IoFileNameChk = @import("io/iochecks.zig").IoFileNameChk;
 ///Ecosys main function
 pub fn main() !void {
     const start_time_us: i64 = std.time.microTimestamp();
@@ -41,25 +42,38 @@ pub fn main() !void {
     var io_files = IoFiles{};
     try io_files.getParentIoFiles(run.file_reader.buf_reader, runfile, err_log.file_writer.buf_writer);
     try io_files.getChildIoFiles(err_log.file_writer.buf_writer);
+    //Input check for parent I/O files
+    var parent_io_files_input_chk = IoFileNameChk{};
+    try parent_io_files_input_chk.spitParentIoFileNames(&io_files, &out, runfile);
     //Read land unit data
     var land_unit = LandUnit{};
     try land_unit.loadLandUnitData(&io_files, err_log.file_writer.buf_writer);
+    //Input check land unit data
+    var land_unit_input_chk = LandUnitChk{};
     //std.debug.print("test start year {d}\n", .{io_files.start_yr});
     //std.debug.print("test scenario number {d}\n", .{io_files.scenario.num});
     //std.debug.print("test site file {s}\n", .{io_files.site_file.site.name[0..io_files.site_file.site.len]});
-    const string_lit =
-        \\test lat {d}, alt {d}, MAT {d}, wtd simulation {s}, max daylen {d}
-        \\test O₂ conc {d}, N₂ conc {d}, init CO₂ conc {d}, CH₄ conc {d}, N₂O conc {d}, NH₃ conc {d}
-        \\test koppen climate zone {d}, salinity simulation {s}, erosion simulation {s}, grid connection simulation {s}, natural WTDx {d}, artificial WTDx {d}, WTx slope {d}
-        \\test surface boundary west {d}, north {d}, east {d}, south {d}, sub-surface boundary west {d}, north {d}, east {d}, south {d}, distance to WTx west {d}, north {d}, east {d}, south {d}, bottom drainage {d}
-        \\
-    ;
-
+    // const string_lit =
+    //     \\test lat {d}, alt {d}, MAT {d}, wtd simulation {s}, max daylen {d}
+    //     \\test O₂ conc {d}, N₂ conc {d}, init CO₂ conc {d}, CH₄ conc {d}, N₂O conc {d}, NH₃ conc {d}
+    //     \\test koppen climate zone {d}, salinity simulation {s}, erosion simulation {s}, grid connection simulation {s}, natural WTDx {d}, artificial WTDx {d}, WTx slope {d}
+    //     \\test surface boundary west {d}, north {d}, east {d}, south {d}, sub-surface boundary west {d}, north {d}, east {d}, south {d}, distance to WTx west {d}, north {d}, east {d}, south {d}, bottom drainage {d}
+    //     \\
+    // ;
     for (io_files.grid_num.west..io_files.grid_num.east) |we| {
         for (io_files.grid_num.north..io_files.grid_num.south) |ns| {
+            try land_unit_input_chk.spitLandUnitInputs(&land_unit, &io_files, &out, we, ns);
+            // const land_unit_file_name = io_files.site_file.land_unit.name[we][ns][0..io_files.site_file.land_unit.len[we][ns]];
+            // const basename = std.fs.path.basename(land_unit_file_name);
+            // const ext = std.fs.path.extension(land_unit_file_name);
+            // const land_file_out = basename[0 .. basename.len - ext.len];
+            // var buf_print: [1024]u8 = undefined;
+            // const landout = try std.fmt.bufPrint(&buf_print, "{s}/{d}{d}{s}.txt", .{ out.input_chk, we, ns, land_file_out });
+            // const file_out = try std.fs.cwd().createFile(landout, .{});
+            // defer file_out.close();
             //std.debug.print("test soil file {s}\n", .{io_files.site_file.soil.name[we][ns][0..io_files.site_file.soil.len[we][ns]]});
             //std.debug.print("test land unit file {s}\n", .{io_files.site_file.land_unit.name[we][ns][0..io_files.site_file.land_unit.len[we][ns]]});
-            std.debug.print(string_lit, .{ land_unit.loc.lat[we][ns], land_unit.loc.alt_init[we][ns], land_unit.loc.matc_init[we][ns], land_unit.loc.wt_opt_desc[land_unit.loc.wt_opt[we][ns]], land_unit.loc.max_daylength[we][ns], land_unit.atm_gas.o2conc[we][ns], land_unit.atm_gas.n2conc[we][ns], land_unit.atm_gas.co2conc_init[we][ns], land_unit.atm_gas.ch4conc[we][ns], land_unit.atm_gas.n2conc[we][ns], land_unit.atm_gas.nh3conc[we][ns], land_unit.opts.koppen_clim_zone[we][ns], land_unit.opts.salinity_opt_desc[land_unit.opts.salinity_opt[we][ns]], land_unit.opts.erosion_opt_desc[land_unit.opts.erosion_opt[we][ns]], land_unit.opts.grid_conn_opt_desc[land_unit.opts.grid_conn_opt[we][ns]], land_unit.opts.nat_wtdx_init[we][ns], land_unit.opts.art_wtdx_init[we][ns], land_unit.opts.nat_wtx_slope[we][ns], land_unit.bounds.surf.west[we][ns], land_unit.bounds.surf.north[we][ns], land_unit.bounds.surf.east[we][ns], land_unit.bounds.surf.south[we][ns], land_unit.bounds.sub_surf.west[we][ns], land_unit.bounds.sub_surf.north[we][ns], land_unit.bounds.sub_surf.east[we][ns], land_unit.bounds.sub_surf.south[we][ns], land_unit.bounds.dist_to_wtdx.west[we][ns], land_unit.bounds.dist_to_wtdx.north[we][ns], land_unit.bounds.dist_to_wtdx.east[we][ns], land_unit.bounds.dist_to_wtdx.south[we][ns], land_unit.bounds.bottom_drain[we][ns] });
+            // std.debug.print(string_lit, .{ land_unit.loc.lat[we][ns], land_unit.loc.alt_init[we][ns], land_unit.loc.matc_init[we][ns], land_unit.loc.wt_opt_desc[land_unit.loc.wt_opt[we][ns]], land_unit.loc.max_daylength[we][ns], land_unit.atm_gas.o2conc[we][ns], land_unit.atm_gas.n2conc[we][ns], land_unit.atm_gas.co2conc_init[we][ns], land_unit.atm_gas.ch4conc[we][ns], land_unit.atm_gas.n2conc[we][ns], land_unit.atm_gas.nh3conc[we][ns], land_unit.opts.koppen_clim_zone[we][ns], land_unit.opts.salinity_opt_desc[land_unit.opts.salinity_opt[we][ns]], land_unit.opts.erosion_opt_desc[land_unit.opts.erosion_opt[we][ns]], land_unit.opts.grid_conn_opt_desc[land_unit.opts.grid_conn_opt[we][ns]], land_unit.opts.nat_wtdx_init[we][ns], land_unit.opts.art_wtdx_init[we][ns], land_unit.opts.nat_wtx_slope[we][ns], land_unit.bounds.surf.west[we][ns], land_unit.bounds.surf.north[we][ns], land_unit.bounds.surf.east[we][ns], land_unit.bounds.surf.south[we][ns], land_unit.bounds.sub_surf.west[we][ns], land_unit.bounds.sub_surf.north[we][ns], land_unit.bounds.sub_surf.east[we][ns], land_unit.bounds.sub_surf.south[we][ns], land_unit.bounds.dist_to_wtdx.west[we][ns], land_unit.bounds.dist_to_wtdx.north[we][ns], land_unit.bounds.dist_to_wtdx.east[we][ns], land_unit.bounds.dist_to_wtdx.south[we][ns], land_unit.bounds.bottom_drain[we][ns] });
         }
     }
     //for (0..io_files.scenario.num) |scenario| {
