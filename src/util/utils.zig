@@ -1,22 +1,23 @@
+///This module contains helper functions to be used throughout other modules
 const std = @import("std");
 const config = @import("config");
 const max_path_len = config.filepathx;
 const max_io_buf = 1024;
 
-/// This struct helps create ecosys output directory tree.
+///This struct helps create ecosys output directory tree
 pub const OutDir = struct {
     par_dir: []const u8 = "outputs",
     err_dir: []const u8 = "outputs/error_logs",
     run_trck: []const u8 = "outputs/run_trackers",
     input_chk: []const u8 = "outputs/input_checks",
     outs: []const u8 = "outputs/modeled_outputs",
-    ///This method creates a directory by forcing deletion of the previous version (if any) of the same directory.
+    ///This method creates a directory by forcing deletion of the previous version (if any) of the same directory
     fn createDir(path: []const u8) !void {
         const fs = std.fs.cwd();
         fs.deleteTree(path) catch {};
         try fs.makeDir(path);
     }
-    ///This method creates all ecosys output directories.
+    ///This method creates all ecosys output directories
     pub fn mkOutDirs(self: *const OutDir) !void {
         try createDir(self.par_dir);
         try createDir(self.err_dir);
@@ -25,14 +26,14 @@ pub const OutDir = struct {
         try createDir(self.outs);
     }
 };
-///File reader.
+///File reader
 pub const FileReader = struct {
     read_buf: [max_io_buf]u8 = undefined,
     file: std.fs.File = undefined,
     file_reader: std.fs.File.Reader = undefined,
     buf_reader: *std.Io.Reader = undefined,
 
-    ///Opens file to read.
+    ///Opens file to read
     pub fn open(self: *FileReader, err_log: *std.Io.Writer, file_to_open: []const u8) !void {
         self.file = std.fs.cwd().openFile(file_to_open, .{}) catch |err| {
             try err_log.print("error: {s} while opening {s} in read mode\n", .{ @errorName(err), file_to_open });
@@ -40,17 +41,17 @@ pub const FileReader = struct {
             return err;
         };
     }
-    ///Closes file once done reading.
+    ///Closes file once done reading
     pub fn close(self: *FileReader) void {
         self.file.close();
     }
-    ///Buffered file reader.
+    ///Buffered file reader
     pub fn reader(self: *FileReader) void {
         self.file_reader = self.file.reader(&self.read_buf);
         self.buf_reader = &self.file_reader.interface;
     }
 };
-///File writer.
+///File writer
 pub const FileWriter = struct {
     write_buf: [max_io_buf]u8 = undefined,
     file: std.fs.File = undefined,
@@ -59,7 +60,7 @@ pub const FileWriter = struct {
     err_log: *std.Io.Writer = undefined,
     is_err_log: bool = true,
 
-    ///Opens file to write.
+    ///Opens file to write
     pub fn create(self: *FileWriter, file_to_open: []const u8) !void {
         self.file = std.fs.cwd().createFile(file_to_open, .{}) catch |err| {
             if (self.is_err_log == false) {
@@ -69,28 +70,28 @@ pub const FileWriter = struct {
             return err;
         };
     }
-    ///Closes file once done writing.
+    ///Closes file once done writing
     pub fn close(self: *FileWriter) void {
         self.file.close();
     }
-    ///Buffered file writer.
+    ///Buffered file writer
     pub fn writer(self: *FileWriter) void {
         self.file_writer = self.file.writer(&self.write_buf);
         self.buf_writer = &self.file_writer.interface;
     }
 };
-///Error log struct.
+///Error log struct
 pub const ErrorLog = struct {
     fmt_buf: [max_path_len]u8 = undefined,
     file_writer: FileWriter = FileWriter{},
 
-    ///Initialize error_log;
+    ///Initialize error_log
     pub fn init(self: *ErrorLog, outdir: *OutDir) !void {
         const err_log_name = try std.fmt.bufPrint(&self.fmt_buf, "{s}{c}{s}", .{ outdir.err_dir, std.fs.path.sep, "err_log.txt" });
         try self.file_writer.create(err_log_name);
     }
 };
-///Run status tracker log struct.
+///Run status tracker log struct
 pub const RunStatLog = struct {
     fmt_buf: [max_path_len]u8 = undefined,
     file_writer: FileWriter = FileWriter{},
@@ -100,7 +101,7 @@ pub const RunStatLog = struct {
         try self.file_writer.create(runstat_log_name);
     }
 };
-///This is a custom power function for floating point numbers only.
+///This is a custom power function for floating point numbers only
 pub fn power(base: f32, exponent: f32) f32 {
     return @exp(exponent * @log(base));
 }

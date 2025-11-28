@@ -1,3 +1,4 @@
+///This module contains struct and methods that help loading all the file names in the runfile/runscript (i.e., parent files) and within the parent files (i.e., child files)
 const std = @import("std");
 const config = @import("config");
 const input_parser = @import("../util/input_parser.zig");
@@ -12,7 +13,7 @@ const RunArg = input_parser.RunArg;
 const Tokens = input_parser.Tokens;
 const FileReader = utils.FileReader;
 
-///Build custom array type dimensions.
+///Build custom array type dimensions
 fn arrayType(comptime T: type, comptime dims: []const usize) type {
     if (dims.len == 0) {
         return T;
@@ -20,7 +21,7 @@ fn arrayType(comptime T: type, comptime dims: []const usize) type {
         return [dims[0]]arrayType(T, dims[1..]);
     }
 }
-///Build custom array length type dimensions.
+///Build custom array length type dimensions
 fn arrayLenType(comptime T: type, comptime dims: []const usize) type {
     if (dims.len < 2) {
         return T;
@@ -28,14 +29,14 @@ fn arrayLenType(comptime T: type, comptime dims: []const usize) type {
         return [dims[0]]arrayLenType(T, dims[1..]);
     }
 }
-///Helps set custom array types.
+///Helps set custom array types
 fn fileNameType(comptime T: type, comptime dims: []const usize) type {
     return struct {
         name: arrayType(T, dims) = undefined,
-        len: arrayLenType(usize, dims) = undefined,
+        len: arrayLenType(usize, dims) = std.mem.zeroes(arrayLenType(usize, dims)),
     };
 }
-///Grid numbers in different directions.
+///Grid numbers in different directions
 const GridNum = struct {
     west: usize = 0,
     north: usize = 0,
@@ -44,7 +45,7 @@ const GridNum = struct {
     grid_count: usize = 0,
     tokens: Tokens = Tokens{},
 
-    ///This method gets grid numbers in four directions.
+    ///This method gets grid numbers in four directions
     fn getGridNums(self: *GridNum, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         try self.tokens.tokenizeLine(line);
@@ -75,17 +76,17 @@ const GridNum = struct {
         }
     }
 };
-///Grid positions in different directions.
+///Grid positions in different directions
 const GridPos = struct {
     west: usize = 0,
     north: usize = 0,
     east: usize = 0,
     south: usize = 0,
     plants: usize = 0,
-    is_plant: bool = false,
+    is_plant: bool = false, //used to read plant files within the plant mgmt file
     tokens: Tokens = Tokens{},
 
-    ///This method gets grid positions in four directions.
+    ///This method gets grid positions in four directions
     fn getGridPos(self: *GridPos, line: []const u8, file_name: []const u8, io_files: *const IoFiles, err_log: *std.Io.Writer) !void {
         try self.tokens.tokenizeLine(line);
         if ((self.is_plant == false and self.tokens.len != 4) or (self.is_plant == true and self.tokens.len != 5)) {
@@ -121,7 +122,7 @@ const GridPos = struct {
         }
     }
 };
-///Scenario.
+///Scenario
 const Scenario = struct {
     num: usize = 0,
     repeat: usize = 0,
@@ -153,14 +154,14 @@ const Scenario = struct {
         }
     }
 };
-///Scene.
+///Scene
 const Scene = struct {
     num: [nscenario]usize = undefined,
     repeat: [nscenario]usize = undefined,
     tokens: Tokens = Tokens{},
 
-    ///This method gets number of scenes/scenes and times to repeat each scene/scene.
-    fn getScene(self: *Scene, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer, scenario_id: usize) !void {
+    ///This method gets number of scenes/scenes and times to repeat each scene/scene
+    fn getScene(self: *Scene, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer, scenario: usize) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         try self.tokens.tokenizeLine(line);
         if (self.tokens.len != 2) {
@@ -171,13 +172,13 @@ const Scene = struct {
         }
         const fields = [_]*[nscenario]usize{ &self.num, &self.repeat };
         for (self.tokens.items[0..fields.len], 0..) |tok, i| {
-            fields[i].*[scenario_id] = std.fmt.parseInt(usize, tok, 10) catch |err| {
+            fields[i].*[scenario] = std.fmt.parseInt(usize, tok, 10) catch |err| {
                 try err_log.print("error: {s} while parsing number of scenes and times to repeat each scene in {s}\n", .{ @errorName(err), runfile_name });
                 std.debug.print("\x1b[1;31merror: {s} while parsing number of scenes and times to repeat each scene in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
                 return err;
             };
         }
-        if (self.num[scenario_id] > nscene) {
+        if (self.num[scenario] > nscene) {
             const err = error.SceneOutOfBounds;
             try err_log.print("error: {s} while reading number of scenes in {s}\n", .{ @errorName(err), runfile_name });
             std.debug.print("\x1b[1;31merror: {s} while reading number of scenes in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
@@ -185,16 +186,16 @@ const Scene = struct {
         }
     }
 };
-///Site file names.
+///Site file names
 const SiteFile = struct {
-    land_unit: fileNameType(u8, &.{ nwe, nns, max_path_len }) = .{}, //landscape unit within a site
-    soil: fileNameType(u8, &.{ nwe, nns, max_path_len }) = .{}, //soil file for each landscape unit
-    site: fileNameType(u8, &.{max_path_len}) = .{},
+    land_unit: fileNameType(u8, &.{ nwe, nns, max_path_len }) = .{}, //names of landscape unit files within a site (child file)
+    soil: fileNameType(u8, &.{ nwe, nns, max_path_len }) = .{}, //names of soil files for each landscape unit (child file)
+    site: fileNameType(u8, &.{max_path_len}) = .{}, //site file name (parent file)
     grid_pos: GridPos = GridPos{},
     tokens: Tokens = Tokens{},
     file_reader: FileReader = FileReader{},
 
-    ///Get data within the site file.
+    ///Get data within the site file
     fn getSiteFileData(self: *SiteFile, io_files: *const IoFiles, err_log: *std.Io.Writer) !void {
         const site_file_name = io_files.site_file.site.name[0..io_files.site_file.site.len];
         try self.file_reader.open(err_log, site_file_name);
@@ -208,9 +209,9 @@ const SiteFile = struct {
             };
             try self.grid_pos.getGridPos(line, site_file_name, io_files, err_log);
             line = try self.file_reader.buf_reader.takeDelimiterInclusive('\n');
-            for (self.grid_pos.west..self.grid_pos.east) |grid_pos_we| {
-                for (self.grid_pos.north..self.grid_pos.south) |grid_pos_ns| {
-                    try self.getSiteFiles(site_file_name, line, err_log, grid_pos_we, grid_pos_ns);
+            for (self.grid_pos.west..self.grid_pos.east) |we| {
+                for (self.grid_pos.north..self.grid_pos.south) |ns| {
+                    try self.getSiteFiles(site_file_name, line, err_log, we, ns);
                     grid_count += 1;
                 }
             }
@@ -221,8 +222,8 @@ const SiteFile = struct {
             }
         }
     }
-    ///This method reads the land unit and soil file names within the site file.
-    fn getSiteFiles(self: *SiteFile, site_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, grid_pos_we: usize, grid_pos_ns: usize) !void {
+    ///This method reads the land unit and soil file names within the site file
+    fn getSiteFiles(self: *SiteFile, site_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, we: usize, ns: usize) !void {
         try self.tokens.tokenizeLine(line);
         if (self.tokens.len != 2) {
             const err = error.InvalidTokens;
@@ -239,22 +240,22 @@ const SiteFile = struct {
                 std.debug.print("\x1b[1;31merror: {s} while reading land unit and soil file names in {s}\x1b[0m\n", .{ @errorName(err), site_file_name });
                 return err;
             }
-            @memcpy(field_names[i][grid_pos_we][grid_pos_ns][0..tok.len], tok);
-            field_name_lens[i][grid_pos_we][grid_pos_ns] = tok.len;
+            @memcpy(field_names[i][we][ns][0..tok.len], tok);
+            field_name_lens[i][we][ns] = tok.len;
         }
     }
 };
-///Weather file names.
+///Weather file names
 const WthrFile = struct {
-    wthr: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, // weather file within a weather network
-    wthr_net: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{}, //network of all weather files.
+    wthr: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //names of weather files within a weather network file (child file)
+    wthr_net: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{}, //names of networks of all weather files (parent file)
     grid_pos: GridPos = GridPos{},
     tokens: Tokens = Tokens{},
     file_reader: FileReader = FileReader{},
 
-    ///Get data within the weather network file.
-    fn getWthrNetFileData(self: *WthrFile, io_files: *const IoFiles, err_log: *std.Io.Writer, scenario_id: usize, scene_id: usize) !void {
-        const wthr_net_file_name = io_files.wthr_file.wthr_net.name[scenario_id][scene_id][0..io_files.wthr_file.wthr_net.len[scenario_id][scene_id]];
+    ///Get data within the weather network file
+    fn getWthrNetFileData(self: *WthrFile, io_files: *const IoFiles, err_log: *std.Io.Writer, scenario: usize, scene: usize) !void {
+        const wthr_net_file_name = io_files.wthr_file.wthr_net.name[scenario][scene][0..io_files.wthr_file.wthr_net.len[scenario][scene]];
         try self.file_reader.open(err_log, wthr_net_file_name);
         defer self.file_reader.close();
         self.file_reader.reader();
@@ -266,9 +267,9 @@ const WthrFile = struct {
             };
             try self.grid_pos.getGridPos(line, wthr_net_file_name, io_files, err_log);
             line = try self.file_reader.buf_reader.takeDelimiterInclusive('\n');
-            for (self.grid_pos.west..self.grid_pos.east) |grid_pos_we| {
-                for (self.grid_pos.north..self.grid_pos.south) |grid_pos_ns| {
-                    try self.getWthrFiles(wthr_net_file_name, line, err_log, scenario_id, scene_id, grid_pos_we, grid_pos_ns);
+            for (self.grid_pos.west..self.grid_pos.east) |we| {
+                for (self.grid_pos.north..self.grid_pos.south) |ns| {
+                    try self.getWthrFiles(wthr_net_file_name, line, err_log, scenario, scene, we, ns);
                     grid_count += 1;
                 }
             }
@@ -279,8 +280,8 @@ const WthrFile = struct {
             }
         }
     }
-    ///This method reads the weather file names within the weather network file.
-    fn getWthrFiles(self: *WthrFile, wthr_net_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, scenario_id: usize, scene_id: usize, grid_pos_we: usize, grid_pos_ns: usize) !void {
+    ///This method reads the weather file names within the weather network file
+    fn getWthrFiles(self: *WthrFile, wthr_net_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, scenario: usize, scene: usize, we: usize, ns: usize) !void {
         try self.tokens.tokenizeLine(line);
         if (self.tokens.len != 1) {
             const err = error.InvalidTokens;
@@ -295,23 +296,23 @@ const WthrFile = struct {
             std.debug.print("\x1b[1;31merror: {s} while reading weather file names in {s}\x1b[0m\n", .{ @errorName(err), wthr_net_file_name });
             return err;
         }
-        @memcpy(self.wthr.name[scenario_id][scene_id][grid_pos_we][grid_pos_ns][0..tok.len], tok);
-        self.wthr.len[scenario_id][scene_id][grid_pos_we][grid_pos_ns] = tok.len;
+        @memcpy(self.wthr.name[scenario][scene][we][ns][0..tok.len], tok);
+        self.wthr.len[scenario][scene][we][ns] = tok.len;
     }
 };
-///Soil management file names.
+///Soil management file names
 const SoilMgmtFile = struct {
-    till: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{},
-    fert: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{},
-    irrig: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{},
-    soil_mgmt: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    till: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //tillage mgmt file names (child file)
+    fert: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //fertilizer mgmt file names (child file)
+    irrig: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //irrigation mgmt file names (child file)
+    soil_mgmt: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{}, //soil mgmt file names (parent file)
     grid_pos: GridPos = GridPos{},
     tokens: Tokens = Tokens{},
     file_reader: FileReader = FileReader{},
 
-    ///Get data within the soil management file.
-    fn getSoilMgmtFileData(self: *SoilMgmtFile, io_files: *IoFiles, err_log: *std.Io.Writer, scenario_id: usize, scene_id: usize) !void {
-        const soil_mgmt_file_name = io_files.soil_mgmt_file.soil_mgmt.name[scenario_id][scene_id][0..io_files.soil_mgmt_file.soil_mgmt.len[scenario_id][scene_id]];
+    ///Get data within the soil management file
+    fn getSoilMgmtFileData(self: *SoilMgmtFile, io_files: *IoFiles, err_log: *std.Io.Writer, scenario: usize, scene: usize) !void {
+        const soil_mgmt_file_name = io_files.soil_mgmt_file.soil_mgmt.name[scenario][scene][0..io_files.soil_mgmt_file.soil_mgmt.len[scenario][scene]];
         if (!std.mem.eql(u8, soil_mgmt_file_name, "no")) {
             try self.file_reader.open(err_log, soil_mgmt_file_name);
             defer self.file_reader.close();
@@ -324,9 +325,9 @@ const SoilMgmtFile = struct {
                 };
                 try self.grid_pos.getGridPos(line, soil_mgmt_file_name, io_files, err_log);
                 line = try self.file_reader.buf_reader.takeDelimiterInclusive('\n');
-                for (self.grid_pos.west..self.grid_pos.east) |grid_pos_we| {
-                    for (self.grid_pos.north..self.grid_pos.south) |grid_pos_ns| {
-                        try self.getSoilMgmtFiles(soil_mgmt_file_name, line, err_log, scenario_id, scene_id, grid_pos_we, grid_pos_ns);
+                for (self.grid_pos.west..self.grid_pos.east) |we| {
+                    for (self.grid_pos.north..self.grid_pos.south) |ns| {
+                        try self.getSoilMgmtFiles(soil_mgmt_file_name, line, err_log, scenario, scene, we, ns);
                         grid_count += 1;
                     }
                 }
@@ -338,8 +339,8 @@ const SoilMgmtFile = struct {
             }
         }
     }
-    ///This method reads the tillage, fertilizer, and irrigation file names within the soil management file.
-    fn getSoilMgmtFiles(self: *SoilMgmtFile, soil_mgmt_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, scenario_id: usize, scene_id: usize, grid_pos_we: usize, grid_pos_ns: usize) !void {
+    ///This method reads the tillage, fertilizer, and irrigation file names within the soil management file
+    fn getSoilMgmtFiles(self: *SoilMgmtFile, soil_mgmt_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, scenario: usize, scene: usize, we: usize, ns: usize) !void {
         try self.tokens.tokenizeLine(line);
         if (self.tokens.len != 3) {
             const err = error.InvalidTokens;
@@ -356,23 +357,23 @@ const SoilMgmtFile = struct {
                 std.debug.print("\x1b[1;31merror: {s} while reading tillage, fertilizer, and irrigation file names in {s}\x1b[0m\n", .{ @errorName(err), soil_mgmt_file_name });
                 return err;
             }
-            @memcpy(field_names[i][scenario_id][scene_id][grid_pos_we][grid_pos_ns][0..tok.len], tok);
-            field_name_lens[i][scenario_id][scene_id][grid_pos_we][grid_pos_ns] = tok.len;
+            @memcpy(field_names[i][scenario][scene][we][ns][0..tok.len], tok);
+            field_name_lens[i][scenario][scene][we][ns] = tok.len;
         }
     }
 };
-///Plant management file names.
+///Plant management file names
 const PlantMgmtFile = struct {
-    plant: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, nplant, max_path_len }) = .{},
-    operation: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, nplant, max_path_len }) = .{},
-    plant_mgmt: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    plant: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, nplant, max_path_len }) = .{}, //plant species file names (child file)
+    operation: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, nplant, max_path_len }) = .{}, //agriculture, horticulture, silviculture operations (e.g., planting, harvesting etc.) file names (child file)
+    plant_mgmt: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{}, //plant mgmt file names (parent file)
     grid_pos: GridPos = GridPos{ .is_plant = true },
     tokens: Tokens = Tokens{},
     file_reader: FileReader = FileReader{},
 
-    ///Get data within the plant management file.
-    fn getPlantMgmtFileData(self: *PlantMgmtFile, io_files: *IoFiles, err_log: *std.Io.Writer, scenario_id: usize, scene_id: usize) !void {
-        const plant_mgmt_file_name = io_files.plant_mgmt_file.plant_mgmt.name[scenario_id][scene_id][0..io_files.plant_mgmt_file.plant_mgmt.len[scenario_id][scene_id]];
+    ///Get data within the plant management file
+    fn getPlantMgmtFileData(self: *PlantMgmtFile, io_files: *IoFiles, err_log: *std.Io.Writer, scenario: usize, scene: usize) !void {
+        const plant_mgmt_file_name = io_files.plant_mgmt_file.plant_mgmt.name[scenario][scene][0..io_files.plant_mgmt_file.plant_mgmt.len[scenario][scene]];
         if (!std.mem.eql(u8, plant_mgmt_file_name, "no")) {
             try self.file_reader.open(err_log, plant_mgmt_file_name);
             defer self.file_reader.close();
@@ -384,17 +385,17 @@ const PlantMgmtFile = struct {
                     else => return err,
                 };
                 try self.grid_pos.getGridPos(line, plant_mgmt_file_name, io_files, err_log);
-                for (0..self.grid_pos.plants) |plant_id| {
+                for (0..self.grid_pos.plants) |plnt| {
                     line = self.file_reader.buf_reader.takeDelimiterInclusive('\n') catch {
                         const err = error.MissingFiles;
                         try err_log.print("error: {s} while reading plant file names in {s}\n", .{ @errorName(err), plant_mgmt_file_name });
                         std.debug.print("\x1b[1;31merror: {s} while reading plant file names in {s}\x1b[0m\n", .{ @errorName(err), plant_mgmt_file_name });
                         return err;
                     };
-                    for (self.grid_pos.west..self.grid_pos.east) |grid_pos_we| {
-                        for (self.grid_pos.north..self.grid_pos.south) |grid_pos_ns| {
-                            try self.getPlantMgmtFiles(plant_mgmt_file_name, line, err_log, scenario_id, scene_id, grid_pos_we, grid_pos_ns, plant_id);
-                            if (plant_id < 1) {
+                    for (self.grid_pos.west..self.grid_pos.east) |we| {
+                        for (self.grid_pos.north..self.grid_pos.south) |ns| {
+                            try self.getPlantMgmtFiles(plant_mgmt_file_name, line, err_log, scenario, scene, we, ns, plnt);
+                            if (plnt < 1) {
                                 grid_count += 1;
                             }
                         }
@@ -408,8 +409,8 @@ const PlantMgmtFile = struct {
             }
         }
     }
-    ///This method reads the plant file names within the plant management file.
-    fn getPlantMgmtFiles(self: *PlantMgmtFile, plant_mgmt_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, scenario_id: usize, scene_id: usize, grid_pos_we: usize, grid_pos_ns: usize, plant_id: usize) !void {
+    ///This method reads the plant file names within the plant management file
+    fn getPlantMgmtFiles(self: *PlantMgmtFile, plant_mgmt_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, scenario: usize, scene: usize, we: usize, ns: usize, plnt: usize) !void {
         try self.tokens.tokenizeLine(line);
         if (self.tokens.len != 2) {
             const err = error.InvalidTokens;
@@ -426,12 +427,12 @@ const PlantMgmtFile = struct {
                 std.debug.print("\x1b[1;31merror: {s} while reading plant file names in {s}\x1b[0m\n", .{ @errorName(err), plant_mgmt_file_name });
                 return err;
             }
-            @memcpy(field_names[i][scenario_id][scene_id][grid_pos_we][grid_pos_ns][plant_id][0..tok.len], tok);
-            field_name_lens[i][scenario_id][scene_id][grid_pos_we][grid_pos_ns][plant_id] = tok.len;
+            @memcpy(field_names[i][scenario][scene][we][ns][plnt][0..tok.len], tok);
+            field_name_lens[i][scenario][scene][we][ns][plnt] = tok.len;
         }
     }
 };
-///Daily output file names.
+///Daily output file names
 const HourlyOutFile = struct {
     carbon: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
     water: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
@@ -439,7 +440,7 @@ const HourlyOutFile = struct {
     phosphorus: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
     heat: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
 };
-///Daily output file names.
+///Daily output file names
 const DailyOutFile = struct {
     carbon: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
     water: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
@@ -447,11 +448,11 @@ const DailyOutFile = struct {
     phosphorus: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
     heat: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
 };
-///This struct reads the names of the model input files within the runfile.
+///This struct reads the names of the model input files within the runfile
 pub const IoFiles = struct {
     grid_num: GridNum = GridNum{},
     site_file: SiteFile = SiteFile{},
-    start_yr: u32 = 0,
+    start_yr: usize = 0,
     scenario: Scenario = Scenario{},
     scene: Scene = Scene{},
     wthr_file: WthrFile = WthrFile{},
@@ -462,35 +463,35 @@ pub const IoFiles = struct {
     hourly_out_file: HourlyOutFile = HourlyOutFile{},
     tokens: Tokens = Tokens{},
 
-    ///This method gets all parent I/O file names in the runscript/runfile.
+    ///This method gets all parent I/O file names in the runscript/runfile
     pub fn getParentIoFiles(self: *IoFiles, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
         try self.grid_num.getGridNums(reader, runfile_name, err_log);
         try self.getSite(reader, runfile_name, err_log);
         try self.getStartYear(reader, runfile_name, err_log);
         try self.scenario.getScenario(reader, runfile_name, err_log);
-        for (0..self.scenario.num) |scenario_id| {
-            try self.scene.getScene(reader, runfile_name, err_log, scenario_id);
-            for (0..self.scene.num[scenario_id]) |scene_id| {
-                try self.getSceneIoFiles(reader, runfile_name, err_log, scenario_id, scene_id);
+        for (0..self.scenario.num) |scenario| {
+            try self.scene.getScene(reader, runfile_name, err_log, scenario);
+            for (0..self.scene.num[scenario]) |scene| {
+                try self.getSceneIoFiles(reader, runfile_name, err_log, scenario, scene);
             }
         }
         try err_log.flush();
     }
 
-    ///This method gets all child I/O file names (e.g. weather, soil, tillage, fertilizer, irrigation, plants etc.) wherever applicable.
+    ///This method gets all child I/O file names (e.g. weather, soil, tillage, fertilizer, irrigation, plants etc.) wherever applicable
     pub fn getChildIoFiles(self: *IoFiles, err_log: *std.Io.Writer) !void {
         try self.site_file.getSiteFileData(self, err_log);
-        for (0..self.scenario.num) |scenario_id| {
-            for (0..self.scene.num[scenario_id]) |scene_id| {
-                try self.wthr_file.getWthrNetFileData(self, err_log, scenario_id, scene_id);
-                try self.soil_mgmt_file.getSoilMgmtFileData(self, err_log, scenario_id, scene_id);
-                try self.plant_mgmt_file.getPlantMgmtFileData(self, err_log, scenario_id, scene_id);
+        for (0..self.scenario.num) |scenario| {
+            for (0..self.scene.num[scenario]) |scene| {
+                try self.wthr_file.getWthrNetFileData(self, err_log, scenario, scene);
+                try self.soil_mgmt_file.getSoilMgmtFileData(self, err_log, scenario, scene);
+                try self.plant_mgmt_file.getPlantMgmtFileData(self, err_log, scenario, scene);
             }
         }
         try err_log.flush();
     }
 
-    ///This method gets site file name.
+    ///This method gets site file name
     fn getSite(self: *IoFiles, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         try self.tokens.tokenizeLine(line);
@@ -510,7 +511,7 @@ pub const IoFiles = struct {
         @memcpy(self.site_file.site.name[0..tok.len], tok);
         self.site_file.site.len = tok.len;
     }
-    ///This method gets start year.
+    ///This method gets start year
     fn getStartYear(self: *IoFiles, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         try self.tokens.tokenizeLine(line);
@@ -521,14 +522,14 @@ pub const IoFiles = struct {
             return err;
         }
         const tok = self.tokens.items[0];
-        self.start_yr = std.fmt.parseInt(u32, tok, 10) catch |err| {
+        self.start_yr = std.fmt.parseInt(usize, tok, 10) catch |err| {
             try err_log.print("error: {s} while parsing start year in {s}\n", .{ @errorName(err), runfile_name });
             std.debug.print("\x1b[1;31merror: {s} while parsing start year in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
             return err;
         };
     }
-    ///This method gets all I/O file names within a scene.
-    fn getSceneIoFiles(self: *IoFiles, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer, scenario_id: usize, scene_id: usize) !void {
+    ///This method gets all I/O file names within a scene
+    fn getSceneIoFiles(self: *IoFiles, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer, scenario: usize, scene: usize) !void {
         const field_names = [_]*[nscenario][nscene][max_path_len]u8{ &self.wthr_file.wthr_net.name, &self.opt_file.name, &self.soil_mgmt_file.soil_mgmt.name, &self.plant_mgmt_file.plant_mgmt.name, &self.hourly_out_file.carbon.name, &self.hourly_out_file.water.name, &self.hourly_out_file.nitrogen.name, &self.hourly_out_file.phosphorus.name, &self.hourly_out_file.heat.name, &self.daily_out_file.carbon.name, &self.daily_out_file.water.name, &self.daily_out_file.nitrogen.name, &self.daily_out_file.phosphorus.name, &self.daily_out_file.heat.name };
         const field_name_lens = [_]*[nscenario][nscene]usize{ &self.wthr_file.wthr_net.len, &self.opt_file.len, &self.soil_mgmt_file.soil_mgmt.len, &self.plant_mgmt_file.plant_mgmt.len, &self.hourly_out_file.carbon.len, &self.hourly_out_file.water.len, &self.hourly_out_file.nitrogen.len, &self.hourly_out_file.phosphorus.len, &self.hourly_out_file.heat.len, &self.daily_out_file.carbon.len, &self.daily_out_file.water.len, &self.daily_out_file.nitrogen.len, &self.daily_out_file.phosphorus.len, &self.daily_out_file.heat.len };
 
@@ -548,8 +549,8 @@ pub const IoFiles = struct {
                 std.debug.print("\x1b[1;31merror: {s} while reading scene I/O files in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
                 return err;
             }
-            @memcpy(field_names[i][scenario_id][scene_id][0..tok.len], tok);
-            field_name_lens[i][scenario_id][scene_id] = tok.len;
+            @memcpy(field_names[i][scenario][scene][0..tok.len], tok);
+            field_name_lens[i][scenario][scene] = tok.len;
         }
     }
 };

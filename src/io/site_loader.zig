@@ -1,5 +1,5 @@
 const std = @import("std");
-const offset: u32 = 1;
+const offset: usize = 1;
 const Site = @import("../dtypes/domain/site.zig").Site;
 const tokenizeLine = @import("../util/tokenize_line.zig").tokenizeLine;
 const handleError = @import("../util/handle_error.zig").handleError;
@@ -10,7 +10,7 @@ const parseTokenToFloat = @import("../util/parse_tokens.zig").parseTokenToFloat;
 const parseGrids = @import("../util/parse_grids.zig").parseGrids;
 const checkGrids = @import("../util/parse_grids.zig").checkGrids;
 /// This function loads all site inputs.
-pub fn siteLoader(allocator: std.mem.Allocator, err_log: *std.Io.Writer, run_log: *std.Io.Writer, run_script_buf: std.Io.Reader, site: *Site, grid_pos_west: u32, grid_pos_north: u32, grid_pos_east: u32, grid_pos_south: u32) !void {
+pub fn siteLoader(allocator: std.mem.Allocator, err_log: *std.Io.Writer, run_log: *std.Io.Writer, run_script_buf: std.Io.Reader, site: *Site, grid_pos_west: usize, grid_pos_north: usize, grid_pos_east: usize, grid_pos_south: usize) !void {
     // Log error message if this function fails
     errdefer handleError(error.FunctionFailedSiteLoader, err_log) catch {};
     // Buffer for file I/O: read
@@ -77,7 +77,7 @@ pub fn siteLoader(allocator: std.mem.Allocator, err_log: *std.Io.Writer, run_log
     }
 }
 ///This function reads site location inputs.
-fn readLocation(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_log: *std.Io.Writer, site_log: *std.Io.Writer, site: *Site, land_unit_name: []const u8, start_grid_west_east: u32, start_grid_north_south: u32, end_grid_west_east: u32, end_grid_north_south: u32) !void {
+fn readLocation(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_log: *std.Io.Writer, site_log: *std.Io.Writer, site: *Site, land_unit_name: []const u8, start_grid_west_east: usize, start_grid_north_south: usize, end_grid_west_east: usize, end_grid_north_south: usize) !void {
     const wt_opt_desc: [5][]const u8 = .{ "no", "yes, natural, stationary", "yes, natural, mobile", "yes, artificial, stationary", "yes, artificial, mobile" };
     const line = try land_unit_buf.takeDelimiterExclusive('\n');
     var tokens = try tokenizeLine(line, allocator);
@@ -91,7 +91,7 @@ fn readLocation(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err
             // Read mean annual temperature (MAT) (⁰C) to be used as lower boundary initial temperature
             site.loc.matc_init[nx][ny] = try parseTokenToFloat(f32, error.InvalidMeanAnnualTemperature, tokens.items[2], err_log);
             // Read water table option; 0 = none; 1,2 = natural stationary, mobile; 3,4 = artificial stationary, mobile
-            site.loc.wt_opt[nx][ny] = try parseTokenToInt(u32, error.InvalidWaterTableOption, tokens.items[3], err_log);
+            site.loc.wt_opt[nx][ny] = try parseTokenToInt(usize, error.InvalidWaterTableOption, tokens.items[3], err_log);
             if (site.loc.wt_opt[nx][ny] > 4) {
                 const err = error.InvalidWaterTableOption;
                 try err_log.print("error: {s}\n", .{@errorName(err)});
@@ -112,7 +112,7 @@ fn readLocation(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err
     }
 }
 ///This function returns daylength (hours) for a site location and day of year (doy).
-pub fn daylengthHours(site: *Site, doy: u32, nx: usize, ny: usize) f32 {
+pub fn daylengthHours(site: *Site, doy: usize, nx: usize, ny: usize) f32 {
     const lat_rad = deg2rad(site.loc.lat[nx][ny]);
     const declination_rad = solarDeclination(doy);
     const solar_altitude_rad = deg2rad(-0.833);
@@ -134,13 +134,13 @@ fn deg2rad(deg: f32) f32 {
     return deg * std.math.pi / 180.0;
 }
 ///This function calculates solar declination (radians) using Spencer (1971) approximation.
-fn solarDeclination(doy: u32) f32 {
+fn solarDeclination(doy: usize) f32 {
     const n = @as(f32, @floatFromInt(doy));
     const gamma = 2.0 * std.math.pi * (n - 1.0) / 365.0;
     return 0.006918 - 0.399912 * @cos(gamma) + 0.070257 * @sin(gamma) - 0.006758 * @cos(2.0 * gamma) + 0.000907 * @sin(2.0 * gamma) - 0.002697 * @cos(3.0 * gamma) + 0.001480 * @sin(3.0 * gamma);
 }
 ///This function reads initial atmospheric gas concentrations.
-fn readAtmGas(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_log: *std.Io.Writer, site_log: *std.Io.Writer, site: *Site, land_unit_name: []const u8, start_grid_west_east: u32, start_grid_north_south: u32, end_grid_west_east: u32, end_grid_north_south: u32) !void {
+fn readAtmGas(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_log: *std.Io.Writer, site_log: *std.Io.Writer, site: *Site, land_unit_name: []const u8, start_grid_west_east: usize, start_grid_north_south: usize, end_grid_west_east: usize, end_grid_north_south: usize) !void {
     for (start_grid_west_east..end_grid_west_east) |nx| {
         for (start_grid_north_south..end_grid_north_south) |ny| {
             const line = try land_unit_buf.takeDelimiterExclusive('\n');
@@ -167,7 +167,7 @@ fn readAtmGas(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_l
     }
 }
 ///This function reads various site options (e.g., koppen climate zone, salinity, erosion, grid connectivity, wtdx etc.).
-fn readSiteOptions(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_log: *std.Io.Writer, site_log: *std.Io.Writer, site: *Site, land_unit_name: []const u8, start_grid_west_east: u32, start_grid_north_south: u32, end_grid_west_east: u32, end_grid_north_south: u32) !void {
+fn readSiteOptions(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_log: *std.Io.Writer, site_log: *std.Io.Writer, site: *Site, land_unit_name: []const u8, start_grid_west_east: usize, start_grid_north_south: usize, end_grid_west_east: usize, end_grid_north_south: usize) !void {
     const salinity_opt_desc: [2][]const u8 = .{ "do not simulate salinity", "simulate salinity" };
     const erosion_opt_desc: [5][]const u8 = .{ "no change in elevation", "allow freeze-thaw to change elevation", "allow freeze-thaw + erosion to change elevation", "allow freeze-thaw + soc accumulation to change elevation", "allow freeze-thaw + soc accumulation + erosion to change elevation" };
     const grid_conn_opt_desc: [3][]const u8 = .{ "lateral connections between grid cells (and hence lateral flux simulations)", "not a valid option", "no lateral connection/flux simulation" };
@@ -177,9 +177,9 @@ fn readSiteOptions(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, 
     for (start_grid_west_east..end_grid_west_east) |nx| {
         for (start_grid_north_south..end_grid_north_south) |ny| {
             // Read Koppen climate zone.
-            site.opt.koppen_clim_zone[nx][ny] = try parseTokenToInt(u32, error.InvalidKoppenClimateZone, tokens.items[0], err_log);
+            site.opt.koppen_clim_zone[nx][ny] = try parseTokenToInt(usize, error.InvalidKoppenClimateZone, tokens.items[0], err_log);
             // Read salinity options; 0 = do not simulate salinity; 1 = simulate salinity.
-            site.opt.salinity_opt[nx][ny] = try parseTokenToInt(u32, error.InvalidSalinityOption, tokens.items[1], err_log);
+            site.opt.salinity_opt[nx][ny] = try parseTokenToInt(usize, error.InvalidSalinityOption, tokens.items[1], err_log);
             if (site.opt.salinity_opt[nx][ny] > 1) {
                 const err = error.InvalidSalinityOption;
                 try err_log.print("error: {s}\n", .{@errorName(err)});
@@ -194,9 +194,9 @@ fn readSiteOptions(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, 
                 try err_log.flush();
                 return err;
             }
-            const erosion_opt_for_desc: u32 = @max(0, @min(4, site.opt.erosion_opt[nx][ny] + 1));
+            const erosion_opt_for_desc: usize = @max(0, @min(4, site.opt.erosion_opt[nx][ny] + 1));
             // Read lateral mass and energy transport options; 1 = lateral connections between grid cells (and hence lateral flux simulations); 3 = no lateral connection/flux simulation.
-            site.opt.grid_conn_opt[nx][ny] = try parseTokenToInt(u32, error.InvalidLateralFluxOption, tokens.items[3], err_log);
+            site.opt.grid_conn_opt[nx][ny] = try parseTokenToInt(usize, error.InvalidLateralFluxOption, tokens.items[3], err_log);
             if (site.opt.grid_conn_opt[nx][ny] != 1) {
                 if (site.opt.grid_conn_opt[nx][ny] != 3) {
                     const err = error.InvalidLateralFluxOption;
@@ -218,7 +218,7 @@ fn readSiteOptions(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, 
     }
 }
 ///This function reads surface and sub-surface boundary conditions.
-fn readBoundary(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_log: *std.Io.Writer, site_log: *std.Io.Writer, site: *Site, land_unit_name: []const u8, start_grid_west_east: u32, start_grid_north_south: u32, end_grid_west_east: u32, end_grid_north_south: u32) !void {
+fn readBoundary(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_log: *std.Io.Writer, site_log: *std.Io.Writer, site: *Site, land_unit_name: []const u8, start_grid_west_east: usize, start_grid_north_south: usize, end_grid_west_east: usize, end_grid_north_south: usize) !void {
     for (start_grid_west_east..end_grid_west_east) |nx| {
         for (start_grid_north_south..end_grid_north_south) |ny| {
             const line = try land_unit_buf.takeDelimiterExclusive('\n');
@@ -248,7 +248,7 @@ fn readBoundary(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err
     }
 }
 ///This function reads grid deminsions.
-fn readGridDimension(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_log: *std.Io.Writer, site_log: *std.Io.Writer, site: *Site, land_unit_name: []const u8, start_grid_west_east: u32, start_grid_north_south: u32, end_grid_west_east: u32, end_grid_north_south: u32) !void {
+fn readGridDimension(allocator: std.mem.Allocator, land_unit_buf: *std.Io.Reader, err_log: *std.Io.Writer, site_log: *std.Io.Writer, site: *Site, land_unit_name: []const u8, start_grid_west_east: usize, start_grid_north_south: usize, end_grid_west_east: usize, end_grid_north_south: usize) !void {
     const line = try land_unit_buf.takeDelimiterExclusive('\n');
     var tokens = try tokenizeLine(line, allocator);
     try checkTokenInLine(error.InvalidInputLandscapeFileLine5, tokens.items.len, 2, err_log);
