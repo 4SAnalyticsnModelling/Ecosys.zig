@@ -34,6 +34,13 @@ pub const RunArg = struct {
         return self.runfile_name[0..args[1].len];
     }
 };
+const TokenErrors = error{
+    TooManyTokens,
+    TokenCountMismatch,
+    PrintFailed,
+    OutOfBounds,
+    InvalidCharacter,
+};
 ///This is a helper struct to tokenize items in a read line
 pub const Tokens = struct {
     items: [max_tok_num][]const u8 = undefined, //using []const u8 since it's a pointer to actual line, not a storage, short-lived but memory efficient
@@ -43,8 +50,26 @@ pub const Tokens = struct {
         self.len = 0;
         self.items = undefined;
     }
+    ///Logs an token count mismatch error to both err_log and stdout
+    fn logTokenCountMismatch(comptime err: anyerror, err_log: *std.Io.Writer, context: []const u8, file_name: []const u8) TokenErrors!void {
+        err_log.print("error: {s} while reading {s} in {s}\n", .{ @errorName(err), context, file_name }) catch {
+            return error.PrintFailed;
+        };
+        err_log.flush() catch {
+            return error.PrintFailed;
+        };
+        std.debug.print("\x1b[1;31merror: {s} while reading {s} in {s}\x1b[0m\n", .{ @errorName(err), context, file_name });
+    }
+    ///Checks token length, logs and returns error on mismatch
+    fn expectsTokenLen(tok_len: usize, expected: usize, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!void {
+        if (tok_len != expected) {
+            const err = error.TokenCountMismatch;
+            try logTokenCountMismatch(err, err_log, context, file_name);
+            return err;
+        }
+    }
     ///This method parses a line into a list of numbers/strings (called tokens hereafter) by eliminating spaces, tabs, or commas between tokens
-    pub fn tokenizeLine(self: *Tokens, line: []const u8) !void {
+    pub fn tokenizeLine(self: *Tokens, line: []const u8, expected: usize, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!void {
         self.reset();
         var it = std.mem.tokenizeAny(u8, line, " \r\n");
         while (it.next()) |tok| {
@@ -54,5 +79,51 @@ pub const Tokens = struct {
             self.items[self.len] = tok;
             self.len += 1;
         }
+        try expectsTokenLen(self.len, expected, context, file_name, err_log);
+    }
+    ///This method checks min max bounds for grids, plants, scenes etc.
+    pub fn boundsCheck(conds: anytype, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!void {
+        inline for (conds) |ok| { // comptile unrolling, so don't use this method if there's a lot of conditions
+            if (ok) {
+                const err = error.OutOfBounds;
+                try logTokenCountMismatch(err, err_log, context, file_name);
+                return err;
+            }
+        }
+    }
+    ///This method logs parsing of strings => integer errors.
+    pub fn parseTokToInt(comptime T: type, tok: []const u8, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!T {
+        return std.fmt.parseInt(T, tok, 10) catch {
+            const err = error.InvalidCharacter;
+            try logTokenCountMismatch(err, err_log, context, file_name);
+            return err;
+        };
+    }
+    ///This method logs parsing of strings => float errors.
+    pub fn parseTokToFloat(comptime T: type, tok: []const u8, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!T {
+        return std.fmt.parseFloat(T, tok) catch {
+            const err = error.InvalidCharacter;
+            try logTokenCountMismatch(err, err_log, context, file_name);
+            return err;
+        };
     }
 };
+///File path check error set
+const FilePathErrors = error{
+    FilePathTooLong,
+    PrintFailed,
+};
+///Check file path length
+pub fn filePathLenCheck(path_len: usize, max_allowable_len: usize, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) FilePathErrors!void {
+    if (path_len >= max_allowable_len) {
+        const err = error.FilePathTooLong;
+        err_log.print("error: {s} while reading {s} in {s}\n", .{ @errorName(err), context, file_name }) catch {
+            return error.PrintFailed;
+        };
+        err_log.flush() catch {
+            return error.PrintFailed;
+        };
+        std.debug.print("\x1b[1;31merror: {s} while reading {s} in {s}\x1b[0m\n", .{ @errorName(err), context, file_name });
+        return err;
+    }
+}

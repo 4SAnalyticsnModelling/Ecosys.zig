@@ -3,11 +3,14 @@ const std = @import("std");
 const config = @import("config");
 const input_parser = @import("../util/input_parser.zig");
 const utils = @import("../util/utils.zig");
+const print = std.debug.print;
 const nwe: usize = config.nwex;
 const nns: usize = config.nnsx;
 const Tokens = input_parser.Tokens;
 const FileReader = utils.FileReader;
 const IoFiles = @import("iofiles.zig").IoFiles;
+const parseTokToInt = Tokens.parseTokToInt;
+const parseTokToFloat = Tokens.parseTokToFloat;
 
 ///Landscape unit location
 const Location = struct {
@@ -18,38 +21,18 @@ const Location = struct {
     snowpack_init: [nwe][nns]f32 = undefined, //depth of initial snowpack (m)
     matc_init: [nwe][nns]f32 = undefined, //Mean Annual Temperature (⁰C)
     wt_opt: [nwe][nns]usize = undefined,
-    wt_opt_desc: [5][]const u8 = .{ "no", "yes, natural, stationary", "yes, natural, mobile", "yes, artificial, stationary", "yes, artificial, mobile" },
     max_daylength: [nwe][nns]f32 = undefined, //max. day length (h)
     //
     ///This method loads landscape unit location inputs
     fn loadLocation(self: *Location, land_unit_name: []const u8, line: []const u8, err_log: *std.Io.Writer, we: usize, ns: usize) !void {
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 7) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while loading landscape unit location in {s}\n", .{ @errorName(err), land_unit_name });
-            std.debug.print("\x1b[1;31merror: {s} while loading landscape unit location in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 7, "landscape unit location", land_unit_name, err_log);
         const fields = [_]*[nwe][nns]f32{ &self.lat, &self.alt_init, &self.asp, &self.surf_slop, &self.snowpack_init, &self.matc_init };
         for (tokens.items[0..fields.len], 0..) |tok, i| {
-            fields[i][we][ns] = std.fmt.parseFloat(f32, tok) catch |err| {
-                try err_log.print("error: {s} while parsing land unit location in {s}\n", .{ @errorName(err), land_unit_name });
-                std.debug.print("\x1b[1;31merror: {s} while parsing land unit location in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-                return err;
-            };
+            fields[i][we][ns] = try parseTokToFloat(f32, tok, "land unit location data", land_unit_name, err_log);
         }
-        self.wt_opt[we][ns] = std.fmt.parseInt(usize, tokens.items[tokens.len - 1], 10) catch |err| {
-            try err_log.print("error: {s} while parsing water table option in {s}\n", .{ @errorName(err), land_unit_name });
-            std.debug.print("\x1b[1;31merror: {s} while parsing water table option in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-            return err;
-        };
-        if (self.wt_opt[we][ns] >= self.wt_opt_desc.len) {
-            const err = error.InvalidOption;
-            try err_log.print("error: {s} while loading water table option in {s}\n", .{ @errorName(err), land_unit_name });
-            std.debug.print("\x1b[1;31merror: {s} while loading water table option in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-            return err;
-        }
+        const tok = tokens.items[tokens.len - 1];
+        self.wt_opt[we][ns] = try parseTokToInt(usize, tok, "water table option", land_unit_name, err_log);
         //Calculate maximum daylength hour for plant phenology
         const doy_max_daylen: usize = if (self.lat[we][ns] > 0.0) 173 else 356;
         self.max_daylength[we][ns] = self.daylengthHours(doy_max_daylen, we, ns);
@@ -97,20 +80,10 @@ const AtmGas = struct {
     ///This method loads atmospheric gas conc. data
     fn loadAtmGas(self: *AtmGas, land_unit_name: []const u8, line: []const u8, err_log: *std.Io.Writer, we: usize, ns: usize) !void {
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 6) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while loading atmospheric gas concentrations in {s}\n", .{ @errorName(err), land_unit_name });
-            std.debug.print("\x1b[1;31merror: {s} while loading atmospheric gas concentrations in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 6, "atmospheric gas concentrations", land_unit_name, err_log);
         const fields = [_]*[nwe][nns]f32{ &self.o2conc, &self.n2conc, &self.co2conc_init, &self.ch4conc, &self.n2oconc, &self.nh3conc };
         for (tokens.items[0..fields.len], 0..) |tok, i| {
-            fields[i][we][ns] = std.fmt.parseFloat(f32, tok) catch |err| {
-                try err_log.print("error: {s} while parsing atmospheric gas concentrations in {s}\n", .{ @errorName(err), land_unit_name });
-                std.debug.print("\x1b[1;31merror: {s} while parsing atmospheric gas concentrations in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-                return err;
-            };
+            fields[i][we][ns] = try parseTokToFloat(f32, tok, "atmospheric gas concentrations", land_unit_name, err_log);
         }
         self.co2conc[we][ns] = self.co2conc_init[we][ns];
         self.h2conc[we][ns] = 1e-3;
@@ -132,28 +105,14 @@ const LandUnitOptions = struct {
     ///This method loads various landscape unit's options data
     fn loadLandUnitOption(self: *LandUnitOptions, land_unit_name: []const u8, line: []const u8, err_log: *std.Io.Writer, we: usize, ns: usize) !void {
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 7) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while loading landscape unit options in {s}\n", .{ @errorName(err), land_unit_name });
-            std.debug.print("\x1b[1;31merror: {s} while loading landscape unit options in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 7, "landscape unit options", land_unit_name, err_log);
         const fields_int = [_]*[nwe][nns]usize{ &self.koppen_clim_zone, &self.erosion_opt, &self.salinity_opt, &self.grid_conn_opt };
         const fields_float = [_]*[nwe][nns]f32{ &self.nat_wtdx_init, &self.art_wtdx_init, &self.nat_wtx_slope };
         for (tokens.items[0..fields_int.len], 0..) |tok, i| {
-            fields_int[i][we][ns] = std.fmt.parseInt(usize, tok, 10) catch |err| {
-                try err_log.print("error: {s} while parsing landscape unit options in {s}\n", .{ @errorName(err), land_unit_name });
-                std.debug.print("\x1b[1;31merror: {s} while parsing landscape unit options in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-                return err;
-            };
+            fields_int[i][we][ns] = try parseTokToInt(usize, tok, "landscape unit options data", land_unit_name, err_log);
         }
         for (tokens.items[fields_int.len .. fields_float.len + fields_int.len], 0..) |tok, i| {
-            fields_float[i][we][ns] = std.fmt.parseFloat(f32, tok) catch |err| {
-                try err_log.print("error: {s} while parsing landscape unit options in {s}\n", .{ @errorName(err), land_unit_name });
-                std.debug.print("\x1b[1;31merror: {s} while parsing landscape unit options in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-                return err;
-            };
+            fields_float[i][we][ns] = try parseTokToFloat(f32, tok, "landscape unit options data", land_unit_name, err_log);
         }
         if (self.salinity_opt[we][ns] >= self.salinity_opt_desc.len) {
             const err = error.InvalidOption;
@@ -206,20 +165,10 @@ const BoundaryCondition = struct {
     ///This method loads landscape unit's boundary conditions data
     fn loadBoundaryCondition(self: *BoundaryCondition, land_unit_name: []const u8, line: []const u8, err_log: *std.Io.Writer, we: usize, ns: usize) !void {
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 13) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while loading boundary conditions in {s}\n", .{ @errorName(err), land_unit_name });
-            std.debug.print("\x1b[1;31merror: {s} while loading boundary conditions in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 13, "boundary conditions", land_unit_name, err_log);
         const fields = [_]*[nwe][nns]f32{ &self.surf.west, &self.surf.north, &self.surf.east, &self.surf.south, &self.sub_surf.west, &self.sub_surf.north, &self.sub_surf.east, &self.sub_surf.south, &self.dist_to_wtdx.west, &self.dist_to_wtdx.north, &self.dist_to_wtdx.east, &self.dist_to_wtdx.south, &self.bottom_drain };
         for (tokens.items[0..fields.len], 0..) |tok, i| {
-            fields[i][we][ns] = std.fmt.parseFloat(f32, tok) catch |err| {
-                try err_log.print("error: {s} while parsing boundary conditions in {s}\n", .{ @errorName(err), land_unit_name });
-                std.debug.print("\x1b[1;31merror: {s} while parsing boundary conditions in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-                return err;
-            };
+            fields[i][we][ns] = try parseTokToFloat(f32, tok, "boundary conditions", land_unit_name, err_log);
         }
     }
 };
@@ -231,20 +180,10 @@ const GridDimension = struct {
     ///This method loads landscape unit's grid dimension data
     fn loadGridDims(self: *GridDimension, land_unit_name: []const u8, line: []const u8, err_log: *std.Io.Writer, we: usize, ns: usize) !void {
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 2) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while loading grid dimensions in {s}\n", .{ @errorName(err), land_unit_name });
-            std.debug.print("\x1b[1;31merror: {s} while loading grid dimensions in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 2, "grid dimensions", land_unit_name, err_log);
         const fields = [_]*[nwe][nns]f32{ &self.west_east, &self.north_south };
         for (tokens.items[0..fields.len], 0..) |tok, i| {
-            fields[i][we][ns] = std.fmt.parseFloat(f32, tok) catch |err| {
-                try err_log.print("error: {s} while parsing grid dimensions in {s}\n", .{ @errorName(err), land_unit_name });
-                std.debug.print("\x1b[1;31merror: {s} while parsing grid dimensions in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-                return err;
-            };
+            fields[i][we][ns] = try parseTokToFloat(f32, tok, "grid dimensions", land_unit_name, err_log);
         }
     }
 };

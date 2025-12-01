@@ -12,6 +12,9 @@ const max_path_len = config.filepathx;
 const RunArg = input_parser.RunArg;
 const Tokens = input_parser.Tokens;
 const FileReader = utils.FileReader;
+const filePathLenCheck = input_parser.filePathLenCheck;
+const parseTokToInt = Tokens.parseTokToInt;
+const boundsCheck = Tokens.boundsCheck;
 
 ///Build custom array type dimensions
 fn arrayType(comptime T: type, comptime dims: []const usize) type {
@@ -37,7 +40,7 @@ fn fileNameType(comptime T: type, comptime dims: []const usize) type {
     };
 }
 ///Grid numbers in different directions
-const GridNum = struct {
+const GridNums = struct {
     west: usize = 0,
     north: usize = 0,
     east: usize = 0,
@@ -45,30 +48,15 @@ const GridNum = struct {
     grid_count: usize = 0,
 
     ///This method gets grid numbers in four directions
-    fn getGridNums(self: *GridNum, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
+    fn getGridNums(self: *GridNums, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 4) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while reading grid numbers in {s}\n", .{ @errorName(err), runfile_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading grid numbers in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 4, "grid numbers", runfile_name, err_log);
         const fields = [_]*usize{ &self.west, &self.north, &self.east, &self.south };
         for (tokens.items[0..fields.len], 0..) |tok, i| {
-            fields[i].* = std.fmt.parseInt(usize, tok, 10) catch |err| {
-                try err_log.print("error: {s} while parsing grid numbers in {s}\n", .{ @errorName(err), runfile_name });
-                std.debug.print("\x1b[1;31merror: {s} while parsing grid numbers in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-                return err;
-            };
+            fields[i].* = try parseTokToInt(usize, tok, "grid numbers", runfile_name, err_log);
         }
-        if (self.west < 0 or self.west > self.east or self.east > nwe or self.north < 0 or self.north > self.south or self.south > nns) {
-            const err = error.GridOutOfBounds;
-            try err_log.print("error: {s} while reading grid numbers in {s}\n", .{ @errorName(err), runfile_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading grid numbers in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-            return err;
-        }
+        try boundsCheck(.{ self.west < 0, self.west > self.east, self.east > nwe, self.north < 0, self.north > self.south, self.south > nns }, "grid numbers", runfile_name, err_log);
         for (self.west..self.east) |_| {
             for (self.north..self.south) |_| {
                 self.grid_count += 1;
@@ -88,37 +76,24 @@ const GridPos = struct {
     ///This method gets grid positions in four directions
     fn getGridPos(self: *GridPos, line: []const u8, file_name: []const u8, io_files: *const IoFiles, err_log: *std.Io.Writer) !void {
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if ((self.is_plant == false and tokens.len != 4) or (self.is_plant == true and tokens.len != 5)) {
-            const err = error.InvalidTokens;
-            try self.gridPosError(err, file_name, err_log);
-            return err;
+        if (self.is_plant) {
+            try tokens.tokenizeLine(line, 5, "grid positions & number of plants", file_name, err_log);
+        } else {
+            try tokens.tokenizeLine(line, 4, "grid positions", file_name, err_log);
         }
         const fields = [_]*usize{ &self.west, &self.north, &self.east, &self.south, &self.plants };
-        for (tokens.items[0..tokens.len], 0..) |tok, i| {
-            fields[i].* = std.fmt.parseInt(usize, tok, 10) catch |err| {
-                try self.gridPosError(err, file_name, err_log);
-                return err;
-            };
-        }
-        if (self.west < io_files.grid_num.west or self.west > self.east or self.east > io_files.grid_num.east or self.north < io_files.grid_num.north or self.north > self.south or self.south > io_files.grid_num.south) {
-            const err = error.GridOutOfBounds;
-            try self.gridPosError(err, file_name, err_log);
-            return err;
-        }
-        if (self.is_plant == true and self.plants > nplant) {
-            const err = error.TooManyPlantSpecies;
-            try self.gridPosError(err, file_name, err_log);
-            return err;
-        }
-    }
-    fn gridPosError(self: *GridPos, err: anyerror, file_name: []const u8, err_log: *std.Io.Writer) !void {
         if (self.is_plant) {
-            try err_log.print("error: {s} while reading grid positions and number of plants in {s}\n", .{ @errorName(err), file_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading grid positions and number of plants in {s}\x1b[0m\n", .{ @errorName(err), file_name });
+            for (tokens.items[0..tokens.len], 0..) |tok, i| {
+                fields[i].* = try parseTokToInt(usize, tok, "grid positions & number of plants", file_name, err_log);
+            }
         } else {
-            try err_log.print("error: {s} while reading grid positions in {s}\n", .{ @errorName(err), file_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading grid positions in {s}\x1b[0m\n", .{ @errorName(err), file_name });
+            for (tokens.items[0..tokens.len], 0..) |tok, i| {
+                fields[i].* = try parseTokToInt(usize, tok, "grid positions", file_name, err_log);
+            }
+        }
+        try boundsCheck(.{ self.west < io_files.grid_num.west, self.west > self.east, self.east > io_files.grid_num.east, self.north < io_files.grid_num.north, self.north > self.south, self.south > io_files.grid_num.south }, "grid positions (hint: grid numbers out of bounds)", file_name, err_log);
+        if (self.is_plant == true) {
+            try boundsCheck(.{self.plants > nplant}, "number of plant species (hint: too many plant species)", file_name, err_log);
         }
     }
 };
@@ -131,27 +106,12 @@ const Scenario = struct {
     fn getScenario(self: *Scenario, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 2) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while reading number of scenarios and times to repeat each scenario in {s}\n", .{ @errorName(err), runfile_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading number of scenarios and times to repeat each scenario in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 2, "number of scenarios and times to repeat each scenario", runfile_name, err_log);
         const fields = [_]*usize{ &self.num, &self.repeat };
         for (tokens.items[0..fields.len], 0..) |tok, i| {
-            fields[i].* = std.fmt.parseInt(usize, tok, 10) catch |err| {
-                try err_log.print("error: {s} while parsing number of scenarios and times to repeat each scenario in {s}\n", .{ @errorName(err), runfile_name });
-                std.debug.print("\x1b[1;31merror: {s} while parsing number of scenarios and times to repeat each scenario in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-                return err;
-            };
+            fields[i].* = try parseTokToInt(usize, tok, "number of scenarios and times to repeat each scenario", runfile_name, err_log);
         }
-        if (self.num > nscenario) {
-            const err = error.ScenarioOutOfBounds;
-            try err_log.print("error: {s} while reading number of scenarios in {s}\n", .{ @errorName(err), runfile_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading number of scenarios in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-            return err;
-        }
+        try boundsCheck(.{self.num > nscenario}, "number of scenarios", runfile_name, err_log);
     }
 };
 ///Scene
@@ -163,27 +123,12 @@ const Scene = struct {
     fn getScene(self: *Scene, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer, scenario: usize) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 2) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while reading number of scenes and times to repeat each scene in {s}\n", .{ @errorName(err), runfile_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading number of scenes and times to repeat each scene in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 2, "number of scenes and times to repeat each scene", runfile_name, err_log);
         const fields = [_]*[nscenario]usize{ &self.num, &self.repeat };
         for (tokens.items[0..fields.len], 0..) |tok, i| {
-            fields[i].*[scenario] = std.fmt.parseInt(usize, tok, 10) catch |err| {
-                try err_log.print("error: {s} while parsing number of scenes and times to repeat each scene in {s}\n", .{ @errorName(err), runfile_name });
-                std.debug.print("\x1b[1;31merror: {s} while parsing number of scenes and times to repeat each scene in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-                return err;
-            };
+            fields[i].*[scenario] = try parseTokToInt(usize, tok, "number of scenes and times to repeat each scene", runfile_name, err_log);
         }
-        if (self.num[scenario] > nscene) {
-            const err = error.SceneOutOfBounds;
-            try err_log.print("error: {s} while reading number of scenes in {s}\n", .{ @errorName(err), runfile_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading number of scenes in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-            return err;
-        }
+        try boundsCheck(.{self.num[scenario] > nscene}, "number of scenes", runfile_name, err_log);
     }
 };
 ///Site file names
@@ -214,32 +159,17 @@ const SiteFile = struct {
                     grid_count += 1;
                 }
             }
-            if (grid_count != io_files.grid_num.grid_count) {
-                const err = error.InvalidGridPositions;
-                try self.grid_pos.gridPosError(err, site_file_name, err_log);
-                return err;
-            }
+            try boundsCheck(.{grid_count != io_files.grid_num.grid_count}, "grid positions (hint: too few or too many grids)", site_file_name, err_log);
         }
     }
     ///This method reads the land unit and soil file names within the site file
     fn getSiteFiles(self: *SiteFile, site_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, we: usize, ns: usize) !void {
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 2) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while reading land unit and soil file names in {s}\n", .{ @errorName(err), site_file_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading land unit and soil file names in {s}\x1b[0m\n", .{ @errorName(err), site_file_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 2, "land unit and soil file names", site_file_name, err_log);
         const field_names = [_]*[nwe][nns][max_path_len]u8{ &self.land_unit.name, &self.soil.name };
         const field_name_lens = [_]*[nwe][nns]usize{ &self.land_unit.len, &self.soil.len };
         for (tokens.items[0..field_names.len], 0..) |tok, i| {
-            if (tok.len >= max_path_len) {
-                const err = error.FilePathTooLong;
-                try err_log.print("error: {s} while reading land unit and soil file names in {s}\n", .{ @errorName(err), site_file_name });
-                std.debug.print("\x1b[1;31merror: {s} while reading land unit and soil file names in {s}\x1b[0m\n", .{ @errorName(err), site_file_name });
-                return err;
-            }
+            try filePathLenCheck(tok.len, max_path_len, "land unit and soil file names", site_file_name, err_log);
             @memcpy(field_names[i][we][ns][0..tok.len], tok);
             field_name_lens[i][we][ns] = tok.len;
         }
@@ -272,30 +202,15 @@ const WthrFile = struct {
                     grid_count += 1;
                 }
             }
-            if (grid_count != io_files.grid_num.grid_count) {
-                const err = error.InvalidGridPositions;
-                try self.grid_pos.gridPosError(err, wthr_net_file_name, err_log);
-                return err;
-            }
+            try boundsCheck(.{grid_count != io_files.grid_num.grid_count}, "grid positions (hint: too few or too many grids)", wthr_net_file_name, err_log);
         }
     }
     ///This method reads the weather file names within the weather network file
     fn getWthrFiles(self: *WthrFile, wthr_net_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, scenario: usize, scene: usize, we: usize, ns: usize) !void {
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 1) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while reading weather file name in {s}\n", .{ @errorName(err), wthr_net_file_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading weather file names in {s}\x1b[0m\n", .{ @errorName(err), wthr_net_file_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 1, "weather file name", wthr_net_file_name, err_log);
         const tok = tokens.items[0];
-        if (tok.len >= max_path_len) {
-            const err = error.FilePathTooLong;
-            try err_log.print("error: {s} while reading weather file names in {s}\n", .{ @errorName(err), wthr_net_file_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading weather file names in {s}\x1b[0m\n", .{ @errorName(err), wthr_net_file_name });
-            return err;
-        }
+        try filePathLenCheck(tok.len, max_path_len, "weather file names", wthr_net_file_name, err_log);
         @memcpy(self.wthr.name[scenario][scene][we][ns][0..tok.len], tok);
         self.wthr.len[scenario][scene][we][ns] = tok.len;
     }
@@ -330,33 +245,18 @@ const SoilMgmtFile = struct {
                         grid_count += 1;
                     }
                 }
-                if (grid_count != io_files.grid_num.grid_count) {
-                    const err = error.InvalidGridPositions;
-                    try self.grid_pos.gridPosError(err, soil_mgmt_file_name, err_log);
-                    return err;
-                }
+                try boundsCheck(.{grid_count != io_files.grid_num.grid_count}, "grid positions (hint: too few or too many grids)", soil_mgmt_file_name, err_log);
             }
         }
     }
     ///This method reads the tillage, fertilizer, and irrigation file names within the soil management file
     fn getSoilMgmtFiles(self: *SoilMgmtFile, soil_mgmt_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, scenario: usize, scene: usize, we: usize, ns: usize) !void {
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 3) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while reading tillage, fertilizer, and irrigation file names in {s}\n", .{ @errorName(err), soil_mgmt_file_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading tillage, fertilizer, and irrigation file names in {s}\x1b[0m\n", .{ @errorName(err), soil_mgmt_file_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 3, "tillage, fertilizer and irrigation file names", soil_mgmt_file_name, err_log);
         const field_names = [_]*[nscenario][nscene][nwe][nns][max_path_len]u8{ &self.till.name, &self.fert.name, &self.irrig.name };
         const field_name_lens = [_]*[nscenario][nscene][nwe][nns]usize{ &self.till.len, &self.fert.len, &self.irrig.len };
         for (tokens.items[0..field_names.len], 0..) |tok, i| {
-            if (tok.len >= max_path_len) {
-                const err = error.FilePathTooLong;
-                try err_log.print("error: {s} while reading tillage, fertilizer, and irrigation file names in {s}\n", .{ @errorName(err), soil_mgmt_file_name });
-                std.debug.print("\x1b[1;31merror: {s} while reading tillage, fertilizer, and irrigation file names in {s}\x1b[0m\n", .{ @errorName(err), soil_mgmt_file_name });
-                return err;
-            }
+            try filePathLenCheck(tok.len, max_path_len, "tillage, fertilizer, and irrigation file names", soil_mgmt_file_name, err_log);
             @memcpy(field_names[i][scenario][scene][we][ns][0..tok.len], tok);
             field_name_lens[i][scenario][scene][we][ns] = tok.len;
         }
@@ -388,6 +288,7 @@ const PlantMgmtFile = struct {
                     line = self.file_reader.buf_reader.takeDelimiterInclusive('\n') catch {
                         const err = error.MissingFiles;
                         try err_log.print("error: {s} while reading plant file names in {s}\n", .{ @errorName(err), plant_mgmt_file_name });
+                        defer err_log.flush() catch {};
                         std.debug.print("\x1b[1;31merror: {s} while reading plant file names in {s}\x1b[0m\n", .{ @errorName(err), plant_mgmt_file_name });
                         return err;
                     };
@@ -400,33 +301,18 @@ const PlantMgmtFile = struct {
                         }
                     }
                 }
-                if (grid_count != io_files.grid_num.grid_count) {
-                    const err = error.InvalidGridPositions;
-                    try self.grid_pos.gridPosError(err, plant_mgmt_file_name, err_log);
-                    return err;
-                }
+                try boundsCheck(.{grid_count != io_files.grid_num.grid_count}, "grid positions and number of plant species (hint: too few or too many grids)", plant_mgmt_file_name, err_log);
             }
         }
     }
     ///This method reads the plant file names within the plant management file
     fn getPlantMgmtFiles(self: *PlantMgmtFile, plant_mgmt_file_name: []const u8, line: []const u8, err_log: *std.Io.Writer, scenario: usize, scene: usize, we: usize, ns: usize, plnt: usize) !void {
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 2) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while reading plant file names in {s}\n", .{ @errorName(err), plant_mgmt_file_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading plant file names in {s}\x1b[0m\n", .{ @errorName(err), plant_mgmt_file_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 2, "plant file names", plant_mgmt_file_name, err_log);
         const field_names = [_]*[nscenario][nscene][nwe][nns][nplant][max_path_len]u8{ &self.plant.name, &self.operation.name };
         const field_name_lens = [_]*[nscenario][nscene][nwe][nns][nplant]usize{ &self.plant.len, &self.operation.len };
         for (tokens.items[0..field_names.len], 0..) |tok, i| {
-            if (tok.len >= max_path_len) {
-                const err = error.FilePathTooLong;
-                try err_log.print("error: {s} while reading plant file names in {s}\n", .{ @errorName(err), plant_mgmt_file_name });
-                std.debug.print("\x1b[1;31merror: {s} while reading plant file names in {s}\x1b[0m\n", .{ @errorName(err), plant_mgmt_file_name });
-                return err;
-            }
+            try filePathLenCheck(tok.len, max_path_len, "plant file names", plant_mgmt_file_name, err_log);
             @memcpy(field_names[i][scenario][scene][we][ns][plnt][0..tok.len], tok);
             field_name_lens[i][scenario][scene][we][ns][plnt] = tok.len;
         }
@@ -450,7 +336,7 @@ const DailyOutFile = struct {
 };
 ///This struct reads the names of the model input files within the runfile
 pub const IoFiles = struct {
-    grid_num: GridNum = GridNum{},
+    grid_num: GridNums = GridNums{},
     site_file: SiteFile = SiteFile{},
     start_yr: usize = 0,
     scenario: Scenario = Scenario{},
@@ -494,20 +380,9 @@ pub const IoFiles = struct {
     fn getSite(self: *IoFiles, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 1) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while reading site file name in {s}\n", .{ @errorName(err), runfile_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading site file name in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 1, "site file name", runfile_name, err_log);
         const tok = tokens.items[0];
-        if (tok.len >= max_path_len) {
-            const err = error.FilePathTooLong;
-            try err_log.print("error: {s} while reading site file name in {s}\n", .{ @errorName(err), runfile_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading site file name in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-            return err;
-        }
+        try filePathLenCheck(tok.len, max_path_len, "site file name", runfile_name, err_log);
         @memcpy(self.site_file.site.name[0..tok.len], tok);
         self.site_file.site.len = tok.len;
     }
@@ -515,19 +390,9 @@ pub const IoFiles = struct {
     fn getStartYear(self: *IoFiles, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer) !void {
         const line = try reader.takeDelimiterInclusive('\n');
         var tokens = Tokens{};
-        try tokens.tokenizeLine(line);
-        if (tokens.len != 1) {
-            const err = error.InvalidTokens;
-            try err_log.print("error: {s} while reading start year in {s}\n", .{ @errorName(err), runfile_name });
-            std.debug.print("\x1b[1;31merror: {s} while reading start year in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-            return err;
-        }
+        try tokens.tokenizeLine(line, 1, "start year", runfile_name, err_log);
         const tok = tokens.items[0];
-        self.start_yr = std.fmt.parseInt(usize, tok, 10) catch |err| {
-            try err_log.print("error: {s} while parsing start year in {s}\n", .{ @errorName(err), runfile_name });
-            std.debug.print("\x1b[1;31merror: {s} while parsing start year in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-            return err;
-        };
+        self.start_yr = try parseTokToInt(usize, tok, "start year", runfile_name, err_log);
     }
     ///This method gets all I/O file names within a scene
     fn getSceneIoFiles(self: *IoFiles, reader: *std.Io.Reader, runfile_name: []const u8, err_log: *std.Io.Writer, scenario: usize, scene: usize) !void {
@@ -537,20 +402,9 @@ pub const IoFiles = struct {
         for (0..field_names.len) |i| {
             const line = try reader.takeDelimiterInclusive('\n');
             var tokens = Tokens{};
-            try tokens.tokenizeLine(line);
-            if (tokens.len != 1) {
-                const err = error.InvalidTokens;
-                try err_log.print("error: {s} while reading scene I/O files in {s}\n", .{ @errorName(err), runfile_name });
-                std.debug.print("\x1b[1;31merror: {s} while reading scene I/O files in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-                return err;
-            }
+            try tokens.tokenizeLine(line, 1, "scene I/O files", runfile_name, err_log);
             const tok = tokens.items[0];
-            if (tok.len >= max_path_len) {
-                const err = error.FilePathTooLong;
-                try err_log.print("error: {s} while reading scene I/O files in {s}\n", .{ @errorName(err), runfile_name });
-                std.debug.print("\x1b[1;31merror: {s} while reading scene I/O files in {s}\x1b[0m\n", .{ @errorName(err), runfile_name });
-                return err;
-            }
+            try filePathLenCheck(tok.len, max_path_len, "scene I/O file names", runfile_name, err_log);
             @memcpy(field_names[i][scenario][scene][0..tok.len], tok);
             field_name_lens[i][scenario][scene] = tok.len;
         }

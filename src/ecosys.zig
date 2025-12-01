@@ -44,7 +44,7 @@ pub fn main() !void {
     try io_files.getChildIoFiles(err_log.file_writer.buf_writer);
     //Input check for parent I/O files
     var parent_io_files_input_chk = IoFileNameChk{};
-    try parent_io_files_input_chk.spitParentIoFileNames(&io_files, &out, runfile);
+    try parent_io_files_input_chk.writeCheckFile(&io_files, &out, runfile);
     //Read land unit data
     var land_unit = LandUnit{};
     try land_unit.loadLandUnitData(&io_files, err_log.file_writer.buf_writer);
@@ -62,7 +62,7 @@ pub fn main() !void {
     // ;
     for (io_files.grid_num.west..io_files.grid_num.east) |we| {
         for (io_files.grid_num.north..io_files.grid_num.south) |ns| {
-            try land_unit_input_chk.spitLandUnitInputs(&land_unit, &io_files, &out, we, ns);
+            try land_unit_input_chk.writeCheckFile(&land_unit, &io_files, &out, err_log.file_writer.buf_writer, we, ns);
             // const land_unit_file_name = io_files.site_file.land_unit.name[we][ns][0..io_files.site_file.land_unit.len[we][ns]];
             // const basename = std.fs.path.basename(land_unit_file_name);
             // const ext = std.fs.path.extension(land_unit_file_name);
