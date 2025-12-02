@@ -16,27 +16,36 @@ const filePathLenCheck = input_parser.filePathLenCheck;
 const parseTokToInt = Tokens.parseTokToInt;
 const boundsCheck = Tokens.boundsCheck;
 
-///Build custom array type dimensions
-fn arrayType(comptime T: type, comptime dims: []const usize) type {
-    if (dims.len == 0) {
+///Build custom array dimensions
+fn arrayDimsType(comptime T: type, comptime dims: []const usize, comptime is_length: bool) type {
+    if ((is_length == false and dims.len < 1) or (is_length == true and dims.len < 2)) {
         return T;
     } else {
-        return [dims[0]]arrayType(T, dims[1..]);
+        return [dims[0]]arrayDimsType(T, dims[1..], is_length);
     }
 }
-///Build custom array length type dimensions
-fn arrayLenType(comptime T: type, comptime dims: []const usize) type {
-    if (dims.len < 2) {
-        return T;
-    } else {
-        return [dims[0]]arrayLenType(T, dims[1..]);
+test "test arrayDimsType function" {
+    // this is a comptime test since the function works at compile time
+    comptime {
+        const type_a = arrayDimsType(f32, &.{ 2, 3, 4 }, false);
+        if (type_a != [2][3][4]f32) {
+            @compileError("arrayDimsType(f32, &.{2, 3, 4}, false) must be equal to [2][3][4]f32");
+        }
+        const type_b = arrayDimsType(u8, &.{256}, false);
+        if (type_b != [256]u8) {
+            @compileError("arrayDimsType(u8, &.{ 256 }, false) must be equal to [ 256 ]u8");
+        }
+        const type_c = arrayDimsType(usize, &.{256}, true);
+        if (type_c != usize) {
+            @compileError("arrayDimsType(usize, &.{ 256 }, true) must be equal to usize");
+        }
     }
 }
 ///Helps set custom array types
-fn fileNameType(comptime T: type, comptime dims: []const usize) type {
+fn arrayType(comptime T: type, comptime dims: []const usize) type {
     return struct {
-        name: arrayType(T, dims) = undefined,
-        len: arrayLenType(usize, dims) = std.mem.zeroes(arrayLenType(usize, dims)),
+        name: arrayDimsType(T, dims, false) = undefined,
+        len: arrayDimsType(usize, dims, true) = std.mem.zeroes(arrayDimsType(usize, dims, true)),
     };
 }
 ///Grid numbers in different directions
@@ -133,9 +142,9 @@ const Scene = struct {
 };
 ///Site file names
 const SiteFile = struct {
-    land_unit: fileNameType(u8, &.{ nwe, nns, max_path_len }) = .{}, //names of landscape unit files within a site (child file)
-    soil: fileNameType(u8, &.{ nwe, nns, max_path_len }) = .{}, //names of soil files for each landscape unit (child file)
-    site: fileNameType(u8, &.{max_path_len}) = .{}, //site file name (parent file)
+    land_unit: arrayType(u8, &.{ nwe, nns, max_path_len }) = .{}, //names of landscape unit files within a site (child file)
+    soil: arrayType(u8, &.{ nwe, nns, max_path_len }) = .{}, //names of soil files for each landscape unit (child file)
+    site: arrayType(u8, &.{max_path_len}) = .{}, //site file name (parent file)
     grid_pos: GridPos = GridPos{},
     file_reader: FileReader = FileReader{},
 
@@ -177,8 +186,8 @@ const SiteFile = struct {
 };
 ///Weather file names
 const WthrFile = struct {
-    wthr: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //names of weather files within a weather network file (child file)
-    wthr_net: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{}, //names of networks of all weather files (parent file)
+    wthr: arrayType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //names of weather files within a weather network file (child file)
+    wthr_net: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{}, //names of networks of all weather files (parent file)
     grid_pos: GridPos = GridPos{},
     file_reader: FileReader = FileReader{},
 
@@ -217,10 +226,10 @@ const WthrFile = struct {
 };
 ///Soil management file names
 const SoilMgmtFile = struct {
-    till: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //tillage mgmt file names (child file)
-    fert: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //fertilizer mgmt file names (child file)
-    irrig: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //irrigation mgmt file names (child file)
-    soil_mgmt: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{}, //soil mgmt file names (parent file)
+    till: arrayType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //tillage mgmt file names (child file)
+    fert: arrayType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //fertilizer mgmt file names (child file)
+    irrig: arrayType(u8, &.{ nscenario, nscene, nwe, nns, max_path_len }) = .{}, //irrigation mgmt file names (child file)
+    soil_mgmt: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{}, //soil mgmt file names (parent file)
     grid_pos: GridPos = GridPos{},
     file_reader: FileReader = FileReader{},
 
@@ -264,9 +273,9 @@ const SoilMgmtFile = struct {
 };
 ///Plant management file names
 const PlantMgmtFile = struct {
-    plant: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, nplant, max_path_len }) = .{}, //plant species file names (child file)
-    operation: fileNameType(u8, &.{ nscenario, nscene, nwe, nns, nplant, max_path_len }) = .{}, //agriculture, horticulture, silviculture operations (e.g., planting, harvesting etc.) file names (child file)
-    plant_mgmt: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{}, //plant mgmt file names (parent file)
+    plant: arrayType(u8, &.{ nscenario, nscene, nwe, nns, nplant, max_path_len }) = .{}, //plant species file names (child file)
+    operation: arrayType(u8, &.{ nscenario, nscene, nwe, nns, nplant, max_path_len }) = .{}, //agriculture, horticulture, silviculture operations (e.g., planting, harvesting etc.) file names (child file)
+    plant_mgmt: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{}, //plant mgmt file names (parent file)
     grid_pos: GridPos = GridPos{ .is_plant = true },
     file_reader: FileReader = FileReader{},
 
@@ -320,19 +329,19 @@ const PlantMgmtFile = struct {
 };
 ///Daily output file names
 const HourlyOutFile = struct {
-    carbon: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
-    water: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
-    nitrogen: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
-    phosphorus: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
-    heat: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    carbon: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    water: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    nitrogen: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    phosphorus: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    heat: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
 };
 ///Daily output file names
 const DailyOutFile = struct {
-    carbon: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
-    water: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
-    nitrogen: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
-    phosphorus: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
-    heat: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    carbon: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    water: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    nitrogen: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    phosphorus: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    heat: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
 };
 ///This struct reads the names of the model input files within the runfile
 pub const IoFiles = struct {
@@ -342,7 +351,7 @@ pub const IoFiles = struct {
     scenario: Scenario = Scenario{},
     scene: Scene = Scene{},
     wthr_file: WthrFile = WthrFile{},
-    opt_file: fileNameType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
+    opt_file: arrayType(u8, &.{ nscenario, nscene, max_path_len }) = .{},
     plant_mgmt_file: PlantMgmtFile = PlantMgmtFile{},
     soil_mgmt_file: SoilMgmtFile = SoilMgmtFile{},
     daily_out_file: DailyOutFile = DailyOutFile{},
