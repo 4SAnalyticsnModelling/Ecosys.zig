@@ -3,7 +3,6 @@ const std = @import("std");
 const config = @import("config");
 const input_parser = @import("../util/input_parser.zig");
 const utils = @import("../util/utils.zig");
-const print = std.debug.print;
 const nwe: usize = config.nwex;
 const nns: usize = config.nnsx;
 const Tokens = input_parser.Tokens;
@@ -22,7 +21,7 @@ const Location = struct {
     matc_init: [nwe][nns]f32 = undefined, //Mean Annual Temperature (⁰C)
     wt_opt: [nwe][nns]usize = undefined,
     max_daylength: [nwe][nns]f32 = undefined, //max. day length (h)
-    //
+
     ///This method loads landscape unit location inputs
     fn loadLocation(self: *Location, land_unit_name: []const u8, line: []const u8, err_log: *std.Io.Writer, we: usize, ns: usize) !void {
         var tokens = Tokens{};
@@ -47,8 +46,7 @@ const Location = struct {
         if (@abs(denominator) < 1e-7) {
             if (numerator <= 0.0) return 24.0 else return 0.0;
         }
-        var cos_hour_angle = numerator / denominator;
-        cos_hour_angle = std.math.clamp(cos_hour_angle, -1.0, 1.0);
+        const cos_hour_angle = std.math.clamp(numerator / denominator, -1.0, 1.0);
         if (cos_hour_angle <= -1.0) return 24.0;
         if (cos_hour_angle >= 1.0) return 0.0;
         const hour_angle_rad = std.math.acos(cos_hour_angle);
@@ -93,11 +91,8 @@ const AtmGas = struct {
 const LandUnitOptions = struct {
     koppen_clim_zone: [nwe][nns]usize = undefined, //Koppen climate zone
     salinity_opt: [nwe][nns]usize = undefined, //slainity simulation option
-    salinity_opt_desc: [2][]const u8 = .{ "do not simulate salinity", "simulate salinity" },
-    erosion_opt: [nwe][nns]usize = undefined, //erosion simulation option
-    erosion_opt_desc: [5][]const u8 = .{ "no change in elevation", "allow freeze-thaw to change elevation", "allow freeze-thaw + erosion to change elevation", "allow freeze-thaw + soc accumulation to change elevation", "allow freeze-thaw + soc accumulation + erosion to change elevation" },
+    surf_elev_change_opt: [nwe][nns]usize = undefined, //surface elevation change simulation option
     grid_conn_opt: [nwe][nns]usize = undefined, //grid lateral connectivity option
-    grid_conn_opt_desc: [2][]const u8 = .{ "no lateral connection/flux simulation", "lateral connections between grid cells (and hence lateral flux simulations)" },
     nat_wtdx_init: [nwe][nns]f32 = undefined, //natural external water table depth (m) relative to grid surface
     art_wtdx_init: [nwe][nns]f32 = undefined, //depth of artificial drainage (m) relative to grid surface
     nat_wtx_slope: [nwe][nns]f32 = undefined, //natural external water table slope (m) relative to grid surface
@@ -106,31 +101,13 @@ const LandUnitOptions = struct {
     fn loadLandUnitOption(self: *LandUnitOptions, land_unit_name: []const u8, line: []const u8, err_log: *std.Io.Writer, we: usize, ns: usize) !void {
         var tokens = Tokens{};
         try tokens.tokenizeLine(line, 7, "landscape unit options", land_unit_name, err_log);
-        const fields_int = [_]*[nwe][nns]usize{ &self.koppen_clim_zone, &self.erosion_opt, &self.salinity_opt, &self.grid_conn_opt };
+        const fields_int = [_]*[nwe][nns]usize{ &self.koppen_clim_zone, &self.surf_elev_change_opt, &self.salinity_opt, &self.grid_conn_opt };
         const fields_float = [_]*[nwe][nns]f32{ &self.nat_wtdx_init, &self.art_wtdx_init, &self.nat_wtx_slope };
         for (tokens.items[0..fields_int.len], 0..) |tok, i| {
             fields_int[i][we][ns] = try parseTokToInt(usize, tok, "landscape unit options data", land_unit_name, err_log);
         }
         for (tokens.items[fields_int.len .. fields_float.len + fields_int.len], 0..) |tok, i| {
             fields_float[i][we][ns] = try parseTokToFloat(f32, tok, "landscape unit options data", land_unit_name, err_log);
-        }
-        if (self.salinity_opt[we][ns] >= self.salinity_opt_desc.len) {
-            const err = error.InvalidOption;
-            try err_log.print("error: {s} while loading salinity option in {s}\n", .{ @errorName(err), land_unit_name });
-            std.debug.print("\x1b[1;31merror: {s} while loading salinity option in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-            return err;
-        }
-        if (self.erosion_opt[we][ns] >= self.erosion_opt_desc.len) {
-            const err = error.InvalidOption;
-            try err_log.print("error: {s} while loading erosion option in {s}\n", .{ @errorName(err), land_unit_name });
-            std.debug.print("\x1b[1;31merror: {s} while loading erosion option in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-            return err;
-        }
-        if (self.grid_conn_opt[we][ns] >= self.grid_conn_opt_desc.len) {
-            const err = error.InvalidOption;
-            try err_log.print("error: {s} while loading grid connectivity option in {s}\n", .{ @errorName(err), land_unit_name });
-            std.debug.print("\x1b[1;31merror: {s} while loading grid connectivity option in {s}\x1b[0m\n", .{ @errorName(err), land_unit_name });
-            return err;
         }
     }
 };

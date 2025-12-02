@@ -33,7 +33,7 @@ pub const FileReader = struct {
     file_reader: std.fs.File.Reader = undefined,
     buf_reader: *std.Io.Reader = undefined,
 
-    ///Opens file to read
+    ///Opens a file to read
     pub fn open(self: *FileReader, err_log: *std.Io.Writer, file_to_open: []const u8) !void {
         self.file = std.fs.cwd().openFile(file_to_open, .{ .mode = .read_only }) catch |err| {
             try err_log.print("error: {s} while opening {s} in read only mode\n", .{ @errorName(err), file_to_open });
@@ -41,7 +41,7 @@ pub const FileReader = struct {
             return err;
         };
     }
-    ///Closes file once done reading
+    ///Closes a file once done reading
     pub fn close(self: *FileReader) void {
         self.file.close();
     }
@@ -60,7 +60,7 @@ pub const FileWriter = struct {
     err_log: *std.Io.Writer = undefined,
     is_err_log: bool = true,
 
-    ///Opens file to write
+    ///Create a file to write
     pub fn create(self: *FileWriter, file_to_open: []const u8) !void {
         self.file = std.fs.cwd().createFile(file_to_open, .{}) catch |err| {
             if (self.is_err_log == false) {
@@ -70,7 +70,7 @@ pub const FileWriter = struct {
             return err;
         };
     }
-    ///Closes file once done writing
+    ///Closes a file once done writing
     pub fn close(self: *FileWriter) void {
         self.file.close();
     }
@@ -101,7 +101,14 @@ pub const RunStatLog = struct {
         try self.file_writer.create(runstat_log_name);
     }
 };
-///This is a custom power function for floating point numbers only
-pub fn power(base: f32, exponent: f32) f32 {
+///This is a custom power function for floating point numbers (f32 & f64) only
+pub fn power(comptime T: type, base: T, exponent: T) T {
+    if (T != f32 and T != f64) {
+        @compileError("power function not implemented for " ++ @typeName(T)); //returns compile error for types other than f32 & f64
+    }
     return @exp(exponent * @log(base));
+}
+test "custom power function for f32 & f64" {
+    try std.testing.expectEqual(@as(f32, 4.0), power(f32, 2.0, 2.0));
+    try std.testing.expectEqual(@as(f64, 4.0), power(f64, 2.0, 2.0));
 }

@@ -8,7 +8,7 @@ pub const IoFileNameDesc = struct {
         \\[{d}] simulation start year: {d}
         \\[{d}] number of scenarios: {d}, each repeats: {d} times
         \\
-    ,
+    , //mutiline string literals, line split by \\ no "" is required
     scenario_params: []const u8 =
         \\----------------------------------------------------
         \\[{d}] number of scenes: {d}, each repeats: {d} times
@@ -58,9 +58,9 @@ pub const LandUnitDataDesc = struct {
     loc_atm_gas_opts: []const u8 =
         \\[0] latitude: {d}⁰, altitude/elevation: {d} m, aspect: {d}⁰, ground surface slope: {d}⁰, initial snowpack depth: {d} m, Mean Annual Temperature: {d}⁰C, Water table (WT) simulation?: {s}
         \\[1] atmospheric gas concentrations in ppm; O₂: {d}, N₂: {d}, initial CO₂: {d}, CH₄: {d}, N₂O: {d}, NH₃: {d}
-        \\[2] Koppen Climate Zone: {d}, salinity?: {s}, erosion?: {s}, lateral grid connection?: {s}, external WT depth (WTDx) (natural): {d} m, WTDx (artificial): {d} m, WTx slope: {d} m
+        \\[2] Koppen Climate Zone: {d}, salinity?: {s}, allow changes in surface elevation?: {s}, lateral grid connection?: {s}, external WT depth (WTDx) (natural): {d} m, WTDx (artificial): {d} m, WTx slope: {d} m
         \\
-    , //mutiline string literals, line split by \\ no "" is required
+    ,
     bounds_grid_dims: []const u8 =
         \\[3] surface boundary conditions (unitless multipliers) -> west: {d}, north: {d}, east: {d}, south: {d}; sub-surface boundary conditions (unitless multipliers) -> west: {d}, north: {d}, east: {d}, south: {d}; distances to WTDx (m) to the -> west: {d}, north: {d}, east: {d}, south: {d}; bottom boundary condition for water movement (unitless multiplier): {d}
         \\[4] grid dimensions (m); west-east: {d}, north-south: {d}

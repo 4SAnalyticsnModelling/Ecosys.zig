@@ -2,6 +2,7 @@
 const std = @import("std");
 const config = @import("config");
 const utils = @import("../util/utils.zig");
+const print = std.debug.print;
 const max_path_len = config.filepathx;
 const max_path_len_safe = max_path_len + 40; //the additional 40 bytes is safety net for parent directory names e.g. outputs/input_chk
 const IoFiles = @import("iofiles.zig").IoFiles;
@@ -20,6 +21,7 @@ pub const IoFileNameChk = struct {
     path_buf: [max_path_len_safe]u8 = undefined,
     file_name: []const u8 = undefined,
     file_writer: FileWriter = FileWriter{},
+    line_count: usize = 0,
 
     ///Build I/O file names' check file name/path
     fn buildCheckFilePath(self: *IoFileNameChk, runfile_name: []const u8, outdir: *const OutDir) !void {
@@ -30,14 +32,15 @@ pub const IoFileNameChk = struct {
     }
     ///Write I/O file names or other input data in runfile/runscript with descriptions
     fn writeGlobalParams(self: *IoFileNameChk, io_files: *const IoFiles) !void {
-        try self.file_writer.buf_writer.print(io_file_name_desc.global_params, .{ 0, io_files.grid_num.west, io_files.grid_num.north, io_files.grid_num.east, io_files.grid_num.south, 1, io_files.site_file.site.name[0..io_files.site_file.site.len], 2, io_files.start_yr, 3, io_files.scenario.num, io_files.scenario.repeat });
+        try self.file_writer.buf_writer.print(io_file_name_desc.global_params, .{ self.line_count, io_files.grid_num.west, io_files.grid_num.north, io_files.grid_num.east, io_files.grid_num.south, self.line_count + 1, io_files.site_file.site.name[0..io_files.site_file.site.len], self.line_count + 2, io_files.start_yr, self.line_count + 3, io_files.scenario.num, io_files.scenario.repeat });
+        self.line_count = 4;
     }
     ///Write scenario level data in runfile/runscript with descriptions
-    fn writeScenarioParams(self: *IoFileNameChk, io_files: *const IoFiles, line_num: usize, scenario: usize) !void {
-        try self.file_writer.buf_writer.print(io_file_name_desc.scenario_params, .{ line_num, io_files.scene.num[scenario], io_files.scene.repeat[scenario] });
+    fn writeScenarioParams(self: *IoFileNameChk, io_files: *const IoFiles, scenario: usize) !void {
+        try self.file_writer.buf_writer.print(io_file_name_desc.scenario_params, .{ self.line_count, io_files.scene.num[scenario], io_files.scene.repeat[scenario] });
     }
     ///Write scene I/O file names in runfile/runscript with descriptions
-    fn writeSceneFileNames(self: *IoFileNameChk, io_files: *const IoFiles, line_num: usize, scenario: usize, scene: usize) !void {
+    fn writeSceneFileNames(self: *IoFileNameChk, io_files: *const IoFiles, scenario: usize, scene: usize) !void {
         const wthr_net_file = io_files.wthr_file.wthr_net.name[scenario][scene][0..io_files.wthr_file.wthr_net.len[scenario][scene]];
         const opts_file = io_files.opt_file.name[scenario][scene][0..io_files.opt_file.len[scenario][scene]];
         const soil_mgmt_file = io_files.soil_mgmt_file.soil_mgmt.name[scenario][scene][0..io_files.soil_mgmt_file.soil_mgmt.len[scenario][scene]];
@@ -52,7 +55,7 @@ pub const IoFileNameChk = struct {
         const daily_n_file = io_files.daily_out_file.nitrogen.name[scenario][scene][0..io_files.daily_out_file.nitrogen.len[scenario][scene]];
         const daily_p_file = io_files.daily_out_file.phosphorus.name[scenario][scene][0..io_files.daily_out_file.phosphorus.len[scenario][scene]];
         const daily_heat_file = io_files.daily_out_file.heat.name[scenario][scene][0..io_files.daily_out_file.heat.len[scenario][scene]];
-        try self.file_writer.buf_writer.print(io_file_name_desc.scene_params, .{ line_num, wthr_net_file, line_num + 1, opts_file, line_num + 2, soil_mgmt_file, line_num + 3, plant_mgmt_file, line_num + 4, hrly_c_file, line_num + 5, hrly_wtr_file, line_num + 6, hrly_n_file, line_num + 7, hrly_p_file, line_num + 8, hrly_heat_file, line_num + 9, daily_c_file, line_num + 10, daily_wtr_file, line_num + 11, daily_n_file, line_num + 12, daily_p_file, line_num + 13, daily_heat_file });
+        try self.file_writer.buf_writer.print(io_file_name_desc.scene_params, .{ self.line_count, wthr_net_file, self.line_count + 1, opts_file, self.line_count + 2, soil_mgmt_file, self.line_count + 3, plant_mgmt_file, self.line_count + 4, hrly_c_file, self.line_count + 5, hrly_wtr_file, self.line_count + 6, hrly_n_file, self.line_count + 7, hrly_p_file, self.line_count + 8, hrly_heat_file, self.line_count + 9, daily_c_file, self.line_count + 10, daily_wtr_file, self.line_count + 11, daily_n_file, self.line_count + 12, daily_p_file, self.line_count + 13, daily_heat_file });
     }
     ///Write all parent I/O file names within the runfile/runscript into the relevant input check file
     pub fn writeCheckFile(self: *IoFileNameChk, io_files: *const IoFiles, outdir: *const OutDir, runfile_name: []const u8) !void {
@@ -62,14 +65,12 @@ pub const IoFileNameChk = struct {
         self.file_writer.writer();
         try self.writeGlobalParams(io_files);
         for (0..io_files.scenario.num) |scenario| {
-            var line_num = 4 + scenario * io_files.scene.num[scenario] * 14;
-            try self.writeScenarioParams(io_files, line_num, scenario);
-            line_num += 1;
+            try self.writeScenarioParams(io_files, scenario);
+            self.line_count += 1;
             for (0..io_files.scene.num[scenario]) |scene| {
-                try self.writeSceneFileNames(io_files, line_num, scenario, scene);
-                line_num += 14;
+                try self.writeSceneFileNames(io_files, scenario, scene);
+                self.line_count += 14;
             }
-            line_num += 1;
         }
         try self.file_writer.buf_writer.flush();
     }
@@ -87,7 +88,7 @@ const WtOpts = enum {
     yes_artificial_stationary,
     yes_artificial_mobile,
 };
-const WtMode = union(WtOpts) {
+pub const WtMode = union(WtOpts) {
     no_water_table,
     yes_natural_stationary,
     yes_natural_mobile,
@@ -96,18 +97,102 @@ const WtMode = union(WtOpts) {
 
     fn wtModeFromInt(val: usize, file_name: []const u8, err_log: *std.Io.Writer) OptsErrors![]const u8 {
         return switch (val) {
-            @intFromEnum(WtMode.no_water_table) => "no water table simulation\n",
-            @intFromEnum(WtMode.yes_natural_stationary) => "yes, natural, stationary\n",
-            @intFromEnum(WtMode.yes_natural_mobile) => "yes, natural, mobile\n",
-            @intFromEnum(WtMode.yes_artificial_stationary) => "yes, artificial, stationary\n",
+            @intFromEnum(WtMode.no_water_table) => "no water table simulation",
+            @intFromEnum(WtMode.yes_natural_stationary) => "yes, natural, stationary",
+            @intFromEnum(WtMode.yes_natural_mobile) => "yes, natural, mobile",
+            @intFromEnum(WtMode.yes_artificial_stationary) => "yes, artificial, stationary",
             @intFromEnum(WtMode.yes_artificial_mobile) => "yes, artificial, mobile",
             else => {
                 const err = error.InvalidOption;
-                err_log.print("error: {s} in reading water table option {d} in {s}\n", .{ @errorName(err), val, file_name }) catch {
+                err_log.print("error: {s} in reading water table option {d} in {s}. Allowed water table options are: 0=no water table simulation, 1=yes, natural, stationary, 2=yes, natural, mobile, 3=yes, artificial, stationary, and 4=yes, artificial, mobile\n", .{ @errorName(err), val, file_name }) catch {
                     return error.PrintFailed;
                 };
                 defer err_log.flush() catch {};
-                std.debug.print("\x1b[1;31merror: {s} in reading water table option {d} in {s}\x1b[0m\n", .{ @errorName(err), val, file_name });
+                print("\x1b[1;31merror: {s} in reading water table option {d} in {s}. Allowed water table options are: 0=no water table simulation, 1=yes, natural, stationary, 2=yes, natural, mobile, 3=yes, artificial, stationary, and 4=yes, artificial, mobile\x1b[0m\n", .{ @errorName(err), val, file_name });
+                return err;
+            },
+        };
+    }
+};
+///Salinity simulation options
+const SalinityOpts = enum {
+    no_salinity_simulation,
+    simulate_salinity,
+};
+pub const SalinityMode = union(SalinityOpts) {
+    no_salinity_simulation,
+    simulate_salinity,
+
+    fn salinityModeFromInt(val: usize, file_name: []const u8, err_log: *std.Io.Writer) OptsErrors![]const u8 {
+        return switch (val) {
+            @intFromEnum(SalinityMode.no_salinity_simulation) => "no salinity simulation",
+            @intFromEnum(SalinityMode.simulate_salinity) => "simulate salinity",
+            else => {
+                const err = error.InvalidOption;
+                err_log.print("error: {s} in reading salinity simulation option {d} in {s}. Allowed salinity simulation options are: 0=no salinity simulation, and 1=simulate salinity\n", .{ @errorName(err), val, file_name }) catch {
+                    return error.PrintFailed;
+                };
+                defer err_log.flush() catch {};
+                print("\x1b[1;31merror: {s} in reading salinity simulation option {d} in {s}. Allowed salinity simulation options are: 0=no salinity simulation, and 1=simulate salinity\x1b[0m\n", .{ @errorName(err), val, file_name });
+                return err;
+            },
+        };
+    }
+};
+///Surface elevation change simulation options
+const SurfElevChangeOpts = enum {
+    no_change_in_elevation,
+    freeze_thaw_changes_elevation,
+    freeze_thaw_and_erosion_change_elevation,
+    freeze_thaw_and_soc_change_elevation,
+    freeze_thaw_soc_and_erosion_change_elevation,
+};
+pub const SurfElevChangeMode = union(SurfElevChangeOpts) {
+    no_change_in_elevation,
+    freeze_thaw_changes_elevation,
+    freeze_thaw_and_erosion_change_elevation,
+    freeze_thaw_and_soc_change_elevation,
+    freeze_thaw_soc_and_erosion_change_elevation,
+
+    fn surfElevChangeModeFromInt(val: usize, file_name: []const u8, err_log: *std.Io.Writer) OptsErrors![]const u8 {
+        return switch (val) {
+            @intFromEnum(SurfElevChangeMode.no_change_in_elevation) => "no change in elevation",
+            @intFromEnum(SurfElevChangeMode.freeze_thaw_changes_elevation) => "allow freeze-thaw to change elevation",
+            @intFromEnum(SurfElevChangeMode.freeze_thaw_and_erosion_change_elevation) => "allow freeze-thaw + erosion to change elevation",
+            @intFromEnum(SurfElevChangeMode.freeze_thaw_and_soc_change_elevation) => "allow freeze-thaw + SOC accumulation to change elevation",
+            @intFromEnum(SurfElevChangeMode.freeze_thaw_soc_and_erosion_change_elevation) => "allow freeze-thaw + SOC accumulation + erosion to change elevation",
+            else => {
+                const err = error.InvalidOption;
+                err_log.print("error: {s} in reading soil surface elevation change simulation option {d} in {s}. Allowed surface elevation change simulation options are: 0=no change in elevation, 1=allow freeze-thaw to change elevation, 2=allow freeze-thaw + erosion to change elevation, 3=allow freeze-thaw + SOC accumulation to change elevation, 4=allow freeze-thaw + SOC accumulation to change elevation, and 5=allow freeze-thaw + SOC accumulation + erosion to change elevation\n", .{ @errorName(err), val, file_name }) catch {
+                    return error.PrintFailed;
+                };
+                defer err_log.flush() catch {};
+                print("\x1b[1;31merror: {s} in surface elevation change simulation option {d} in {s}. Allowed soil surface elevation change simulation options are: 0=no change in elevation, 1=allow freeze-thaw to change elevation, 2=allow freeze-thaw + erosion to change elevation, 3=allow freeze-thaw + SOC accumulation to change elevation, 4=allow freeze-thaw + SOC accumulation to change elevation, and 5=allow freeze-thaw + SOC accumulation + erosion to change elevation\x1b[0m\n", .{ @errorName(err), val, file_name });
+                return err;
+            },
+        };
+    }
+};
+///Grid lateral connectivity (lateral flux simulation) options
+const GridLatConnOpts = enum {
+    no_lateral_connection_between_adjacent_grids,
+    adjacent_grids_laterally_connected,
+};
+pub const GridLatConnMode = union(GridLatConnOpts) {
+    no_lateral_connection_between_adjacent_grids,
+    adjacent_grids_laterally_connected,
+
+    fn gridLatConnModeFromInt(val: usize, file_name: []const u8, err_log: *std.Io.Writer) OptsErrors![]const u8 {
+        return switch (val) {
+            @intFromEnum(GridLatConnMode.no_lateral_connection_between_adjacent_grids) => "no lateral connection between adjacent grids (no lateral flux simulation between adjacent grids)",
+            @intFromEnum(GridLatConnMode.adjacent_grids_laterally_connected) => "adjacent grids are connected laterally (allow lateral flux simulation between adjacent grids)",
+            else => {
+                const err = error.InvalidOption;
+                err_log.print("error: {s} in reading grid lateral connectivity option {d} in {s}. Allowed grid lateral connectivity options are: 0=no lateral connection between adjacent grids (no lateral flux simulation between adjacent grids), and 1=adjacent grids are connected laterally (allow lateral flux simulation between adjacent grids)\n", .{ @errorName(err), val, file_name }) catch {
+                    return error.PrintFailed;
+                };
+                defer err_log.flush() catch {};
+                print("\x1b[1;31merror: {s} in reading grid lateral connectivity option {d} in {s}. Allowed grid lateral connectivity options are: 0=no lateral connection between adjacent grids (no lateral flux simulation between adjacent grids), and 1=adjacent grids are connected laterally (allow lateral flux simulation between adjacent grids)\x1b[0m\n", .{ @errorName(err), val, file_name });
                 return err;
             },
         };
@@ -132,7 +217,16 @@ pub const LandUnitChk = struct {
         const wt_opt_desc = WtMode.wtModeFromInt(land_unit.loc.wt_opt[we][ns], io_files.site_file.land_unit.name[we][ns][0..io_files.site_file.land_unit.len[we][ns]], err_log) catch {
             return error.InvalidOption;
         };
-        try self.file_writer.buf_writer.print(land_unit_data_desc.loc_atm_gas_opts, .{ land_unit.loc.lat[we][ns], land_unit.loc.alt_init[we][ns], land_unit.loc.asp[we][ns], land_unit.loc.surf_slop[we][ns], land_unit.loc.snowpack_init[we][ns], land_unit.loc.matc_init[we][ns], wt_opt_desc, land_unit.atm_gas.o2conc[we][ns], land_unit.atm_gas.n2conc[we][ns], land_unit.atm_gas.co2conc_init[we][ns], land_unit.atm_gas.ch4conc[we][ns], land_unit.atm_gas.n2conc[we][ns], land_unit.atm_gas.nh3conc[we][ns], land_unit.opts.koppen_clim_zone[we][ns], land_unit.opts.salinity_opt_desc[land_unit.opts.salinity_opt[we][ns]], land_unit.opts.erosion_opt_desc[land_unit.opts.erosion_opt[we][ns]], land_unit.opts.grid_conn_opt_desc[land_unit.opts.grid_conn_opt[we][ns]], land_unit.opts.nat_wtdx_init[we][ns], land_unit.opts.art_wtdx_init[we][ns], land_unit.opts.nat_wtx_slope[we][ns] });
+        const salinity_opt_desc = SalinityMode.salinityModeFromInt(land_unit.opts.salinity_opt[we][ns], io_files.site_file.land_unit.name[we][ns][0..io_files.site_file.land_unit.len[we][ns]], err_log) catch {
+            return error.InvalidOption;
+        };
+        const surf_elev_change_opt_desc = SurfElevChangeMode.surfElevChangeModeFromInt(land_unit.opts.surf_elev_change_opt[we][ns], io_files.site_file.land_unit.name[we][ns][0..io_files.site_file.land_unit.len[we][ns]], err_log) catch {
+            return error.InvalidOption;
+        };
+        const grid_conn_opt_desc = GridLatConnMode.gridLatConnModeFromInt(land_unit.opts.grid_conn_opt[we][ns], io_files.site_file.land_unit.name[we][ns][0..io_files.site_file.land_unit.len[we][ns]], err_log) catch {
+            return error.InvalidOption;
+        };
+        try self.file_writer.buf_writer.print(land_unit_data_desc.loc_atm_gas_opts, .{ land_unit.loc.lat[we][ns], land_unit.loc.alt_init[we][ns], land_unit.loc.asp[we][ns], land_unit.loc.surf_slop[we][ns], land_unit.loc.snowpack_init[we][ns], land_unit.loc.matc_init[we][ns], wt_opt_desc, land_unit.atm_gas.o2conc[we][ns], land_unit.atm_gas.n2conc[we][ns], land_unit.atm_gas.co2conc_init[we][ns], land_unit.atm_gas.ch4conc[we][ns], land_unit.atm_gas.n2conc[we][ns], land_unit.atm_gas.nh3conc[we][ns], land_unit.opts.koppen_clim_zone[we][ns], salinity_opt_desc, surf_elev_change_opt_desc, grid_conn_opt_desc, land_unit.opts.nat_wtdx_init[we][ns], land_unit.opts.art_wtdx_init[we][ns], land_unit.opts.nat_wtx_slope[we][ns] });
         try self.file_writer.buf_writer.print(land_unit_data_desc.bounds_grid_dims, .{ land_unit.bounds.surf.west[we][ns], land_unit.bounds.surf.north[we][ns], land_unit.bounds.surf.east[we][ns], land_unit.bounds.surf.south[we][ns], land_unit.bounds.sub_surf.west[we][ns], land_unit.bounds.sub_surf.north[we][ns], land_unit.bounds.sub_surf.east[we][ns], land_unit.bounds.sub_surf.south[we][ns], land_unit.bounds.dist_to_wtdx.west[we][ns], land_unit.bounds.dist_to_wtdx.north[we][ns], land_unit.bounds.dist_to_wtdx.east[we][ns], land_unit.bounds.dist_to_wtdx.south[we][ns], land_unit.bounds.bottom_drain[we][ns], land_unit.grid_dim.west_east[we][ns], land_unit.grid_dim.north_south[we][ns] });
     }
     ///Write land unit inputs in respective input check files
