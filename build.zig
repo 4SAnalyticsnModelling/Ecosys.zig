@@ -37,19 +37,18 @@ pub fn build(b: *std.Build) void {
 
     const run_exe = b.addRunArtifact(exe);
 
-    const test_step = b.step("test", "Run unit tests");
+    const test_step = b.step("test", "Run ecosys code test blocks");
 
-    const unit_test = b.addTest(.{
-        .name = "ecosys_code_test",
+    const test_blocks = b.addTest(.{
         .root_module = b.createModule(.{
-            .root_source_file = b.path("src/ecosys.zig"),
+            .root_source_file = b.path("src/ecosys_tests.zig"),
             .target = target,
             .optimize = optimize,
         }),
     });
-    const run_unit_test = b.addRunArtifact(unit_test);
-    test_step.dependOn(&run_unit_test.step);
+    const run_test_blocks = b.addRunArtifact(test_blocks);
+    test_step.dependOn(&run_test_blocks.step);
 
-    const run_step = b.step("run", "Run the application");
+    const run_step = b.step("run", "Run ecosys application");
     run_step.dependOn(&run_exe.step);
 }

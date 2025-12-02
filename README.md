@@ -22,6 +22,8 @@
 
 - better readability with expanded variable/constant names
 
+- safer codes with test blocks
+
 - parallelism (planned for future development)
 
 ⚠️  `Ecosys.zig` is currently under active development. The code is incomplete and not yet ready for production use.
