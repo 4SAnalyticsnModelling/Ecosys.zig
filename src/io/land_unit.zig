@@ -34,13 +34,16 @@ const Location = struct {
         self.wt_opt[we][ns] = try parseTokToInt(usize, tok, "water table option", land_unit_name, err_log);
         //Calculate maximum daylength hour for plant phenology
         const doy_max_daylen: usize = if (self.lat[we][ns] > 0.0) 173 else 356;
-        self.max_daylength[we][ns] = self.daylengthHours(doy_max_daylen, we, ns);
+        self.max_daylength[we][ns] = daylengthHours(f32, self.lat[we][ns], doy_max_daylen);
     }
     ///This function returns daylength (hours) for a site location and day of year (doy)
-    pub fn daylengthHours(self: *Location, doy: usize, we: usize, ns: usize) f32 {
-        const lat_rad = deg2rad(self.lat[we][ns]);
-        const declination_rad = solarDeclination(doy);
-        const solar_altitude_rad = deg2rad(-0.833);
+    pub fn daylengthHours(comptime T: type, latitude_deg: T, doy: usize) T {
+        if (T != f32 and T != f64) {
+            @compileError("daylengthHours function not implemented for " ++ @typeName(T));
+        }
+        const lat_rad = deg2rad(T, latitude_deg);
+        const declination_rad = solarDeclination(T, doy);
+        const solar_altitude_rad = deg2rad(T, -0.833);
         const numerator = @sin(solar_altitude_rad) - @sin(lat_rad) * @sin(declination_rad);
         const denominator = @cos(lat_rad) * @cos(declination_rad);
         if (@abs(denominator) < 1e-7) {
@@ -53,15 +56,33 @@ const Location = struct {
         const daylength_hours = (24.0 / std.math.pi) * hour_angle_rad;
         return daylength_hours;
     }
+    test "testing daylengthHours" {
+        try std.testing.expectApproxEqAbs(@as(f32, 16.34), daylengthHours(f32, 51.3, 173), @as(f32, 0.0001));
+        try std.testing.expectApproxEqAbs(@as(f64, 16.31), daylengthHours(f64, -51.3, 356), @as(f64, 0.0001));
+    }
     ///This function converts angle units
-    fn deg2rad(deg: f32) f32 {
+    pub fn deg2rad(comptime T: type, deg: T) T {
+        if (T != f32 and T != f64) {
+            @compileError("deg2rad function not implemented for " ++ @typeName(T));
+        }
         return deg * std.math.pi / 180.0;
     }
+    test "testing deg2rad" {
+        try std.testing.expectApproxEqAbs(@as(f32, 0.89535), deg2rad(f32, 51.3), @as(f32, 0.0001));
+        try std.testing.expectApproxEqAbs(@as(f64, -0.89535), deg2rad(f64, -51.3), @as(f64, 0.0001));
+    }
     ///This function calculates solar declination (radians) using Spencer (1971) approximation
-    fn solarDeclination(doy: usize) f32 {
-        const n = @as(f32, @floatFromInt(doy));
+    fn solarDeclination(comptime T: type, doy: usize) T {
+        if (T != f32 and T != f64) {
+            @compileError("solarDeclination function not implemented for " ++ @typeName(T));
+        }
+        const n = @as(T, @floatFromInt(doy));
         const gamma = 2.0 * std.math.pi * (n - 1.0) / 365.0;
         return 0.006918 - 0.399912 * @cos(gamma) + 0.070257 * @sin(gamma) - 0.006758 * @cos(2.0 * gamma) + 0.000907 * @sin(2.0 * gamma) - 0.002697 * @cos(3.0 * gamma) + 0.001480 * @sin(3.0 * gamma);
+    }
+    test "testing solarDeclination" {
+        try std.testing.expectApproxEqAbs(@as(f32, 0.40694), solarDeclination(f32, 173), @as(f32, 0.0001));
+        try std.testing.expectApproxEqAbs(@as(f64, -0.40823), solarDeclination(f64, 356), @as(f64, 0.0001));
     }
 };
 ///Landscape unit's atmospheric gas concentrations

@@ -35,12 +35,13 @@ pub const RunArg = struct {
         return self.runfile_name[0..args[1].len];
     }
 };
-const TokenErrors = error{
+const TokenBoundsErrors = error{
     TooManyTokens,
     TokenCountMismatch,
     PrintFailed,
     OutOfBounds,
     InvalidCharacter,
+    FilePathTooLong,
 };
 ///This is a helper struct to tokenize items in a read line
 pub const Tokens = struct {
@@ -52,7 +53,7 @@ pub const Tokens = struct {
         self.items = undefined;
     }
     ///Logs an token count mismatch error to both err_log and stdout
-    fn logTokenCountMismatch(comptime err: anyerror, err_log: *std.Io.Writer, context: []const u8, file_name: []const u8) TokenErrors!void {
+    fn logMismatch(comptime err: TokenBoundsErrors, err_log: *std.Io.Writer, context: []const u8, file_name: []const u8) TokenBoundsErrors!void {
         err_log.print("error: {s} while reading {s} in {s}\n", .{ @errorName(err), context, file_name }) catch {
             return error.PrintFailed;
         };
@@ -61,50 +62,39 @@ pub const Tokens = struct {
         };
         print("\x1b[1;31merror:\x1b[0m {s} while reading {s} in {s}\n", .{ @errorName(err), context, file_name });
     }
-    ///Checks token length, logs and returns error on mismatch
-    fn expectsTokenLen(tok_len: usize, expected: usize, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!void {
-        if (tok_len != expected) {
-            const err = error.TokenCountMismatch;
-            try logTokenCountMismatch(err, err_log, context, file_name);
-            return err;
-        }
-    }
-    ///This method parses a line into a list of numbers/strings (called tokens hereafter) by eliminating spaces, tabs, or commas between tokens
-    pub fn tokenizeLine(self: *Tokens, line: []const u8, expected: usize, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!void {
-        self.reset();
-        var it = std.mem.tokenizeAny(u8, line, " \r\n");
-        while (it.next()) |tok| {
-            if (self.len >= self.items.len) {
-                return error.TooManyTokens;
-            }
-            self.items[self.len] = tok;
-            self.len += 1;
-        }
-        try expectsTokenLen(self.len, expected, context, file_name, err_log);
-    }
     ///This method checks min max bounds for grids, plants, scenes etc.
-    pub fn boundsCheck(conds: anytype, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!void {
+    pub fn boundsCheck(comptime err: TokenBoundsErrors, conds: anytype, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenBoundsErrors!void {
         inline for (conds) |ok| { // comptile unrolling, so don't use this method if there's a lot of conditions
             if (ok) {
-                const err = error.OutOfBounds;
-                try logTokenCountMismatch(err, err_log, context, file_name);
+                try logMismatch(err, err_log, context, file_name);
                 return err;
             }
         }
     }
+    ///This method parses a line into a list of numbers/strings (called tokens hereafter) by eliminating spaces, tabs, or commas between tokens
+    pub fn tokenizeLine(self: *Tokens, line: []const u8, expected: usize, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenBoundsErrors!void {
+        self.reset();
+        var it = std.mem.tokenizeAny(u8, line, " \r\n");
+        while (it.next()) |tok| {
+            try boundsCheck(error.TooManyTokens, .{self.len >= self.items.len}, context, file_name, err_log);
+            self.items[self.len] = tok;
+            self.len += 1;
+        }
+        try boundsCheck(error.TokenCountMismatch, .{self.len != expected}, context, file_name, err_log);
+    }
     ///This method logs parsing of strings => integer errors.
-    pub fn parseTokToInt(comptime T: type, tok: []const u8, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!T {
+    pub fn parseTokToInt(comptime T: type, tok: []const u8, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenBoundsErrors!T {
         return std.fmt.parseInt(T, tok, 10) catch {
             const err = error.InvalidCharacter;
-            try logTokenCountMismatch(err, err_log, context, file_name);
+            try logMismatch(err, err_log, context, file_name);
             return err;
         };
     }
     ///This method logs parsing of strings => float errors.
-    pub fn parseTokToFloat(comptime T: type, tok: []const u8, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!T {
+    pub fn parseTokToFloat(comptime T: type, tok: []const u8, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenBoundsErrors!T {
         return std.fmt.parseFloat(T, tok) catch {
             const err = error.InvalidCharacter;
-            try logTokenCountMismatch(err, err_log, context, file_name);
+            try logMismatch(err, err_log, context, file_name);
             return err;
         };
     }
@@ -118,23 +108,48 @@ test "testing tokenizeLine" {
     try std.testing.expect(tokens.len == 7);
     try std.testing.expectEqualStrings(tokens.items[3], "10");
     try std.testing.expectEqualStrings(tokens.items[5], "5e-2");
+    const fake_line2 = "0 0.1 1 10 \r\n200.0 5e-2 10e8";
+    try tokens.tokenizeLine(fake_line2, 7, "fake line #2", "test file", &err_log);
+    try std.testing.expect(tokens.len == 7);
+    try std.testing.expectEqualStrings(tokens.items[3], "10");
+    try std.testing.expectEqualStrings(tokens.items[5], "5e-2");
+    try std.testing.expectError(error.TokenCountMismatch, tokens.tokenizeLine(fake_line2, 8, "fake line #2", "test file", &err_log));
+    try std.testing.expect(std.mem.containsAtLeast(u8, err_log.buffered(), 1, "error: TokenCountMismatch"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, err_log.buffered(), 1, "in test file"));
 }
-///File path check error set
-const FilePathErrors = error{
-    FilePathTooLong,
-    PrintFailed,
-};
-///Check file path length
-pub fn filePathLenCheck(path_len: usize, max_allowable_len: usize, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) FilePathErrors!void {
-    if (path_len >= max_allowable_len) {
-        const err = error.FilePathTooLong;
-        err_log.print("error: {s} while reading {s} in {s}\n", .{ @errorName(err), context, file_name }) catch {
-            return error.PrintFailed;
-        };
-        err_log.flush() catch {
-            return error.PrintFailed;
-        };
-        print("\x1b[1;31merror:\x1b[0m {s} while reading {s} in {s}\n", .{ @errorName(err), context, file_name });
-        return err;
-    }
+test "testing parseTokToInt" {
+    var buf: [255]u8 = undefined;
+    var err_log = std.Io.Writer.fixed(&buf);
+    var tok: []const u8 = "10";
+    const tok_to_int = try Tokens.parseTokToInt(usize, tok, "test string like number", "test file", &err_log);
+    try std.testing.expect(tok_to_int == 10);
+    tok = "10.0";
+    try std.testing.expectError(error.InvalidCharacter, Tokens.parseTokToInt(usize, tok, "test string like number", "test file", &err_log));
+    try std.testing.expect(std.mem.containsAtLeast(u8, err_log.buffered(), 1, "error: InvalidCharacter while reading test string like number in test file"));
+    tok = "10e2";
+    try std.testing.expectError(error.InvalidCharacter, Tokens.parseTokToInt(usize, tok, "test string like number", "test file", &err_log));
+    tok = "10a";
+    try std.testing.expectError(error.InvalidCharacter, Tokens.parseTokToInt(usize, tok, "test string like number", "test file", &err_log));
+}
+test "testing parseTokToFloat" {
+    var buf: [255]u8 = undefined;
+    var err_log = std.Io.Writer.fixed(&buf);
+    var tok: []const u8 = "10";
+    var tok_to_float = try Tokens.parseTokToFloat(f32, tok, "test string like number", "test file", &err_log);
+    try std.testing.expectApproxEqAbs(tok_to_float, 10.0, 0.0001);
+    tok = "10.0";
+    tok_to_float = try Tokens.parseTokToFloat(f32, tok, "test string like number", "test file", &err_log);
+    try std.testing.expectApproxEqAbs(tok_to_float, 10.0, 0.0001);
+    tok = "10e2";
+    tok_to_float = try Tokens.parseTokToFloat(f32, tok, "test string like number", "test file", &err_log);
+    try std.testing.expectApproxEqAbs(tok_to_float, 1000.0, 0.0001);
+    tok = "10e-2";
+    tok_to_float = try Tokens.parseTokToFloat(f32, tok, "test string like number", "test file", &err_log);
+    try std.testing.expectApproxEqAbs(tok_to_float, 0.1, 0.0001);
+    tok = "0.001";
+    const tok_to_f64 = try Tokens.parseTokToFloat(f64, tok, "test string like number", "test file", &err_log);
+    try std.testing.expectApproxEqAbs(tok_to_f64, 0.001, 0.0001);
+    tok = "10a";
+    try std.testing.expectError(error.InvalidCharacter, Tokens.parseTokToInt(usize, tok, "test string like number", "test file", &err_log));
+    try std.testing.expect(std.mem.containsAtLeast(u8, err_log.buffered(), 1, "error: InvalidCharacter while reading test string like number in test file"));
 }

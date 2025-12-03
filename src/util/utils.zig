@@ -112,4 +112,5 @@ pub fn power(comptime T: type, base: T, exponent: T) T {
 test "custom power function for f32 & f64" {
     try std.testing.expectEqual(@as(f32, 4.0), power(f32, 2.0, 2.0));
     try std.testing.expectEqual(@as(f64, 4.0), power(f64, 2.0, 2.0));
+    try std.testing.expectApproxEqAbs(@as(f32, 0.72478), power(f32, 0.2, 0.2), 0.0001);
 }

@@ -13,7 +13,6 @@ const max_path_len = config.filepathx;
 const RunArg = input_parser.RunArg;
 const Tokens = input_parser.Tokens;
 const FileReader = utils.FileReader;
-const filePathLenCheck = input_parser.filePathLenCheck;
 const parseTokToInt = Tokens.parseTokToInt;
 const boundsCheck = Tokens.boundsCheck;
 
@@ -66,7 +65,7 @@ const GridNums = struct {
         for (tokens.items[0..fields.len], 0..) |tok, i| {
             fields[i].* = try parseTokToInt(usize, tok, "grid numbers", runfile_name, err_log);
         }
-        try boundsCheck(.{ self.west < 0, self.west > self.east, self.east > nwe, self.north < 0, self.north > self.south, self.south > nns }, "grid numbers", runfile_name, err_log);
+        try boundsCheck(error.OutOfBounds, .{ self.west < 0, self.west > self.east, self.east > nwe, self.north < 0, self.north > self.south, self.south > nns }, "grid numbers", runfile_name, err_log);
         for (self.west..self.east) |_| {
             for (self.north..self.south) |_| {
                 self.grid_count += 1;
@@ -101,9 +100,9 @@ const GridPos = struct {
                 fields[i].* = try parseTokToInt(usize, tok, "grid positions", file_name, err_log);
             }
         }
-        try boundsCheck(.{ self.west < io_files.grid_num.west, self.west > self.east, self.east > io_files.grid_num.east, self.north < io_files.grid_num.north, self.north > self.south, self.south > io_files.grid_num.south }, "grid positions (hint: grid numbers out of bounds)", file_name, err_log);
+        try boundsCheck(error.OutOfBounds, .{ self.west < io_files.grid_num.west, self.west > self.east, self.east > io_files.grid_num.east, self.north < io_files.grid_num.north, self.north > self.south, self.south > io_files.grid_num.south }, "grid positions (hint: grid numbers out of bounds)", file_name, err_log);
         if (self.is_plant == true) {
-            try boundsCheck(.{self.plants > nplant}, "number of plant species (hint: too many plant species)", file_name, err_log);
+            try boundsCheck(error.OutOfBounds, .{self.plants > nplant}, "number of plant species (hint: too many plant species)", file_name, err_log);
         }
     }
 };
@@ -121,7 +120,7 @@ const Scenario = struct {
         for (tokens.items[0..fields.len], 0..) |tok, i| {
             fields[i].* = try parseTokToInt(usize, tok, "number of scenarios and times to repeat each scenario", runfile_name, err_log);
         }
-        try boundsCheck(.{self.num > nscenario}, "number of scenarios", runfile_name, err_log);
+        try boundsCheck(error.OutOfBounds, .{self.num > nscenario}, "number of scenarios", runfile_name, err_log);
     }
 };
 ///Scene
@@ -138,7 +137,7 @@ const Scene = struct {
         for (tokens.items[0..fields.len], 0..) |tok, i| {
             fields[i].*[scenario] = try parseTokToInt(usize, tok, "number of scenes and times to repeat each scene", runfile_name, err_log);
         }
-        try boundsCheck(.{self.num[scenario] > nscene}, "number of scenes", runfile_name, err_log);
+        try boundsCheck(error.OutOfBounds, .{self.num[scenario] > nscene}, "number of scenes", runfile_name, err_log);
     }
 };
 ///Site file names
@@ -169,7 +168,7 @@ const SiteFile = struct {
                     grid_count += 1;
                 }
             }
-            try boundsCheck(.{grid_count != io_files.grid_num.grid_count}, "grid positions (hint: too few or too many grids)", site_file_name, err_log);
+            try boundsCheck(error.OutOfBounds, .{grid_count != io_files.grid_num.grid_count}, "grid positions (hint: too few or too many grids)", site_file_name, err_log);
         }
     }
     ///This method reads the land unit and soil file names within the site file
@@ -179,7 +178,7 @@ const SiteFile = struct {
         const field_names = [_]*[nwe][nns][max_path_len]u8{ &self.land_unit.name, &self.soil.name };
         const field_name_lens = [_]*[nwe][nns]usize{ &self.land_unit.len, &self.soil.len };
         for (tokens.items[0..field_names.len], 0..) |tok, i| {
-            try filePathLenCheck(tok.len, max_path_len, "land unit and soil file names", site_file_name, err_log);
+            try boundsCheck(error.FilePathTooLong, .{tok.len >= max_path_len}, "land unit and soil file names", site_file_name, err_log);
             @memcpy(field_names[i][we][ns][0..tok.len], tok);
             field_name_lens[i][we][ns] = tok.len;
         }
@@ -212,7 +211,7 @@ const WthrFile = struct {
                     grid_count += 1;
                 }
             }
-            try boundsCheck(.{grid_count != io_files.grid_num.grid_count}, "grid positions (hint: too few or too many grids)", wthr_net_file_name, err_log);
+            try boundsCheck(error.OutOfBounds, .{grid_count != io_files.grid_num.grid_count}, "grid positions (hint: too few or too many grids)", wthr_net_file_name, err_log);
         }
     }
     ///This method reads the weather file names within the weather network file
@@ -220,7 +219,7 @@ const WthrFile = struct {
         var tokens = Tokens{};
         try tokens.tokenizeLine(line, 1, "weather file name", wthr_net_file_name, err_log);
         const tok = tokens.items[0];
-        try filePathLenCheck(tok.len, max_path_len, "weather file names", wthr_net_file_name, err_log);
+        try boundsCheck(error.FilePathTooLong, .{tok.len >= max_path_len}, "weather file names", wthr_net_file_name, err_log);
         @memcpy(self.wthr.name[scenario][scene][we][ns][0..tok.len], tok);
         self.wthr.len[scenario][scene][we][ns] = tok.len;
     }
@@ -255,7 +254,7 @@ const SoilMgmtFile = struct {
                         grid_count += 1;
                     }
                 }
-                try boundsCheck(.{grid_count != io_files.grid_num.grid_count}, "grid positions (hint: too few or too many grids)", soil_mgmt_file_name, err_log);
+                try boundsCheck(error.OutOfBounds, .{grid_count != io_files.grid_num.grid_count}, "grid positions (hint: too few or too many grids)", soil_mgmt_file_name, err_log);
             }
         }
     }
@@ -266,7 +265,7 @@ const SoilMgmtFile = struct {
         const field_names = [_]*[nscenario][nscene][nwe][nns][max_path_len]u8{ &self.till.name, &self.fert.name, &self.irrig.name };
         const field_name_lens = [_]*[nscenario][nscene][nwe][nns]usize{ &self.till.len, &self.fert.len, &self.irrig.len };
         for (tokens.items[0..field_names.len], 0..) |tok, i| {
-            try filePathLenCheck(tok.len, max_path_len, "tillage, fertilizer, and irrigation file names", soil_mgmt_file_name, err_log);
+            try boundsCheck(error.FilePathTooLong, .{tok.len >= max_path_len}, "tillage, fertilizer, and irrigation file names", soil_mgmt_file_name, err_log);
             @memcpy(field_names[i][scenario][scene][we][ns][0..tok.len], tok);
             field_name_lens[i][scenario][scene][we][ns] = tok.len;
         }
@@ -311,7 +310,7 @@ const PlantMgmtFile = struct {
                         }
                     }
                 }
-                try boundsCheck(.{grid_count != io_files.grid_num.grid_count}, "grid positions and number of plant species (hint: too few or too many grids)", plant_mgmt_file_name, err_log);
+                try boundsCheck(error.OutOfBounds, .{grid_count != io_files.grid_num.grid_count}, "grid positions and number of plant species (hint: too few or too many grids)", plant_mgmt_file_name, err_log);
             }
         }
     }
@@ -322,7 +321,7 @@ const PlantMgmtFile = struct {
         const field_names = [_]*[nscenario][nscene][nwe][nns][nplant][max_path_len]u8{ &self.plant.name, &self.operation.name };
         const field_name_lens = [_]*[nscenario][nscene][nwe][nns][nplant]usize{ &self.plant.len, &self.operation.len };
         for (tokens.items[0..field_names.len], 0..) |tok, i| {
-            try filePathLenCheck(tok.len, max_path_len, "plant file names", plant_mgmt_file_name, err_log);
+            try boundsCheck(error.FilePathTooLong, .{tok.len >= max_path_len}, "plant file names", plant_mgmt_file_name, err_log);
             @memcpy(field_names[i][scenario][scene][we][ns][plnt][0..tok.len], tok);
             field_name_lens[i][scenario][scene][we][ns][plnt] = tok.len;
         }
@@ -392,7 +391,7 @@ pub const IoFiles = struct {
         var tokens = Tokens{};
         try tokens.tokenizeLine(line, 1, "site file name", runfile_name, err_log);
         const tok = tokens.items[0];
-        try filePathLenCheck(tok.len, max_path_len, "site file name", runfile_name, err_log);
+        try boundsCheck(error.FilePathTooLong, .{tok.len >= max_path_len}, "site file name", runfile_name, err_log);
         @memcpy(self.site_file.site.name[0..tok.len], tok);
         self.site_file.site.len = tok.len;
     }
@@ -414,7 +413,7 @@ pub const IoFiles = struct {
             var tokens = Tokens{};
             try tokens.tokenizeLine(line, 1, "scene I/O files", runfile_name, err_log);
             const tok = tokens.items[0];
-            try filePathLenCheck(tok.len, max_path_len, "scene I/O file names", runfile_name, err_log);
+            try boundsCheck(error.FilePathTooLong, .{tok.len >= max_path_len}, "scene I/O file names", runfile_name, err_log);
             @memcpy(field_names[i][scenario][scene][0..tok.len], tok);
             field_name_lens[i][scenario][scene] = tok.len;
         }
