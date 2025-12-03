@@ -114,6 +114,16 @@ pub const WtMode = union(WtOpts) {
         };
     }
 };
+test "water table simulation options" {
+    var buf: [1024]u8 = undefined;
+    var err_log = std.Io.Writer.fixed(&buf);
+    const wt_opt_0 = try WtMode.wtModeFromInt(0, "land unit", &err_log);
+    try std.testing.expect(std.mem.containsAtLeast(u8, wt_opt_0, 1, "no water table simulation"));
+    const wt_opt_4 = try WtMode.wtModeFromInt(4, "land unit", &err_log);
+    try std.testing.expect(std.mem.containsAtLeast(u8, wt_opt_4, 1, "yes, artificial, mobile"));
+    try std.testing.expectError(error.InvalidOption, WtMode.wtModeFromInt(7, "land unit", &err_log));
+    try std.testing.expect(std.mem.containsAtLeast(u8, err_log.buffered(), 1, "InvalidOption in reading water table option 7"));
+}
 ///Salinity simulation options
 const SalinityOpts = enum {
     no_salinity_simulation,

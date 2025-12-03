@@ -2,9 +2,11 @@
 const std = @import("std");
 const utils = @import("util/utils.zig");
 const iofiles = @import("io/iofiles.zig");
+const iochecks = @import("io/iochecks.zig");
 
 //Call all modules that have localized test blocks
 test "all ecosys code tests entrypoint" {
     _ = utils;
     _ = iofiles;
+    _ = iochecks;
 }
