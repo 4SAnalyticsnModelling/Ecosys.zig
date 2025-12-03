@@ -34,6 +34,7 @@ pub fn build(b: *std.Build) void {
 
     exe.stack_size = 16 * 1024 * 1024; // increase stack size to 16 MB to accommodate large arrays
 
+    //custom binary folder with `zig build -p .` command
     const install_exe = b.addInstallArtifact(
         exe,
         .{
@@ -44,8 +45,6 @@ pub fn build(b: *std.Build) void {
     );
 
     b.getInstallStep().dependOn(&install_exe.step);
-
-    // b.installArtifact(exe);
 
     const run_exe = b.addRunArtifact(exe);
 
@@ -63,6 +62,7 @@ pub fn build(b: *std.Build) void {
 
     const run_test_blocks = b.addRunArtifact(test_blocks);
     test_step.dependOn(&run_test_blocks.step);
+    test_step.dependOn(b.getInstallStep()); //create binary along with testing
 
     const run_step = b.step("run", "Run ecosys application");
     run_step.dependOn(&run_exe.step);
