@@ -31,11 +31,13 @@
 # Compile Ecosys.zig 
 **(compile with zig version 0.15.2)**
 
-=> `zig build` (**default compilation**)
+=> `zig build` (**default compilation**: you will find the binary within `zig-out/ecosys` path within the Ecosys.zig directory)
 
-=> `zig build -Dnwex=1 -Dnnsx=1 -Dnsoilx=10 -Dnresx=3, -Dnsnowx=5 -Dnplantx=5 -Dncanopyx=5 -Dnscenariox=2 -Dnscenex=6 -Doptimize=ReleaseFast --verbose --summary all` (**example custom compilation - production**)
+=> `zig build -p .` (**example custom compilation**: you will find the binary within the `./ecosys` directory)
 
-=> `zig build -Dnwex=1 -Dnnsx=1 -Dnsoilx=10 -Dnresx=3, -Dnsnowx=5 -Dnplantx=5 -Dncanopyx=5 -Dnscenariox=2 -Dnscenex=6 -Doptimize=ReleaseSafe --verbose --summary all` (**example custom compilation - UAT**)
+=> `zig build -p . -Dnwex=1 -Dnnsx=1 -Dnsoilx=10 -Dnresx=3, -Dnsnowx=5 -Dnplantx=5 -Dncanopyx=5 -Dnscenariox=2 -Dnscenex=6 -Doptimize=ReleaseFast --verbose --summary all` (**example custom compilation - production**)
+
+=> `zig build -p . -Dnwex=1 -Dnnsx=1 -Dnsoilx=10 -Dnresx=3, -Dnsnowx=5 -Dnplantx=5 -Dncanopyx=5 -Dnscenariox=2 -Dnscenex=6 -Doptimize=ReleaseSafe --verbose --summary all` (**example custom compilation - UAT**)
 
 => `zig build test -Dnwex=1 -Dnnsx=1 -Dnsoilx=10 -Dnresx=3 -Dnsnowx=5 -Dnplantx=3 -
 Dncanopyx=10 -Dnscenariox=2 -Dnscenex=6 -Doptimize=ReleaseSafe --verbose --summary all` (**example custom compilation with code testing during compilation - UAT**)

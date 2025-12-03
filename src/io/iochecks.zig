@@ -108,7 +108,7 @@ pub const WtMode = union(WtOpts) {
                     return error.PrintFailed;
                 };
                 defer err_log.flush() catch {};
-                print("\x1b[1;31merror: {s} in reading water table option {d} in {s}. Allowed water table options are: 0=no water table simulation, 1=yes, natural, stationary, 2=yes, natural, mobile, 3=yes, artificial, stationary, and 4=yes, artificial, mobile\x1b[0m\n", .{ @errorName(err), val, file_name });
+                print("\x1b[1;31merror:\x1b[0m {s} in reading water table option {d} in {s}. Allowed water table options are: 0=no water table simulation, 1=yes, natural, stationary, 2=yes, natural, mobile, 3=yes, artificial, stationary, and 4=yes, artificial, mobile\n", .{ @errorName(err), val, file_name });
                 return err;
             },
         };
@@ -143,7 +143,7 @@ pub const SalinityMode = union(SalinityOpts) {
                     return error.PrintFailed;
                 };
                 defer err_log.flush() catch {};
-                print("\x1b[1;31merror: {s} in reading salinity simulation option {d} in {s}. Allowed salinity simulation options are: 0=no salinity simulation, and 1=simulate salinity\x1b[0m\n", .{ @errorName(err), val, file_name });
+                print("\x1b[1;31merror:\x1b[0m {s} in reading salinity simulation option {d} in {s}. Allowed salinity simulation options are: 0=no salinity simulation, and 1=simulate salinity\n", .{ @errorName(err), val, file_name });
                 return err;
             },
         };
@@ -177,7 +177,7 @@ pub const SurfElevChangeMode = union(SurfElevChangeOpts) {
                     return error.PrintFailed;
                 };
                 defer err_log.flush() catch {};
-                print("\x1b[1;31merror: {s} in surface elevation change simulation option {d} in {s}. Allowed soil surface elevation change simulation options are: 0=no change in elevation, 1=allow freeze-thaw to change elevation, 2=allow freeze-thaw + erosion to change elevation, 3=allow freeze-thaw + SOC accumulation to change elevation, 4=allow freeze-thaw + SOC accumulation to change elevation, and 5=allow freeze-thaw + SOC accumulation + erosion to change elevation\x1b[0m\n", .{ @errorName(err), val, file_name });
+                print("\x1b[1;31merror:\x1b[0m {s} in surface elevation change simulation option {d} in {s}. Allowed soil surface elevation change simulation options are: 0=no change in elevation, 1=allow freeze-thaw to change elevation, 2=allow freeze-thaw + erosion to change elevation, 3=allow freeze-thaw + SOC accumulation to change elevation, 4=allow freeze-thaw + SOC accumulation to change elevation, and 5=allow freeze-thaw + SOC accumulation + erosion to change elevation\n", .{ @errorName(err), val, file_name });
                 return err;
             },
         };
@@ -202,7 +202,7 @@ pub const GridLatConnMode = union(GridLatConnOpts) {
                     return error.PrintFailed;
                 };
                 defer err_log.flush() catch {};
-                print("\x1b[1;31merror: {s} in reading grid lateral connectivity option {d} in {s}. Allowed grid lateral connectivity options are: 0=no lateral connection between adjacent grids (no lateral flux simulation between adjacent grids), and 1=adjacent grids are connected laterally (allow lateral flux simulation between adjacent grids)\x1b[0m\n", .{ @errorName(err), val, file_name });
+                print("\x1b[1;31merror:\x1b[0m {s} in reading grid lateral connectivity option {d} in {s}. Allowed grid lateral connectivity options are: 0=no lateral connection between adjacent grids (no lateral flux simulation between adjacent grids), and 1=adjacent grids are connected laterally (allow lateral flux simulation between adjacent grids)\n", .{ @errorName(err), val, file_name });
                 return err;
             },
         };

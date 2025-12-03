@@ -1,11 +1,11 @@
 ///This module contains input parser helper methods to be used throughout other moduels
 const std = @import("std");
 const config = @import("config");
-const utils = @import("utils.zig");
+const print = std.debug.print;
 const max_path_len = config.filepathx;
 const max_io_buf = 1024;
 const max_tok_num = 256;
-const FileReader = utils.FileReader;
+const FileReader = @import("utils.zig").FileReader;
 
 ///This struct helps check ecosys run submission arguments and parse the runfile name
 pub const RunArg = struct {
@@ -21,11 +21,12 @@ pub const RunArg = struct {
         const args = try std.process.argsAlloc(allocator_args); //use of allocator is required for windows os. So allocator less option is not feasible in this case
         defer std.process.argsFree(allocator_args, args);
         if (args.len < 2) {
-            std.debug.print(
-                "\x1b[1;31merror -> Missing Arguments. Ecosys job submission format should be: {s} <runfile>\x1b[0m\n",
-                .{args[0]},
+            const err = error.MissingArguments;
+            print(
+                "\x1b[1;31merror:\x1b[0m {s} occured during ecosys job submission. Correct format is: <path/to/ecosys/binary> <runfile>\n",
+                .{@errorName(err)},
             );
-            return error.MissingArguments;
+            return err;
         }
         if (args[1].len >= self.runfile_name.len) {
             return error.RunfilePathTooLong;
@@ -58,7 +59,7 @@ pub const Tokens = struct {
         err_log.flush() catch {
             return error.PrintFailed;
         };
-        std.debug.print("\x1b[1;31merror: {s} while reading {s} in {s}\x1b[0m\n", .{ @errorName(err), context, file_name });
+        print("\x1b[1;31merror:\x1b[0m {s} while reading {s} in {s}\n", .{ @errorName(err), context, file_name });
     }
     ///Checks token length, logs and returns error on mismatch
     fn expectsTokenLen(tok_len: usize, expected: usize, context: []const u8, file_name: []const u8, err_log: *std.Io.Writer) TokenErrors!void {
@@ -108,6 +109,16 @@ pub const Tokens = struct {
         };
     }
 };
+test "testing tokenizeLine" {
+    var buf: [255]u8 = undefined;
+    var err_log = std.Io.Writer.fixed(&buf);
+    var tokens = Tokens{};
+    const fake_line1 = "0 0.1 1 10 200.0 5e-2 10e8";
+    try tokens.tokenizeLine(fake_line1, 7, "fake line #1", "test file", &err_log);
+    try std.testing.expect(tokens.len == 7);
+    try std.testing.expectEqualStrings(tokens.items[3], "10");
+    try std.testing.expectEqualStrings(tokens.items[5], "5e-2");
+}
 ///File path check error set
 const FilePathErrors = error{
     FilePathTooLong,
@@ -123,7 +134,7 @@ pub fn filePathLenCheck(path_len: usize, max_allowable_len: usize, context: []co
         err_log.flush() catch {
             return error.PrintFailed;
         };
-        std.debug.print("\x1b[1;31merror: {s} while reading {s} in {s}\x1b[0m\n", .{ @errorName(err), context, file_name });
+        print("\x1b[1;31merror:\x1b[0m {s} while reading {s} in {s}\n", .{ @errorName(err), context, file_name });
         return err;
     }
 }

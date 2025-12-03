@@ -3,6 +3,7 @@ const std = @import("std");
 const config = @import("config");
 const input_parser = @import("../util/input_parser.zig");
 const utils = @import("../util/utils.zig");
+const print = std.debug.print;
 const nscenario: usize = config.nscenariox;
 const nscene: usize = config.nscenex;
 const nwe: usize = config.nwex;
@@ -298,7 +299,7 @@ const PlantMgmtFile = struct {
                         const err = error.MissingFiles;
                         try err_log.print("error: {s} while reading plant file names in {s}\n", .{ @errorName(err), plant_mgmt_file_name });
                         defer err_log.flush() catch {};
-                        std.debug.print("\x1b[1;31merror: {s} while reading plant file names in {s}\x1b[0m\n", .{ @errorName(err), plant_mgmt_file_name });
+                        print("\x1b[1;31merror:\x1b[0m {s} while reading plant file names in {s}\n", .{ @errorName(err), plant_mgmt_file_name });
                         return err;
                     };
                     for (self.grid_pos.west..self.grid_pos.east) |we| {

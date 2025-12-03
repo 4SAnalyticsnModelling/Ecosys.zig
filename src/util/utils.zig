@@ -1,6 +1,7 @@
 ///This module contains helper functions to be used throughout other modules
 const std = @import("std");
 const config = @import("config");
+const print = std.debug.print;
 const max_path_len = config.filepathx;
 const max_io_buf = 1024;
 
@@ -37,7 +38,7 @@ pub const FileReader = struct {
     pub fn open(self: *FileReader, err_log: *std.Io.Writer, file_to_open: []const u8) !void {
         self.file = std.fs.cwd().openFile(file_to_open, .{ .mode = .read_only }) catch |err| {
             try err_log.print("error: {s} while opening {s} in read only mode\n", .{ @errorName(err), file_to_open });
-            std.debug.print("\x1b[1;31merror: {s} while opening {s} in read only mode\x1b[0m\n", .{ @errorName(err), file_to_open });
+            print("\x1b[1;31merror:\x1b[0m {s} while opening {s} in read only mode\n", .{ @errorName(err), file_to_open });
             return err;
         };
     }
@@ -66,7 +67,7 @@ pub const FileWriter = struct {
             if (self.is_err_log == false) {
                 try self.err_log.print("error: {s} while creating {s} in write mode\n", .{ @errorName(err), file_to_open });
             }
-            std.debug.print("\x1b[1;31merror: {s} while creating {s} in write mode\x1b[0m\n", .{ @errorName(err), file_to_open });
+            print("\x1b[1;31merror:\x1b[0m {s} while creating {s} in write mode\n", .{ @errorName(err), file_to_open });
             return err;
         };
     }

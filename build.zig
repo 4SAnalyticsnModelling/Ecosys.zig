@@ -3,6 +3,7 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.graph.host;
     const optimize = b.standardOptimizeOption(.{});
+
     const exe = b.addExecutable(.{ .name = "ecosys", .root_module = b.createModule(.{ .root_source_file = b.path("src/ecosys.zig"), .target = target, .optimize = optimize }) });
 
     const nwex = b.option(usize, "nwex", "Maximum number of W-E grid cells") orelse 10;
@@ -33,7 +34,18 @@ pub fn build(b: *std.Build) void {
 
     exe.stack_size = 16 * 1024 * 1024; // increase stack size to 16 MB to accommodate large arrays
 
-    b.installArtifact(exe);
+    const install_exe = b.addInstallArtifact(
+        exe,
+        .{
+            .dest_dir = .{
+                .override = .{ .custom = "ecosys" },
+            },
+        },
+    );
+
+    b.getInstallStep().dependOn(&install_exe.step);
+
+    // b.installArtifact(exe);
 
     const run_exe = b.addRunArtifact(exe);
 
@@ -46,6 +58,9 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         }),
     });
+
+    test_blocks.root_module.addOptions("config", options);
+
     const run_test_blocks = b.addRunArtifact(test_blocks);
     test_step.dependOn(&run_test_blocks.step);
 

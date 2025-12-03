@@ -1,4 +1,5 @@
 const std = @import("std");
+const print = std.debug.print;
 ///Returns model run completion time with success message if the run encounters no error(s), otherwise it returns model run failure message
 pub const CompletionTime = struct {
     start_time_us: i64,
@@ -18,11 +19,11 @@ pub const CompletionTime = struct {
         const elapsed = self.elapsedTime(end);
         try self.err_log.print("success: Ecosys model run in {s} completed in {d} {s}!\n", .{ self.runfile, elapsed.value, elapsed.unit });
         try self.err_log.flush();
-        std.debug.print("\x1b[1;32msuccess: Ecosys model run in {s} completed in {d} {s}!\x1b[0m\n", .{ self.runfile, elapsed.value, elapsed.unit });
+        print("\x1b[1;32msuccess:\x1b[0m Ecosys model run in {s} completed in {d} {s}!\n", .{ self.runfile, elapsed.value, elapsed.unit });
     }
     ///This method releases model failure errors
     pub fn fail(self: *CompletionTime) void {
-        std.debug.print("\x1b[1;31merror: Ecosys model run in {s} failed!\x1b[0m\n", .{self.runfile});
+        print("\x1b[1;31merror:\x1b[0m Ecosys model run in {s} failed!\n", .{self.runfile});
         self.err_log.print("error: Ecosys model run in {s} failed!\n", .{self.runfile}) catch {};
         self.err_log.flush() catch {};
     }
