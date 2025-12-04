@@ -2,21 +2,16 @@ const std = @import("std");
 const input_parser = @import("util/input_parser.zig");
 const error_check = @import("util/error_check.zig");
 const utils = @import("util/utils.zig");
-const iofiles = @import("io/iofiles.zig");
 const CompletionTime = error_check.CompletionTime;
 const RunArg = input_parser.RunArg;
-const IoFiles = iofiles.IoFiles;
 const Tokens = input_parser.Tokens;
 const OutDir = utils.OutDir;
 const ErrorLog = utils.ErrorLog;
 const RunStatLog = utils.RunStatLog;
-const LandUnit = @import("io/land_unit.zig").LandUnit;
-const LandUnitChk = @import("io/iochecks.zig").LandUnitChk;
-const IoFileNameChk = @import("io/iochecks.zig").IoFileNameChk;
-var io_files = IoFiles{}; //always keep large storages in global space to avoid stack overflow
-var land_unit = LandUnit{};
-var land_unit_input_chk = LandUnitChk{};
-var parent_io_files_input_chk = IoFileNameChk{};
+var io_files = @import("io/iofiles.zig").IoFiles{}; //always keep large storages in global space to avoid stack overflow
+var land_unit = @import("io/land_unit.zig").LandUnit{};
+var land_unit_input_chk = @import("io/iochecks.zig").LandUnitChk{};
+var parent_io_files_input_chk = @import("io/iochecks.zig").IoFileNameChk{};
 
 ///Ecosys main function
 pub fn main() !void {

@@ -11,10 +11,8 @@ const RunArg = @import("../util/input_parser.zig").RunArg;
 const OutDir = utils.OutDir;
 const FileReader = utils.FileReader;
 const FileWriter = utils.FileWriter;
-const LandUnitDataDesc = @import("iodata_desc.zig").LandUnitDataDesc;
-const IoFileNameDesc = @import("iodata_desc.zig").IoFileNameDesc;
-const io_file_name_desc = IoFileNameDesc{};
-const land_unit_data_desc = LandUnitDataDesc{};
+const io_file_name_desc = @import("iodata_desc.zig").IoFileNameDesc{};
+const land_unit_data_desc = @import("iodata_desc.zig").LandUnitDataDesc{};
 
 ///Writes out description of I/O file names
 pub const IoFileNameChk = struct {
@@ -220,7 +218,7 @@ pub const LandUnitChk = struct {
         const basename = std.fs.path.basename(rawname);
         const ext = std.fs.path.extension(basename);
         self.file_name = basename[0 .. basename.len - ext.len];
-        self.file_name = try std.fmt.bufPrint(&self.path_buf, "{s}/{d}{d}{s}.txt", .{ outdir.input_chk, we, ns, self.file_name });
+        self.file_name = try std.fmt.bufPrint(&self.path_buf, "{s}/we-{d}_ns-{d}_{s}.txt", .{ outdir.input_chk, we, ns, self.file_name });
     }
     ///Write land unit input data with descriptions and units
     fn writeInputs(self: *LandUnitChk, land_unit: *const LandUnit, io_files: *const IoFiles, err_log: *std.Io.Writer, we: usize, ns: usize) !void {
