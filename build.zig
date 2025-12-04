@@ -32,7 +32,7 @@ pub fn build(b: *std.Build) void {
 
     exe.root_module.addOptions("config", options);
 
-    exe.stack_size = 16 * 1024 * 1024; // increase stack size to 16 MB to accommodate large arrays
+    // exe.stack_size = 16 * 1024 * 1024; // increase stack size to 16 MB to accommodate large arrays
 
     //custom binary folder with `zig build -p .` command
     const install_exe = b.addInstallArtifact(

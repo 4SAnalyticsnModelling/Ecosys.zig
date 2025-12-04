@@ -13,6 +13,11 @@ const RunStatLog = utils.RunStatLog;
 const LandUnit = @import("io/land_unit.zig").LandUnit;
 const LandUnitChk = @import("io/iochecks.zig").LandUnitChk;
 const IoFileNameChk = @import("io/iochecks.zig").IoFileNameChk;
+var io_files = IoFiles{}; //always keep large storages in global space to avoid stack overflow
+var land_unit = LandUnit{};
+var land_unit_input_chk = LandUnitChk{};
+var parent_io_files_input_chk = IoFileNameChk{};
+
 ///Ecosys main function
 pub fn main() !void {
     const start_time_us: i64 = std.time.microTimestamp();
@@ -39,17 +44,14 @@ pub fn main() !void {
     //Generate run failure message, if the run fails before completion
     errdefer runtime.fail();
     //Read all input output file names in the runscript
-    var io_files = IoFiles{};
+    // var io_files = IoFiles{};
     try io_files.getParentIoFiles(run.file_reader.buf_reader, runfile, err_log.file_writer.buf_writer);
     try io_files.getChildIoFiles(err_log.file_writer.buf_writer);
     //Input check for parent I/O files
-    var parent_io_files_input_chk = IoFileNameChk{};
     try parent_io_files_input_chk.writeCheckFile(&io_files, &out, runfile);
     //Read land unit data
-    var land_unit = LandUnit{};
     try land_unit.loadLandUnitData(&io_files, err_log.file_writer.buf_writer);
     //Input check land unit data
-    var land_unit_input_chk = LandUnitChk{};
     //std.debug.print("test start year {d}\n", .{io_files.start_yr});
     //std.debug.print("test scenario number {d}\n", .{io_files.scenario.num});
     //std.debug.print("test site file {s}\n", .{io_files.site_file.site.name[0..io_files.site_file.site.len]});
