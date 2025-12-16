@@ -26,8 +26,8 @@ This modernization focuses on improving **scalability, numerical robustness, and
 # Compile Ecosys.zig 
 **(compile with zig version 0.15.2)**
 
-=> `zig build` (**default compilation**: you will find the binary within `zig-out/ecosys` path within the Ecosys.zig directory)
+=> `zig build` (ecosys binary within `./zig-out/ecosys`)
 
-=> `zig build -p . --verbose --sumary all.` (**example custom compilation**: you will find the binary within the `./ecosys` directory)
+=> `zig build -p . --verbose --sumary all.` (ecosys binary within within `./ecosys`)
 
-=> `zig build test --verbose --summary all` (**example custom compilation with code testing during compilation - UAT**)
+=> `zig build test --verbose --summary all` (run ecosys code tests)
