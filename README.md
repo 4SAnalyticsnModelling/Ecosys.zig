@@ -1,30 +1,25 @@
 # Ecosys.zig
 
-`Ecosys.zig` is the Zig-based modernization of the legacy **Fortran77** codebase of the **ECOSYS** model that was originally developed by **Professor Dr. Robert Grant** at the **University of Alberta**. Compared to the original **ECOSYS** model, `Ecosys.zig` is significantly more modular. The names of the variables and constants are also expanded to make them more instantly readable. As a result, the design, look, and structure of `Ecosys.zig` differ substantially from the original **ECOSYS** model. However, the core algorithms remain mostly the same.
+`Ecosys.zig` is a modern re-implementation of the original ecosystem model **ECOSYS** developed by **Professor Dr. Robert Grant (University of Alberta)**, originally written in **Fortran-77**. The goal of this project is to preserve the scientific foundations and process-based structure of **ECOSYS** while modernizing its software architecture for contemporary large-scale, high-performance computing workflows.
 
-ℹ️ **Note:**
-- Zig uses **row-major** array ordering, whereas Fortran uses **column-major**. Therefore, all array dimensions in `Ecosys.zig` are reversed relative to those in the original **ECOSYS**.
-- Zig arrays are **zero-indexed**, while Fortran arrays typically start at **index 1**. So, **index offsetting** is used wherever applicable.
+This modernization focuses on improving **scalability, numerical robustness, and spatial representation**, while preserving the underlying biophysical formulations of the original **ECOSYS** model.
 
-# Motivation
+# Key modernizations
 
-`Ecosys.zig` leverages the power of the Zig programming language to achieve:
+**Explicit spatial representation**
+Geographic structure is represented using explicit latitude–longitude grids with lateral connectivity between neighboring cells, enabling more realistic spatial interactions and landscape-scale simulations.
 
-- lower memory footprint
+**Out-of-core tiling for large domains**
+Designed for very large spatial extents, the model supports tile-based, out-of-core execution, allowing simulations to scale beyond available memory on HPC systems.
 
-- higher speed
+**Robust nonlinear solvers**
+Sub-hourly solutions of heat, water, solute, and gas transport use damped Picard–Newton (modified Newton) methods, improving convergence stability under strongly coupled and highly nonlinear conditions.
 
-- cross-platform binaries (Windows, macOS, Linux)
+**Parallel execution with Zig**
+Computational kernels are parallelized using Zig’s multithreading facilities, enabling efficient utilization of modern multi-core CPUs without external runtime dependencies.
 
-- better error handling
-
-- faster convergence with fewer oscillations, using modern schemes
-
-- better readability with expanded variable/constant names
-
-- safer codes with test blocks
-
-- parallelism (planned for future development)
+**Improved error handling and safety**
+The Zig implementation emphasizes explicit error handling, and clearer control flow, making the model more maintainable and easier to debug than legacy Fortran implementations.
 
 ⚠️  `Ecosys.zig` is currently under active development. The code is incomplete and not yet ready for production use.
 
@@ -33,13 +28,6 @@
 
 => `zig build` (**default compilation**: you will find the binary within `zig-out/ecosys` path within the Ecosys.zig directory)
 
-=> `zig build -p .` (**example custom compilation**: you will find the binary within the `./ecosys` directory)
+=> `zig build -p --verbose --sumary all.` (**example custom compilation**: you will find the binary within the `./ecosys` directory)
 
-=> `zig build -p . -Dnwex=1 -Dnnsx=1 -Dnsoilx=10 -Dnresx=3, -Dnsnowx=5 -Dnplantx=5 -Dncanopyx=5 -Dnscenariox=2 -Dnscenex=6 -Doptimize=ReleaseFast --verbose --summary all` (**example custom compilation - production**)
-
-=> `zig build -p . -Dnwex=1 -Dnnsx=1 -Dnsoilx=10 -Dnresx=3, -Dnsnowx=5 -Dnplantx=5 -Dncanopyx=5 -Dnscenariox=2 -Dnscenex=6 -Doptimize=ReleaseSafe --verbose --summary all` (**example custom compilation - UAT**)
-
-=> `zig build test -Dnwex=1 -Dnnsx=1 -Dnsoilx=10 -Dnresx=3 -Dnsnowx=5 -Dnplantx=3 -
-Dncanopyx=10 -Dnscenariox=2 -Dnscenex=6 -Doptimize=ReleaseSafe --verbose --summary all` (**example custom compilation with code testing during compilation - UAT**)
-
-ℹ️  See `build.zig` file for detailed description of the custom compilation options.
+=> `zig build test --verbose --summary all` (**example custom compilation with code testing during compilation - UAT**)
