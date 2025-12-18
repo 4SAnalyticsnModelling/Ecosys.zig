@@ -1,174 +1,71 @@
-0  0  2 2
-site
-2001
-2 3
-6 3
-wthr_net01
-options01
-soil_mgmt01
-plant_mgmt01
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-wthr_net02
-options02
-no
-plant_mgmt02
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-wthr_net03
-options03
-soil_mgmt03
-plant_mgmt03
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-wthr_net04
-options04
-no
-plant_mgmt04
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-wthr_net05
-options05
-soil_mgmt05
-plant_mgmt05
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-wthr_net06
-options06
-no
-plant_mgmt06
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-6 3
-wthr_net01
-options01_1
-soil_mgmt01
-plant_mgmt01
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-wthr_net02
-options02
-no
-plant_mgmt02
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-wthr_net03
-options03
-soil_mgmt03
-plant_mgmt03
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-wthr_net04
-options04
-no
-plant_mgmt04
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-wthr_net05
-options05
-soil_mgmt05
-plant_mgmt05
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
-wthr_net06
-options06
-no
-plant_mgmt06
-hrly_c_out
-hrly_wtr_out
-no
-no
-hrly_heat_out
-daily_c_out
-daily_wtr_out
-daily_n_out
-daily_p_out
-daily_heat_out
+# latitude spacing (⁰), longitude spacing (⁰), min. latitude (⁰), max. latitude (⁰), min. longitude (⁰), and max. longitude (⁰) down to six decimal digits; the spacing are used to mesh the grids, original data may or may not follow the exact spacing; negative values for southing and westing
+0.01,0.01,49.665,49.735,-112.865,-112.795
+# total number of tiles, size of each tile (# of rows, # of columns in power-of-two-grids, e.g., 2x4, 4x4, 2x8, 4x8, 8x8, 16x16, 16x32, 32x32 etc. based on RAM budget)
+2,32,32
+site # site file path
+boundary # boundary file path
+option_files # option file paths
+till_files # tillage file paths
+fert_files # fertilizer mgmt file paths
+irrig_files # irrigation mgmt file paths
+plants # plant functional type file path
+plant_mgmt_files # plant mgmt file paths
+output_files # output file paths
+# simulation start year, does this simulation start from a previous spin-up run? 0=no, 1=yes
+2001,0
+# number of model scenarios and how many times each scenario repeats
+6,10
+# simulation start date, end date in DDMM format
+0101,3112
+input_files_01 # all input file paths and ids
+# write hourly outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,0,0,1
+# write daily outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,1,1,1
+# simulation start date, end date in DDMM format
+0101,3112
+input_files_02 # all input file paths and ids
+# write hourly outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,0,0,1
+# write daily outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,1,1,1
+# simulation start date, end date in DDMM format
+0101,3112
+input_files_03 # all input file paths and ids
+# write hourly outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,0,0,1
+# write daily outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,1,1,1
+# simulation start date, end date in DDMM format
+0101,3112
+input_files_04 # all input file paths and ids
+# write hourly outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,0,0,1
+# write daily outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,1,1,1
+# simulation start date, end date in DDMM format
+0101,3112
+input_files_05 # all input file paths and ids
+# write hourly outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,0,0,1
+# write daily outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,1,1,1
+# simulation start date, end date in DDMM format
+0101,3112
+input_files_06 # all input file paths and ids
+# write hourly outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,0,0,1
+# write daily outputs? 0=no, 1=yes
+# C, water, N, P, heat
+1,1,1,1,1

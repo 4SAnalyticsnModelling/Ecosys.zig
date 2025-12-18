@@ -1,0 +1,20 @@
+# hourly C output file path
+hrly_c_out
+# hourly water output file path
+hrly_wtr_out
+# hourly N output file path; no = no output for N will be written
+no
+# hourly P output file path; no = no output for P will be written
+no
+# hourly heat output file path
+hrly_heat_out
+# daily C output file path
+daily_c_out
+# daily water output file path
+daily_wtr_out
+# daily N output file path
+daily_n_out
+# daily P output file path
+daily_p_out
+# daily heat output file path
+daily_heat_out
