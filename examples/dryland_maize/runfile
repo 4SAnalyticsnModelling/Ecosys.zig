@@ -1,23 +1,26 @@
-# latitude spacing (⁰), longitude spacing (⁰), min. latitude (⁰), max. latitude (⁰), min. longitude (⁰), and max. longitude (⁰) down to six decimal digits; the spacing are used to mesh the grids, original data may or may not follow the exact spacing; negative values for southing and westing
-0.01,0.01,49.665,49.735,-112.865,-112.795
-# total number of tiles, size of each tile (# of rows, # of columns in power-of-two-grids, e.g., 2x4, 4x4, 2x8, 4x8, 8x8, 16x16, 16x32, 32x32 etc. based on RAM budget)
-2,32,32
-site # site file path
-boundary # boundary file path
+# min. latitude (⁰), max. latitude (⁰), min. longitude (⁰), max. longitude (⁰); lat lon data can be down to six decimal digits; negative values for southing and westing, latitude spacing (⁰), longitude spacing (⁰), the spacing are used to mesh the grids, original data may or may not follow the exact spacing
+49.665,49.735,-112.865,-112.795,0.01,0.01
+# tile size for out-of-core computing: number of rows, number of columns in each tile (in power-of-two-grids, e.g., 2x4, 4x4, 2x8, 8x2, 4x8, 8x8, 16x16, 16x32, 32x32 etc. based on RAM budget)
+8,4
+geo_attr # geospatial attributes
+site_files # site file paths
+boundary_files # boundary file paths
+soil_files # soil file paths
 option_files # option file paths
 till_files # tillage file paths
 fert_files # fertilizer mgmt file paths
 irrig_files # irrigation mgmt file paths
-plants # plant functional type file path
+plant_files # plant functional type file paths
 plant_mgmt_files # plant mgmt file paths
 output_files # output file paths
 # simulation start year, does this simulation start from a previous spin-up run? 0=no, 1=yes
 2001,0
+site_maps
 # number of model scenarios and how many times each scenario repeats
 6,10
 # simulation start date, end date in DDMM format
 0101,3112
-input_files_01 # all input file paths and ids
+input_maps_01 # all input file paths and ids
 # write hourly outputs? 0=no, 1=yes
 # C, water, N, P, heat
 1,1,0,0,1
@@ -26,7 +29,7 @@ input_files_01 # all input file paths and ids
 1,1,1,1,1
 # simulation start date, end date in DDMM format
 0101,3112
-input_files_02 # all input file paths and ids
+input_maps_02 # all input file paths and ids
 # write hourly outputs? 0=no, 1=yes
 # C, water, N, P, heat
 1,1,0,0,1
@@ -35,7 +38,7 @@ input_files_02 # all input file paths and ids
 1,1,1,1,1
 # simulation start date, end date in DDMM format
 0101,3112
-input_files_03 # all input file paths and ids
+input_maps_03 # all input file paths and ids
 # write hourly outputs? 0=no, 1=yes
 # C, water, N, P, heat
 1,1,0,0,1
@@ -44,7 +47,7 @@ input_files_03 # all input file paths and ids
 1,1,1,1,1
 # simulation start date, end date in DDMM format
 0101,3112
-input_files_04 # all input file paths and ids
+input_maps_04 # all input file paths and ids
 # write hourly outputs? 0=no, 1=yes
 # C, water, N, P, heat
 1,1,0,0,1
@@ -53,7 +56,7 @@ input_files_04 # all input file paths and ids
 1,1,1,1,1
 # simulation start date, end date in DDMM format
 0101,3112
-input_files_05 # all input file paths and ids
+input_maps_05 # all input file paths and ids
 # write hourly outputs? 0=no, 1=yes
 # C, water, N, P, heat
 1,1,0,0,1
@@ -62,7 +65,7 @@ input_files_05 # all input file paths and ids
 1,1,1,1,1
 # simulation start date, end date in DDMM format
 0101,3112
-input_files_06 # all input file paths and ids
+input_maps_06 # all input file paths and ids
 # write hourly outputs? 0=no, 1=yes
 # C, water, N, P, heat
 1,1,0,0,1

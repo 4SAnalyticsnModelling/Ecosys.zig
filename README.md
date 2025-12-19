@@ -26,8 +26,8 @@ This modernization focuses on improving **scalability, numerical robustness, and
 # Compile ecosys-ng 
 **(compile with Zig version 0.15.2)**
 
-=> `zig build` (ecosys binary within `./zig-out/ecosys-ng-bin`)
+=> `zig build` (ecosys-ng binary within `./zig-out/ecosys-ng-bin`)
 
-=> `zig build -p . --verbose --sumary all.` (ecosys binary within `./ecosys-ng-bin`)
+=> `zig build -p . --verbose --sumary all` (ecosys-ng binary within `./ecosys-ng-bin`)
 
-=> `zig build -p . test --verbose --summary all` (run ecosys code tests during compilation; find ecosys binary within `./ecosys-ng-bin`)
+=> `zig build -p . test --verbose --summary all` (run ecosys-ng code tests during compilation; find ecosys-ng binary within `./ecosys-ng-bin`)

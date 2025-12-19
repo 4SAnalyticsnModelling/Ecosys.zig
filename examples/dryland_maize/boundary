@@ -1,5 +1,5 @@
-# lat,lon,elevation (m),natural water table depth relative to elevation (m), artificial water table depth (m),surface run-on/run-off flux multiplier (dimensionless), sub-surface lateral recharge/discharge flux multiplier
-49.745,-112.830,914.714,-4,0,1.0,1.0
-49.655,-112.830,899.286,-4,0,1.0,1.0
-49.700,-112.785,912.143,-4,0,1.0,1.0
-49.700,-112.875,901.857,-4,0,1.0,1.0
+# direction (0=west,1=north,2=east,3=south),elevation (m),natural water table depth relative to elevation (m), artificial water table depth (m),surface run-on/run-off flux multiplier (dimensionless), sub-surface lateral recharge/discharge flux multiplier
+0,914.714,-4,0,1.0,1.0
+1,899.286,-4,0,1.0,1.0
+2,912.143,-4,0,1.0,1.0
+3,901.857,-4,0,1.0,1.0

@@ -8,10 +8,12 @@ pub fn build(b: *std.Build) void {
 
     // exe.stack_size = 16 * 1024 * 1024; // increase stack size to 16 MB to accommodate large arrays
     const ecosys_ng = b.addModule("ecosys-ng", .{
-        .root_source_file = b.path("src/ecosys-ng.zig"),
+        .root_source_file = b.path("src/ecosys-ng_module.zig"),
     });
 
     exe.root_module.addImport("ecosys-ng", ecosys_ng);
+
+    ecosys_ng.addImport("ecosys-ng", ecosys_ng);
 
     //custom binary folder with `zig build -p .` command
     const install_exe = b.addInstallArtifact(

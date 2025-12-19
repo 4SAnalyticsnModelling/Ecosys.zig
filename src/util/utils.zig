@@ -1,29 +1,29 @@
 ///This module contains helper functions to be used throughout other modules
 const std = @import("std");
-const config = @import("config");
 const print = std.debug.print;
-const max_path_len = config.filepathx;
-const max_io_buf = 1024;
+const max_io_buf = 10 * 1024;
+const max_path_len = 1024;
 
 ///This struct helps create ecosys output directory tree
 pub const OutDir = struct {
     par_dir: []const u8 = "outputs",
+    data_bin_dir: []const u8 = "tiles",
     err_dir: []const u8 = "outputs/error_logs",
     run_trck: []const u8 = "outputs/run_trackers",
-    input_chk: []const u8 = "outputs/input_checks",
     outs: []const u8 = "outputs/modeled_outputs",
-    ///This method creates a directory by forcing deletion of the previous version (if any) of the same directory
+    ///This method creates a directory only if there is no existing previous version of it
     fn createDir(path: []const u8) !void {
-        const fs = std.fs.cwd();
-        fs.deleteTree(path) catch {};
-        try fs.makeDir(path);
+        std.fs.cwd().makePath(path) catch |err| switch (err) {
+            error.PathAlreadyExists => return,
+            else => return err,
+        };
     }
     ///This method creates all ecosys output directories
     pub fn mkOutDirs(self: *const OutDir) !void {
         try createDir(self.par_dir);
         try createDir(self.err_dir);
         try createDir(self.run_trck);
-        try createDir(self.input_chk);
+        try createDir(self.data_bin_dir);
         try createDir(self.outs);
     }
 };

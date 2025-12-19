@@ -5,8 +5,6 @@ const util = ecosys_ng.util;
 const io = ecosys_ng.io;
 const utils = util.utils;
 const input_parser = util.input_parser;
-const iofiles = io.iofiles;
-const iochecks = io.iochecks;
 
 //Call all modules that have localized test blocks
 test "all uitls code tests entrypoint" {
@@ -15,12 +13,4 @@ test "all uitls code tests entrypoint" {
 
 test "all input_parse code tests entrypoint" {
     _ = input_parser;
-}
-
-test "all iofiles code tests entrypoint" {
-    _ = iofiles;
-}
-
-test "all iochecks code tests entrypoint" {
-    _ = iochecks;
 }
