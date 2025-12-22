@@ -8,4 +8,5 @@ pub const util = struct {
 
 pub const io = struct {
     pub const geo_attr = @import("../src/io/geo_attributes.zig");
+    pub const load_run = @import("../src/io/load_run.zig");
 };

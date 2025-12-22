@@ -114,3 +114,99 @@ test "custom power function for f32 & f64" {
     try std.testing.expectEqual(@as(f64, 4.0), power(f64, 2.0, 2.0));
     try std.testing.expectApproxEqAbs(@as(f32, 0.72478), power(f32, 0.2, 0.2), 0.0001);
 }
+///Convert geographical to XY coordinates
+pub fn toXY(geo_ud: i32, min_geo_ud: i32, dgeo_ud: i32) usize {
+    const result = @divFloor(geo_ud - min_geo_ud, dgeo_ud);
+    return @intCast(result);
+}
+test "toXY from lat lon" {
+    const lat_ud: i32 = 53_546_100; // 53.5461 deg
+    const lon_ud: i32 = -113_493_800; // -113.4938 deg
+    const min_lat_ud: i32 = 53_000_000; // 53.0000 deg
+    const min_lon_ud: i32 = -114_000_000; // -114.0000 deg
+    const dlat_ud: i32 = 10_000; // 0.01 deg
+    const dlon_ud: i32 = 10_000; // 0.01 deg
+
+    try std.testing.expectEqual(@as(usize, 54), toXY(lat_ud, min_lat_ud, dlat_ud));
+    try std.testing.expectEqual(@as(usize, 50), toXY(lon_ud, min_lon_ud, dlon_ud));
+}
+///Morton (z-order) indexing, interleave bits of a 16-bit integer with zeros: abcdef -> a0b0c0d0e0f0
+fn part1by1(x_in: u32) u32 {
+    var x = x_in & 0x0000_FFFF;
+    x = (x | (x << 8)) & 0x00FF_00FF;
+    x = (x | (x << 4)) & 0x0F0F_0F0F;
+    x = (x | (x << 2)) & 0x3333_3333;
+    x = (x | (x << 1)) & 0x5555_5555;
+    return x;
+}
+///Morton id from x, y coordinates
+pub fn morton2D(x: usize, y: usize) usize {
+    // valid for x,y up to 65535 (more than enough here)
+    const xx: u32 = @intCast(x);
+    const yy: u32 = @intCast(y);
+    const m: u32 = (part1by1(xx) | (part1by1(yy) << 1));
+    return @intCast(m);
+}
+test "morton2D basics and bit interleave" {
+    try std.testing.expectEqual(@as(usize, 0), morton2D(0, 0));
+    try std.testing.expectEqual(@as(usize, 1), morton2D(1, 0)); // x=1 -> bit 0
+    try std.testing.expectEqual(@as(usize, 2), morton2D(0, 1)); // y=1 -> bit 1
+    try std.testing.expectEqual(@as(usize, 13), morton2D(2, 3)); // x=2(10), y=3(11) => 1101b
+    try std.testing.expectEqual(@as(usize, 0xFFFF_FFFF), morton2D(65535, 65535));
+}
+///Flat 1D id to x, y coordinates
+pub fn flatIdToXY(id: usize, nx_ny: usize) struct { x: usize, y: usize } {
+    return .{ .x = id % nx_ny, .y = id / nx_ny };
+}
+test "flatIdToXY row/column mapping" {
+    const nx: usize = 5;
+    try std.testing.expectEqual(@as(usize, 0), flatIdToXY(0, nx).x);
+    try std.testing.expectEqual(@as(usize, 0), flatIdToXY(0, nx).y);
+
+    try std.testing.expectEqual(@as(usize, nx - 1), flatIdToXY(nx - 1, nx).x);
+    try std.testing.expectEqual(@as(usize, 0), flatIdToXY(nx - 1, nx).y);
+
+    try std.testing.expectEqual(@as(usize, 0), flatIdToXY(nx, nx).x);
+    try std.testing.expectEqual(@as(usize, 1), flatIdToXY(nx, nx).y);
+
+    const p = flatIdToXY(17, nx);
+    try std.testing.expectEqual(@as(usize, 2), p.x);
+    try std.testing.expectEqual(@as(usize, 3), p.y);
+}
+///Morton id from flat 1D id
+pub fn mortonId(id: usize, nx_ny: usize) usize {
+    const p = flatIdToXY(id, nx_ny);
+    return morton2D(p.x, p.y);
+}
+test "mortonId matches morton2D(flatIdToXY)" {
+    const nx: usize = 4;
+    var id: usize = 0;
+    while (id < nx * nx) : (id += 1) {
+        const p = flatIdToXY(id, nx);
+        try std.testing.expectEqual(morton2D(p.x, p.y), mortonId(id, nx));
+    }
+
+    try std.testing.expectEqual(morton2D(nx - 1, 0), mortonId(nx - 1, nx));
+    try std.testing.expectEqual(morton2D(0, 1), mortonId(nx, nx));
+}
+///Check if an integer is a power of two
+pub fn requirePowerOfTwo(n: usize) !void {
+    if (n == 0 or (n & (n - 1)) != 0) {
+        return error.NotPowerOfTwoTileSpecsNotValid;
+    }
+}
+test "requirePowerOfTwo accepts powers of two and rejects others" {
+    // ok cases
+    try requirePowerOfTwo(1);
+    try requirePowerOfTwo(2);
+    try requirePowerOfTwo(4);
+    try requirePowerOfTwo(8);
+    try requirePowerOfTwo(16);
+    try requirePowerOfTwo(64);
+
+    // error cases
+    try std.testing.expectError(error.NotPowerOfTwo, requirePowerOfTwo(0));
+    try std.testing.expectError(error.NotPowerOfTwo, requirePowerOfTwo(3));
+    try std.testing.expectError(error.NotPowerOfTwo, requirePowerOfTwo(6));
+    try std.testing.expectError(error.NotPowerOfTwo, requirePowerOfTwo(12));
+}

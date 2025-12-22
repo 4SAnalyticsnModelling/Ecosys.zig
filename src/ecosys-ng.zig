@@ -5,7 +5,7 @@ const io = ecosys_ng.io;
 const utils = util.utils;
 const parser = util.input_parser;
 const err_handler = util.err_handler;
-const geo_attr = io.geo_attr;
+const load_run = io.load_run;
 ///ecosys-ng main function
 pub fn main() !void {
     const start_time_us: i64 = std.time.microTimestamp();
@@ -31,8 +31,7 @@ pub fn main() !void {
     var runtime = err_handler.CompletionTime.init(start_time_us, runfile, err_log.file_writer.buf_writer);
     //Generate run failure message, if the run fails before completion
     errdefer runtime.fail();
-    var geo_attr_ = geo_attr.LatLonRangeAndTileSpecs{};
-    try geo_attr_.read(runfile, run.file_reader.buf_reader, err_log.file_writer.buf_writer);
-    std.debug.print("test tilespec print: lat_max_ud: {d}\n", .{geo_attr_.lat_max_ud});
+    var load_runfile = load_run.LoadRun{ .runfile = runfile, .err_log = err_log.file_writer.buf_writer, .buf_reader = run.file_reader.buf_reader };
+    try load_runfile.load();
     try runtime.success();
 }

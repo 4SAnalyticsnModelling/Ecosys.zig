@@ -7,7 +7,7 @@ const utils = util.utils;
 const input_parser = util.input_parser;
 
 //Call all modules that have localized test blocks
-test "all uitls code tests entrypoint" {
+test "all utils code tests entrypoint" {
     _ = utils;
 }
 
