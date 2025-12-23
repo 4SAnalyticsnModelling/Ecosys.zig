@@ -36,6 +36,7 @@ pub fn build(b: *std.Build) void {
         "src/util/utils.zig",
         "src/util/input_parser.zig",
     };
+
     inline for (modules) |path| {
         const test_blocks = b.addTest(.{
             .root_module = b.createModule(.{

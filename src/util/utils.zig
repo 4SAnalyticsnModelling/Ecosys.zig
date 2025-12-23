@@ -210,3 +210,26 @@ test "requirePowerOfTwo accepts powers of two and rejects others" {
     try std.testing.expectError(error.NotPowerOfTwoTileSpecsNotValid, requirePowerOfTwo(6));
     try std.testing.expectError(error.NotPowerOfTwoTileSpecsNotValid, requirePowerOfTwo(12));
 }
+///Convert n-dimensional ids to flat ids
+pub fn toFlatId(comptime ndims: usize, shape: [ndims]usize, indices: [ndims]usize) usize {
+    var idx: usize = 0;
+    inline for (indices, 0..) |iv, k| {
+        const dim = shape[k];
+        if (k == 0) idx = iv else idx = idx * dim + iv;
+    }
+    return idx;
+}
+test "toFlatId row-major mapping" {
+    // 2D: shape 4x3
+    const shape2 = .{ 4, 3 };
+    try std.testing.expectEqual(@as(usize, 0), toFlatId(2, shape2, .{ 0, 0 }));
+    try std.testing.expectEqual(@as(usize, 3), toFlatId(2, shape2, .{ 1, 0 }));
+    try std.testing.expectEqual(@as(usize, 11), toFlatId(2, shape2, .{ 3, 2 })); // last cell
+
+    // 3D: shape 2x3x4
+    const shape3 = .{ 2, 3, 4 };
+    // ((0 * 3) + 2) * 4 + 1 = 9
+    try std.testing.expectEqual(@as(usize, 9), toFlatId(3, shape3, .{ 0, 2, 1 }));
+    // ((1 * 3) + 2) * 4 + 3 = 23 (last cell)
+    try std.testing.expectEqual(@as(usize, 23), toFlatId(3, shape3, .{ 1, 2, 3 }));
+}

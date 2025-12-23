@@ -68,6 +68,10 @@ pub const GeoAttr = packed struct {
     iy_old: usize = 0, //iy of the previous read
     nx: usize = 0, //max domain ix
     ny: usize = 0, //max domain iy
+    tile_ix: usize = 0, //tile id along X coordinate
+    tile_iy: usize = 0, //tile id along Y coordinate
+    local_ix: usize = 0, //local ix within a tile
+    local_iy: usize = 0, //local iy within a tile
 
     pub fn load(self: *GeoAttr, lat_lon_rng_n_tile_specs: *const LatLonRangeAndTileSpecs, file_name: []const u8) !void {
         var line = try parser.readNextDataLine(self.reader);
@@ -94,12 +98,17 @@ pub const GeoAttr = packed struct {
             for (tokens.items[fields.len .. fields.len + fields_elev_mat.len], 0..) |tok, i| {
                 fields_elev_mat[i].* = try parser.parseTokToFloat(f32, tok, "elevation and MAT", geo_attr_filename, self.err_log);
             }
-            self.ix_old = self.ix;
-            self.iy_old = self.iy;
-            self.ix = utils.toXY(self.lon_ud, lat_lon_rng_n_tile_specs.lon_min_ud, lat_lon_rng_n_tile_specs.dlon_ud);
-            self.iy = utils.toXY(self.lat_ud, lat_lon_rng_n_tile_specs.lat_min_ud, lat_lon_rng_n_tile_specs.dlat_ud);
-            self.nx = @max(self.ix_old, self.ix);
-            self.ny = @max(self.iy_old, self.iy);
+            try self.assignId(lat_lon_rng_n_tile_specs);
         }
+    }
+    fn assignId(self: *GeoAttr, lat_lon_rng_n_tile_specs: *const LatLonRangeAndTileSpecs) !void {
+        self.ix_old = self.ix;
+        self.iy_old = self.iy;
+        self.ix = utils.toXY(self.lon_ud, lat_lon_rng_n_tile_specs.lon_min_ud, lat_lon_rng_n_tile_specs.dlon_ud);
+        self.iy = utils.toXY(self.lat_ud, lat_lon_rng_n_tile_specs.lat_min_ud, lat_lon_rng_n_tile_specs.dlat_ud);
+        self.nx = @max(self.ix_old, self.ix);
+        self.ny = @max(self.iy_old, self.iy);
+        self.tile_ix = @divFloor(self.nx, lat_lon_rng_n_tile_specs.ntx);
+        self.tile_iy = @divFloor(self.ny, lat_lon_rng_n_tile_specs.nty);
     }
 };
