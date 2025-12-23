@@ -23,7 +23,7 @@ This modernization focuses on improving **scalability, numerical robustness, and
 
 ⚠️  `ecosys-ng` is currently under active development. The code is incomplete and not yet ready for production use.
 
-# Compile ecosys-ng 
+# Compile ecosys-ng
 **(compile with Zig version 0.15.2)**
 
 => `zig build` (ecosys-ng binary within `./zig-out/ecosys-ng-bin`)
