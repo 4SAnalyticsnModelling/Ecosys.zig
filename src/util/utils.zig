@@ -149,9 +149,9 @@ pub fn morton2D(x: usize, y: usize) usize {
 }
 test "morton2D basics and bit interleave" {
     try std.testing.expectEqual(@as(usize, 0), morton2D(0, 0));
-    try std.testing.expectEqual(@as(usize, 1), morton2D(1, 0)); // x=1 -> bit 0
-    try std.testing.expectEqual(@as(usize, 2), morton2D(0, 1)); // y=1 -> bit 1
-    try std.testing.expectEqual(@as(usize, 13), morton2D(2, 3)); // x=2(10), y=3(11) => 1101b
+    try std.testing.expectEqual(@as(usize, 1), morton2D(1, 0)); //x=0001(1), y=0000(0) => 0b0000_0001(1)
+    try std.testing.expectEqual(@as(usize, 2), morton2D(0, 1)); //x=0000(0), y=0001(1) => 0b0000_0010(2)
+    try std.testing.expectEqual(@as(usize, 14), morton2D(2, 3)); //x=0010(2), y=0011(3) => 0b0000_1110(14)
     try std.testing.expectEqual(@as(usize, 0xFFFF_FFFF), morton2D(65535, 65535));
 }
 ///Flat 1D id to x, y coordinates
@@ -205,8 +205,8 @@ test "requirePowerOfTwo accepts powers of two and rejects others" {
     try requirePowerOfTwo(64);
 
     // error cases
-    try std.testing.expectError(error.NotPowerOfTwo, requirePowerOfTwo(0));
-    try std.testing.expectError(error.NotPowerOfTwo, requirePowerOfTwo(3));
-    try std.testing.expectError(error.NotPowerOfTwo, requirePowerOfTwo(6));
-    try std.testing.expectError(error.NotPowerOfTwo, requirePowerOfTwo(12));
+    try std.testing.expectError(error.NotPowerOfTwoTileSpecsNotValid, requirePowerOfTwo(0));
+    try std.testing.expectError(error.NotPowerOfTwoTileSpecsNotValid, requirePowerOfTwo(3));
+    try std.testing.expectError(error.NotPowerOfTwoTileSpecsNotValid, requirePowerOfTwo(6));
+    try std.testing.expectError(error.NotPowerOfTwoTileSpecsNotValid, requirePowerOfTwo(12));
 }

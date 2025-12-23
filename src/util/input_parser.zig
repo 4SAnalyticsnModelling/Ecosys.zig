@@ -175,7 +175,9 @@ test "testing readNextDataLine skips comments and blanks" {
         "\n" ++
         "\t \r\n" ++
         "1 2 3\n";
-    var reader = std.Io.Reader.fixed(&input);
-    const line = try readNextDataLine(&reader);
+    var reader = std.Io.Reader.fixed(input);
+    var line = try readNextDataLine(&reader);
     try std.testing.expectEqualStrings("1 2 3\n", line);
+    line = try readNextDataLine(&reader);
+    try std.testing.expectEqualStrings("EndOfStream", line);
 }

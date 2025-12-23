@@ -2,14 +2,13 @@ ecosys-ng/
 	|-build.zig
 	|-src/
 	|	|-ecosys-ng.zig (ecosys-ng main function that executes all ecosys-ng functions)
+	|	|-ecosys-ng_module.zig (support imports of all ecosys-ng modules from anywhere within the repo)
 	|	|-io (this module contains input/output data structures and functions)/
 	|	|	|-
 	|	|-mod (this module contains simulation data structures and functions)/
 	|	|	|-
 	|	|-util (this module contains utility and helper structs and functions)/
 	|	|	|-
-	|-test (contains all code testing that are performed during compilation to ensure maximum code safety during runtime)/
-	|	|-ecosys-ng_tests.zig
 	|-examples (contains example ecosys-ng run libraries)/
 	|	|-dryland_maize
 	|-docs/

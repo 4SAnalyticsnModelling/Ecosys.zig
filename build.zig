@@ -31,18 +31,23 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run ecosys-ng code test blocks");
 
-    const test_blocks = b.addTest(.{
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("test/ecosys-ng_test.zig"),
-            .target = target,
-            .optimize = optimize,
-        }),
-    });
+    //Run all tests in the following modules
+    const modules = [_][]const u8{
+        "src/util/utils.zig",
+        "src/util/input_parser.zig",
+    };
+    inline for (modules) |path| {
+        const test_blocks = b.addTest(.{
+            .root_module = b.createModule(.{
+                .root_source_file = b.path(path),
+                .target = target,
+                .optimize = optimize,
+            }),
+        });
+        const run_test_blocks = b.addRunArtifact(test_blocks);
+        test_step.dependOn(&run_test_blocks.step);
+    }
 
-    test_blocks.root_module.addImport("ecosys-ng", ecosys_ng);
-
-    const run_test_blocks = b.addRunArtifact(test_blocks);
-    test_step.dependOn(&run_test_blocks.step);
     test_step.dependOn(b.getInstallStep()); //create binary along with testing
 
     const run_step = b.step("run", "Run ecosys-ng application");
